@@ -482,12 +482,12 @@ def countdown(t):
 
 if __name__ == '__main__':
     # while True:
-    ll = login()
-    # ll.get()
-    # ll.get1()
-    # ll.get2()
-    # ll.ww1()
-    # ll.get3()
-    # ll.get4()
-    # ll.get5()
-    ll.get6()
+        ll = login()
+        ll.get()    #808普通报警
+        # ll.get1() #粤标报警
+        # ll.get2() #苏标报警
+        # ll.ww1()  #905位置数据
+        ll.get3()   #人证不匹配报警
+        ll.get4()   #绕路报警
+        ll.get5()   #驾驶员没有从业资格证
+        ll.get6()   #跨区域预警

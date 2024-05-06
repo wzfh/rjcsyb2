@@ -379,8 +379,8 @@ class MY_GUI(tk.Tk):
             jd3 = hex(int(jd2))
             经度 = jd3[2:].zfill(8).upper()
             高程 = f'00{random.randint(12, 20)}'
-            速度 = f'00{random.randint(12, 20)}'
-            方向 = f'00{random.randint(12, 20)}'
+            速度 = f'0{random.randint(20, 30)}0'
+            方向 = f'00{random.randint(10, 90)}'
             时间 = now_time[2:]
             附加里程 = f'0104000000{random.randint(10, 20)}'
             附加信息ID = '0202044C250400000000300103'
@@ -414,7 +414,7 @@ class MY_GUI(tk.Tk):
             except:
                 self.result_data_Text8.delete(1.0, END)
                 self.result_data_Text8.insert(1.0, "连接超时，未收到服务器响应")
-            time.sleep(4)
+            time.sleep(1)
         self.result_data_Text8.insert(1.0, "\n完成")
         showinfo("发送结果", "发送成功")
 
@@ -476,8 +476,8 @@ class MY_GUI(tk.Tk):
             状态 = '00000300'
             纬度 = wd3[2:].zfill(8).upper()
             经度 = jd3[2:].zfill(8).upper()
-            速度 = f'00{random.randint(10, 15)}'
-            方向 = f'{random.randint(10, 15)}'
+            速度 = f'0{random.randint(20, 35)}0'
+            方向 = f'{random.randint(10, 95)}'
             时间 = now_time[2:]
             附加里程 = f'0104000000{random.randint(10, 15)}'
             油量 = ['5208', '044C', '04B0']
@@ -1214,7 +1214,7 @@ class MY_GUI(tk.Tk):
     def thread_it(self, func, *args):
         """ 将函数打包进线程 """
         self.myThread = threading.Thread(target=func, args=args)
-        self.myThread.setDaemon(True)  # 主线程退出就直接让子线程跟随退出,不论是否运行完成。
+        self.myThread.daemon=True  # 主线程退出就直接让子线程跟随退出,不论是否运行完成。
         self.myThread.start()
 
     def sb_hao(self):
