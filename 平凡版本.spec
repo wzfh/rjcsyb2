@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='配置版本',
+    name='平凡版本',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -35,6 +35,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    uac_admin=True,
-    icon=['favicon.ico']
 )
