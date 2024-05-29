@@ -112,6 +112,7 @@ def click(text1):
     print('关闭微信')
     d.app_stop("com.tencent.wework")
     print('关闭企业微信')
+    d.click(139, 552)
     countdown(5)
     d.app_start("com.tencent.wework")  # 启动应用
     print("\n企业微信应用启动成功")
@@ -122,9 +123,9 @@ def click(text1):
     d.swipe(930, 1480, 980, 480)
     click_text(d, '打卡')
     print('\n找到打卡页面')
-    countdown(30)
+    countdown(40)
     MY().截图()
-    if MY().识别图片() == ['不在打卡范围内\n\n'] and MY().识别图片() == ['正在搜寻蓝牙考勤机']:
+    if MY().识别图片() == ['不在打卡范围内\n\n']:
         count = 0
         while True:
             print('\n' + str(count))
@@ -132,11 +133,11 @@ def click(text1):
             print('\n返回')
             click_text(d, '打卡')
             print('点击打卡页面按钮')
-            countdown(50)
+            countdown(80)
             d(text=f"{text1}").click_exists(timeout=5.0)
             MY().截图()
             count += 1
-            if MY().识别图片() != ['不在打卡范围内\n\n'] and MY().识别图片() != ['正在搜寻蓝牙考勤机']:
+            if MY().识别图片() != ['不在打卡范围内\n\n']:
                 print("跳出循环")
                 break
             continue
