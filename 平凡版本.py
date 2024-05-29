@@ -2340,9 +2340,9 @@ class MY_GUI(tk.Tk):
             showinfo("发送结果", "发送成功")
 
     def qdo_808jiexq(self):
-        import subprocess
-        exe_path = os.getcwd() + "\\BSJ-协议解析器\\BSJ_dataParser.exe"
-        subprocess.run(exe_path)
+        import webview
+        webview.create_window("解析协议数据库", "https://jttools.smallchi.cn/jt808", width=1000, height=800)
+        webview.start()
 
     # 设置窗口
     def set_init_window(self):
@@ -2645,7 +2645,7 @@ class MY_GUI(tk.Tk):
         self.result_Text2 = Button(pane2, text="发送", command=lambda: self.thread_it(self.qo_send2))
         self.result_Text2.grid(row=19, column=10, )
 
-        self.result_Text3 = Button(pane2, text="808解析器", width=10,
+        self.result_Text3 = Button(pane2, text="解析808网站", width=10,
                                    command=self.qdo_808jiexq)  # 调用内部方法  加()为直接调用
         self.result_Text3.grid(row=19, column=11)
 

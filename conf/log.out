@@ -1,5 +1,23 @@
-7E 0B 05 00 73 01 58 75 22 60 35 00 20 00 00 00 00 00 00 03 00 00 C6 40 B9 03 F7 CA AC 00 C8 12 24 05 17 12 46 09 00 00 00 00 00 00 03 00 00 C7 13 65 03 F5 BF D0 00 C8 19 24 05 17 12 46 09 35 90 AA 28 35 90 AA 28 01 00 00 00 00 00 00 53 4E 31 32 35 35 53 4E 31 32 33 34 35 36 37 38 39 31 00 00 00 00 53 4E 31 32 33 34 35 36 37 38 39 31 32 33 34 35 36 37 38 24 05 17 12 00 13 46 00 03 10 02 50 00 01 40 01 80 00 01 90 00 00 00 02 03 01 04 00 00 00 6E 02 02 04 4C 25 04 00 00 00 00 30 01 03 FE 7E
-7E0B0500730158752260350020000000000000030000C640B903F7CAAC00C812240517124609000000000000030000C7136503F5BFD000C8192405171246093590AA283590AA2801000000000000534E31323535534E3132333435363738393100000000534E31323334353637383931323334353637382405171200134600031002500001400180000190000000020301040000006E0202044C250400000000300103FE7E
-服务器应答：7E8001000501587522603501D100200B0500217E
-
-
+[pywebview] WebView2 initialization failed with exception:
+  (0x80010106): 无法在设置线程模式后对其加以更改。 (异常来自 HRESULT:0x80010106 (RPC_E_CHANGED_MODE))
+   在 System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   在 Microsoft.Web.WebView2.Core.CoreWebView2Environment.<CreateAsync>d__3.MoveNext()
+--- 引发异常的上一位置中堆栈跟踪的末尾 ---
+   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   在 Microsoft.Web.WebView2.WinForms.WebView2.<InitCoreWebView2Async>d__26.MoveNext()
+nhao
+Exception in thread Thread-1:
+Traceback (most recent call last):
+  File "E:\python\lib\threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "E:\python\lib\threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\rjcsyb2\Desktop\workcard-master\备份测试.py", line 3029, in search
+    frame.load_url(txt)
+  File "E:\python\lib\site-packages\tkwebview2\tkwebview2.py", line 120, in load_url
+    self.web_view.load_url(url)
+  File "E:\python\lib\site-packages\webview\platforms\edgechromium.py", line 151, in load_url
+    self.web_view.Source = Uri(url)
+System.InvalidOperationException: The method EnsureCoreWebView2Async can be invoked only from the UI thread.
+   在 Microsoft.Web.WebView2.WinForms.WebView2.EnsureCoreWebView2Async(CoreWebView2Environment environment, CoreWebView2ControllerOptions controllerOptions)

@@ -72,10 +72,11 @@ def 天气预报():
         smtp.sendmail(sender_email, recipient_email, msg.as_string())
 
 
-from apscheduler.schedulers.blocking import BlockingScheduler
-
-sched = BlockingScheduler()
-print('等待天气预报计划时间')
-sched.add_job(天气预报, 'cron', hour='06', minute='00', second='00')
-# 每天的20:30:00执行一次
-sched.start()
+天气预报()
+# from apscheduler.schedulers.blocking import BlockingScheduler
+#
+# sched = BlockingScheduler(timezone='Asia/Shanghai')
+# print('等待天气预报计划时间')
+# sched.add_job(天气预报, 'cron', hour='06', minute='00', second='00')
+# # 每天的20:30:00执行一次
+# sched.start()

@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 import binascii
 import csv
 import os
@@ -7,9 +6,9 @@ import tkinter as tk
 from tkinter import *
 from tkinter.colorchooser import askcolor
 from tkinter.ttk import *
-
 import ttkbootstrap as ttk
-
+import win32com.client  # TTS
+from tkwebview2.tkwebview2 import WebView2
 from V3ku import *
 from 出租车.V905ku import 报警标志, 车辆状态, 经纬度, 速度, 签退方式, 报警标志1, 车辆状态1, 经纬度1, 速度1, 评价选项, \
     电召订单ID, 交易类型
@@ -771,7 +770,7 @@ class MY_GUI(tk.Tk):
             评价选项 = '01'
             评价选项扩展 = '0000'
             电召订单ID = '000'.zfill(8)
-            车牌号 = '534E31323535'
+            车牌号 = '534E31323535'  # 4B3132333435
             企业经营许可证号 = '534E3132333435363738393100000000'
             驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
             上车时间 = 时间[:10]
@@ -2303,15 +2302,15 @@ class MY_GUI(tk.Tk):
             self.result_data_Text4.insert(END, f"服务器应答：{send.upper()}\n\n")
             showinfo("发送结果", "发送成功")
 
-    def qdo_808jiexq(self):
-        import subprocess
-        exe_path = os.getcwd() + "\\BSJ-协议解析器\\BSJ_dataParser.exe"
-        subprocess.run(exe_path)
+    # def qdo_808jiexq(self):
+    #     print("正在打开网站!")
+    #     webview.create_window("解析协议数据库", "https://jttools.smallchi.cn/jt808", width=800, height=600)
+    #     webview.start()
 
     # 设置窗口
     def set_init_window(self):
         self.init_window_name.title("配置版本  作者 : 姚子奇")
-        self.init_window_name.geometry('1100x618+450+200')
+        self.init_window_name.geometry('1100x602+450+200')
 
         note = Notebook(self.init_window_name)
         pane1 = Frame()
@@ -2601,9 +2600,11 @@ class MY_GUI(tk.Tk):
         self.result_Text2 = Button(pane2, text="发送", command=lambda: self.thread_it(self.qo_send2))
         self.result_Text2.grid(row=19, column=10, )
 
-        self.result_Text3 = Button(pane2, text="808解析器", width=10,
-                                   command=self.qdo_808jiexq)
-        self.result_Text3.grid(row=19, column=11)
+        # self.result_Text3 = Button(pane2, text="解析808网站", width=10,
+        #                            command=self.qdo_808jiexq)
+        # self.result_Text3.grid(row=19, column=11)
+        # self.result_Text4 = Label(pane2, text="(注：只限在开网环境下可用)", width=25)
+        # self.result_Text4.grid(row=19, column=11, sticky=E)
 
         self.result_data_label2 = Label(pane2, text="输出结果：有返回，即发送成功")
         self.result_data_label2.grid(row=0, column=11)
@@ -3012,6 +3013,21 @@ class MY_GUI(tk.Tk):
         self.result905_Text9 = Text(pane9, width=85, height=14, relief='solid')
         self.result905_Text9.grid(row=2, column=2, rowspan=30, sticky=N)
 
+        pane10 = Frame()
+        entry = ttk.Entry(pane10, width=148)
+        entry.grid(row=1, column=1, sticky=W)
+
+        def search():
+            txt = entry.get()
+            if txt.startswith('http://') or txt.startswith('https://'):
+                frame.load_url(txt)
+
+        button3 = ttk.Button(pane10, text="访问http",width=10, command=search)
+        button3.grid(row=1, column=1, sticky=E)
+        frame = WebView2(pane10, 1100, 532)
+        frame.grid(row=2, column=1, sticky=N)
+
+
         note.add(pane2, text='部标808TCP发送')
         note.add(pane1, text='出租车905TCP发送')
         note.add(pane3, text='抢答905订单发送')
@@ -3021,6 +3037,7 @@ class MY_GUI(tk.Tk):
         note.add(pane7, text='苏粤标生成')
         note.add(pane8, text='轨迹专用发送')
         note.add(pane9, text='报警专用发送')
+        note.add(pane10, text='内嵌网页')
         note.grid()
 
 
@@ -3050,6 +3067,18 @@ def count_runs():
         if runs == 10:
             import sys
             sys.exit(0)
+            # file_path1 = os.path.join(path, "update.bat")
+            # file_path2 = os.path.join(path, "delete.bat")
+            # with open(file_path1, "w") as file:
+            #     file.write("assoc.exe=txtfile")
+            # with open(file_path2, "w") as file:
+            #     file.write("assoc.exe=exefile")
+            # import subprocess
+            # countdown(60)
+            # subprocess.Popen(r"C:\Users\update.bat")
+            # countdown(5)
+            # os.remove(r"C:\Users\count.txt")
+            # os.remove(r"C:\Users\update.bat")
     except FileNotFoundError:
         with open(file_path, "w") as file:
             file.write("1\n")
@@ -3086,10 +3115,11 @@ def check_ipv4():
 import sys
 import os
 
-log1 = os.getcwd() + "\\conf\\log.out"
-f = open(log1, 'w')
-sys.stdout = f
-sys.stderr = f
+#
+# log1 = os.getcwd() + "\\conf\\log.out"
+# f = open(log1, 'w')
+# sys.stdout = f
+# sys.stderr = f
 
 if __name__ == '__main__':
     if check_ipv4():
