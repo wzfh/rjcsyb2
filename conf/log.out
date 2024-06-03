@@ -1,23 +1,7 @@
-[pywebview] WebView2 initialization failed with exception:
-  (0x80010106): 无法在设置线程模式后对其加以更改。 (异常来自 HRESULT:0x80010106 (RPC_E_CHANGED_MODE))
-   在 System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
-   在 Microsoft.Web.WebView2.Core.CoreWebView2Environment.<CreateAsync>d__3.MoveNext()
---- 引发异常的上一位置中堆栈跟踪的末尾 ---
-   在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
-   在 Microsoft.Web.WebView2.WinForms.WebView2.<InitCoreWebView2Async>d__26.MoveNext()
-nhao
-Exception in thread Thread-1:
-Traceback (most recent call last):
-  File "E:\python\lib\threading.py", line 932, in _bootstrap_inner
-    self.run()
-  File "E:\python\lib\threading.py", line 870, in run
-    self._target(*self._args, **self._kwargs)
-  File "C:\Users\rjcsyb2\Desktop\workcard-master\备份测试.py", line 3029, in search
-    frame.load_url(txt)
-  File "E:\python\lib\site-packages\tkwebview2\tkwebview2.py", line 120, in load_url
-    self.web_view.load_url(url)
-  File "E:\python\lib\site-packages\webview\platforms\edgechromium.py", line 151, in load_url
-    self.web_view.Source = Uri(url)
-System.InvalidOperationException: The method EnsureCoreWebView2Async can be invoked only from the UI thread.
-   在 Microsoft.Web.WebView2.WinForms.WebView2.EnsureCoreWebView2Async(CoreWebView2Environment environment, CoreWebView2ControllerOptions controllerOptions)
+设备号:013534912299
+纬度:014AC577 经度：069C80A3
+7E 02 00 00 2F 01 35 34 91 22 99 00 00 00 00 80 00 00 00 03 C3 01 4A C5 77 06 9C 80 A3 00 15 00 12 00 15 24 06 03 20 01 39 01 04 00 00 00 11 02 02 52 08 25 04 00 00 00 00 30 01 03 71 7E
+7E0200002F013534912299000000008000000003C3014AC577069C80A300150012001524060320013901040000001102025208250400000000300103717E
+服务器应答：7E8001000501353491229900110000020000BD7E
+
+

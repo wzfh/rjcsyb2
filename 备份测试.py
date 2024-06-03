@@ -13,6 +13,7 @@ from V3ku import *
 from 出租车.V905ku import 报警标志, 车辆状态, 经纬度, 速度, 签退方式, 报警标志1, 车辆状态1, 经纬度1, 速度1, 评价选项, \
     电召订单ID, 交易类型
 from 报警 import *
+import webview
 
 LOG_LINE_NUM = 0
 init_window = ttk.Window()
@@ -2302,10 +2303,10 @@ class MY_GUI(tk.Tk):
             self.result_data_Text4.insert(END, f"服务器应答：{send.upper()}\n\n")
             showinfo("发送结果", "发送成功")
 
-    # def qdo_808jiexq(self):
-    #     print("正在打开网站!")
-    #     webview.create_window("解析协议数据库", "https://jttools.smallchi.cn/jt808", width=800, height=600)
-    #     webview.start()
+    def qdo_808jiexq(self):
+        print("正在打开网站!")
+        webview.create_window("解析协议数据库", "https://jttools.smallchi.cn/jt808", width=800, height=600)
+        webview.start()
 
     # 设置窗口
     def set_init_window(self):
@@ -2600,11 +2601,11 @@ class MY_GUI(tk.Tk):
         self.result_Text2 = Button(pane2, text="发送", command=lambda: self.thread_it(self.qo_send2))
         self.result_Text2.grid(row=19, column=10, )
 
-        # self.result_Text3 = Button(pane2, text="解析808网站", width=10,
-        #                            command=self.qdo_808jiexq)
-        # self.result_Text3.grid(row=19, column=11)
-        # self.result_Text4 = Label(pane2, text="(注：只限在开网环境下可用)", width=25)
-        # self.result_Text4.grid(row=19, column=11, sticky=E)
+        self.result_Text3 = Button(pane2, text="解析808网站", width=10,
+                                   command=self.qdo_808jiexq)
+        self.result_Text3.grid(row=19, column=11)
+        self.result_Text4 = Label(pane2, text="(注：只限在开网环境下可用)", width=25)
+        self.result_Text4.grid(row=19, column=11, sticky=E)
 
         self.result_data_label2 = Label(pane2, text="输出结果：有返回，即发送成功")
         self.result_data_label2.grid(row=0, column=11)
@@ -3014,9 +3015,10 @@ class MY_GUI(tk.Tk):
         self.result905_Text9.grid(row=2, column=2, rowspan=30, sticky=N)
 
         pane10 = Frame()
-        entry = ttk.Entry(pane10, width=148)
+        items=('http://www.baidu.com','https://czcwyc.mmjtsw.com:8082/login','https://taxitest.car900.com:8082/login')
+        entry = ttk.Combobox(pane10, width=140,values=items)
         entry.grid(row=1, column=1, sticky=W)
-
+        entry.current(0)
         def search():
             txt = entry.get()
             if txt.startswith('http://') or txt.startswith('https://'):
@@ -3116,10 +3118,10 @@ import sys
 import os
 
 #
-# log1 = os.getcwd() + "\\conf\\log.out"
-# f = open(log1, 'w')
-# sys.stdout = f
-# sys.stderr = f
+log1 = os.getcwd() + "\\conf\\log.out"
+f = open(log1, 'w')
+sys.stdout = f
+sys.stderr = f
 
 if __name__ == '__main__':
     if check_ipv4():
