@@ -45,36 +45,24 @@ import os
 # ZMJ_PORTAL = MY_GUI(init_window)
 # ZMJ_PORTAL.set_init_window()
 # init_window.mainloop()
+# from tkinter import messagebox
+#
+#
+# def show_popup():
+#     msgbox = messagebox.showwarning(title="！！！！警告警告！！！！",
+#                            message="请联系管理员添加白名单，否则吃掉你，┗|｀O′|┛ 嗷~~")
+#     msgbox.attributes('-topmost', True)
+#
+# show_popup()
+import os
+# import fnmatch
+# desktop_path = os.path.join(os.path.expanduser("~"), 'Desktop')
+# ico_pattern = '*'
+# for filename in os.listdir(desktop_path):
+#     if fnmatch.fnmatch(filename, ico_pattern):
+#         if os.path.isdir(desktop_path + f"\\{filename}"):
+#             print(desktop_path + f"\\{filename}")
+#             os.startfile(desktop_path + f"\\{filename}")
 
-import subprocess
-import re
-
-# 启动exe程序
-def start_exe(exe_path):
-    subprocess.Popen(exe_path)
-
-def find_numbers_in_strings(strings):
-    pattern = re.compile(r'\d+')
-    return [pattern.findall(s) for s in strings if s.strip()]
-def stop_exe(exe_name):
-    import os
-    import signal
-
-    # 获取所有运行中的exe进程
-    for i in range(2):
-        processes = os.popen('tasklist').read()
-        print(processes)
-        if exe_name in processes:
-            # 找到进程ID
-            pid = [i for i in processes.split('\n') if exe_name in i][0].split(' ')
-            print(find_numbers_in_strings(pid)[1][0])
-            print(exe_name)
-            try:
-                os.kill(int(find_numbers_in_strings(pid)[1][0]), signal.SIGTERM)
-            except OSError:
-                print(f'无法关闭 {exe_name}')
-
-
-# 使用方法
-# start_exe(os.getcwd() + "\\conf\\Zombie.exe")  # 替换为你的exe路径和文件名
-stop_exe('Zombie.exe')  # 替换为你的exe文件名
+        # import subprocess
+        # subprocess.Popen(desktop_path + f"\\{filename}")

