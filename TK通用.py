@@ -9,6 +9,7 @@ import ttkbootstrap as ttk
 from socket import *
 from configobj import ConfigObj
 import time
+import webview
 is_on = True
 LOG_LINE_NUM = 0
 init_window = ttk.Window()
@@ -58,13 +59,19 @@ current_directory = os.getcwd()
 class MY_GUI(tk.Tk):
     def __init__(self, init_window_name):
         self.init_window_name = init_window_name
-        conf_ini = current_directory + "\\conf\\config.ini"
-        config = ConfigObj(conf_ini, encoding='UTF-8')
-        self.conf_wg = config['ces']['出租车_cswg']
-        self.conf_808wg_port = config['ces']['出租车_cs808wg_port']
-        self.conf_wd1 = config['address']['规划WD']
-        self.conf_jd1 = config['address']['规划JD']
-        self.sbei808 = config['sbei']['808sbei']
+        # conf_ini = current_directory + "\\conf\\config.ini"
+        # config = ConfigObj(conf_ini, encoding='UTF-8')
+        # self.conf_wg = config['ces']['出租车_cswg']
+        # self.conf_808wg_port = config['ces']['出租车_cs808wg_port']
+        # self.conf_wd1 = config['address']['规划WD']
+        # self.conf_jd1 = config['address']['规划JD']
+        # self.sbei808 = config['sbei']['808sbei']
+        self.conf_wg = '47.113.121.87'
+        self.conf_808wg_port = '17201'
+        self.conf_wd1 = '21.659576'
+        self.conf_jd1 = '110.933275'
+        self.sbei808 = '13534912299'
+        self.jiexurl = 'https://rvhelp.cn/remote-pc'
 
     def wzhi部标(self):
         global data
@@ -319,6 +326,10 @@ class MY_GUI(tk.Tk):
                 self.result_data_Text2.delete(1.0, END)
                 self.result_data_Text2.insert(1.0, self.wzhi部标())
 
+    def qdo_808jiexq(self):
+        webview.create_window("网页", f"{self.jiexurl}", width=800, height=600)
+        webview.start()
+
     def qo_send2(self):
         src = self.data_Text2.get()
         d = src[:-6]
@@ -446,6 +457,11 @@ class MY_GUI(tk.Tk):
         self.data_Text2.grid(row=19, column=0, sticky=N)
         self.result_Text2 = Button(self.init_window_name, text="发送", command=lambda: self.thread_it(self.qo_send2))
         self.result_Text2.grid(row=19, column=10, )
+        self.result_Text3 = Button(self.init_window_name, text="网页", width=10,
+                                   command=self.qdo_808jiexq)
+        self.result_Text3.grid(row=19, column=11)
+        self.result_Text4 = Label(self.init_window_name, text="(注：只限在开网环境下可用)", width=25)
+        self.result_Text4.grid(row=19, column=11, sticky=E)
         self.result_data_label2 = Label(self.init_window_name, text="输出结果：有返回，即发送成功")
         self.result_data_label2.grid(row=0, column=11)
         self.result_data_Text2 = Text(self.init_window_name, width=85, height=20, relief='solid')

@@ -3028,7 +3028,7 @@ class MY_GUI(tk.Tk):
 
         pane10 = Frame()
         items = (
-            'http://www.baidu.com', 'https://czcwyc.mmjtsw.com:8082/login', 'https://taxitest.car900.com:8082/login')
+            'http://www.baidu.com', 'https://czcwyc.mmjtsw.com:8082/login', 'https://taxitest.car900.com:8082/login','https://rvhelp.cn/remote-pc')
         self.entry = ttk.Combobox(pane10, width=140, values=items)
         self.entry.grid(row=1, column=1, sticky=W)
 
