@@ -10,6 +10,7 @@ from socket import *
 from configobj import ConfigObj
 import time
 import webview
+
 is_on = True
 LOG_LINE_NUM = 0
 init_window = ttk.Window()
@@ -59,19 +60,19 @@ current_directory = os.getcwd()
 class MY_GUI(tk.Tk):
     def __init__(self, init_window_name):
         self.init_window_name = init_window_name
-        # conf_ini = current_directory + "\\conf\\config.ini"
-        # config = ConfigObj(conf_ini, encoding='UTF-8')
-        # self.conf_wg = config['ces']['出租车_cswg']
-        # self.conf_808wg_port = config['ces']['出租车_cs808wg_port']
-        # self.conf_wd1 = config['address']['规划WD']
-        # self.conf_jd1 = config['address']['规划JD']
-        # self.sbei808 = config['sbei']['808sbei']
-        self.conf_wg = '47.113.121.87'
-        self.conf_808wg_port = '17201'
-        self.conf_wd1 = '21.659576'
-        self.conf_jd1 = '110.933275'
-        self.sbei808 = '13534912299'
-        self.jiexurl = 'https://rvhelp.cn/remote-pc'
+        conf_ini = current_directory + "\\conf\\config.ini"
+        config = ConfigObj(conf_ini, encoding='UTF-8')
+        self.conf_wg = config['ces']['出租车_cswg']
+        self.conf_808wg_port = config['ces']['出租车_cs808wg_port']
+        self.conf_wd1 = config['address']['规划WD']
+        self.conf_jd1 = config['address']['规划JD']
+        self.sbei808 = config['sbei']['808sbei']
+        # self.conf_wg = '47.113.121.87'
+        # self.conf_808wg_port = '17201'
+        # self.conf_wd1 = '21.659576'
+        # self.conf_jd1 = '110.933275'
+        # self.sbei808 = '13534912299'
+        # self.jiexurl = 'https://rvhelp.cn/remote-pc'
 
     def wzhi部标(self):
         global data
@@ -349,8 +350,8 @@ class MY_GUI(tk.Tk):
             self.result_data_Text2.insert(1.0, f"{t}\n\n")
             self.result_data_Text2.insert(END, f"服务器应答：{send.upper()}\n\n")
 
-
     def set_init_window(self):
+        self.init_window_name.title("TK通用代码版")
         self.init_window_name.geometry('1080x542+450+200')
         self.init_window_name.menu = Menu(self.init_window_name, tearoff=0)
         self.init_window_name.menu.add_command(label="主题切换", command=self.zhuti)
@@ -469,9 +470,6 @@ class MY_GUI(tk.Tk):
         self.str_trans_to_md5_button2 = Button(self.init_window_name, text="专用808生成", width=10,
                                                command=lambda: self.thread_it(self.qo_login部标))
         self.str_trans_to_md5_button2.grid(row=5, column=10)
-
-
-
 
 
 def gui4_start():

@@ -126,7 +126,7 @@ class MY_GUI(tk.Tk):
         self.url = config['URL']['url']
         self.jiexurl = config['URL']['jiexurl']
         self.Zombie = config['Zombie']['range']
-        self.jinyong=config['Zombie']['jinyong']
+        self.jinyong = config['Zombie']['jinyong']
 
     def wzhi905(self, su, plsu):
         global data, t
@@ -2353,14 +2353,14 @@ class MY_GUI(tk.Tk):
         self.su_Text_label = Label(pane1, text="循环次数")
         self.su_Text_label.grid(row=4, columnspan=2, sticky=W)
         items = ("0", "10")
-        self.su_Text = Combobox(pane1, width=22, height=2, values=items,state=f'{self.jinyong}')
+        self.su_Text = Combobox(pane1, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.su_Text.current(0)
         self.su_Text.grid(row=5, column=0, sticky=W)
 
         self.plsu_Text_label = Label(pane1, text="批量上线设备次数")
         self.plsu_Text_label.grid(row=4, columnspan=2, sticky=E)
         items = ("1", "10")
-        self.plsu_Text = Combobox(pane1, width=22, height=2, values=items,state=f'{self.jinyong}')
+        self.plsu_Text = Combobox(pane1, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.plsu_Text.current(0)
         self.plsu_Text.grid(row=5, column=0, sticky=E)
 
@@ -2400,7 +2400,7 @@ class MY_GUI(tk.Tk):
         self.sb_on_Label = Label(pane1, text="批量上线")
         self.sb_on_Label.grid(row=15, column=10, sticky=N)
         items = ("否", "是")
-        self.sb_on_Text = Combobox(pane1, width=2, height=3, values=items,state=f'{self.jinyong}')
+        self.sb_on_Text = Combobox(pane1, width=2, height=3, values=items, state=f'{self.jinyong}')
         self.sb_on_Text.current(0)
         self.sb_on_Text.grid(row=16, column=10, columnspan=1, sticky=N)
 
@@ -2502,14 +2502,14 @@ class MY_GUI(tk.Tk):
         self.su_Text_label2 = Label(pane2, text="循环发送次数")
         self.su_Text_label2.grid(row=4, columnspan=2, sticky=W)
         items = ("0", "10")
-        self.su_Text2 = Combobox(pane2, width=22, height=2, values=items,state=f'{self.jinyong}')
+        self.su_Text2 = Combobox(pane2, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.su_Text2.current(0)
         self.su_Text2.grid(row=5, column=0, sticky=W)
 
         self.plsu2_Text_label2 = Label(pane2, text="批量上线设备次数")
         self.plsu2_Text_label2.grid(row=4, columnspan=2, sticky=E)
         items = ("1", "10")
-        self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items,state=f'{self.jinyong}')
+        self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.plsu2_Text2.current(0)
         self.plsu2_Text2.grid(row=5, column=0, sticky=E)
 
@@ -2549,7 +2549,7 @@ class MY_GUI(tk.Tk):
         self.sb_on_Label2 = Label(pane2, text="批量上线")
         self.sb_on_Label2.grid(row=15, column=10, sticky=N)
         items = ("否", "是")
-        self.sb_on_Text2 = Combobox(pane2, width=2, height=3, values=items,state=f'{self.jinyong}')
+        self.sb_on_Text2 = Combobox(pane2, width=2, height=3, values=items, state=f'{self.jinyong}')
         self.sb_on_Text2.current(0)
         self.sb_on_Text2.grid(row=16, column=10, columnspan=1, sticky=N)
 
@@ -2648,7 +2648,7 @@ class MY_GUI(tk.Tk):
         self.su_Text_label3 = Label(pane3, text="循环次数")
         self.su_Text_label3.grid(row=4, column=0)
         items = ("1", "10")
-        self.su_Text3 = Combobox(pane3, width=50, height=2, values=items,state=f'{self.jinyong}')
+        self.su_Text3 = Combobox(pane3, width=50, height=2, values=items, state=f'{self.jinyong}')
         self.su_Text3.current(0)
         self.su_Text3.grid(row=5, column=0, columnspan=10, sticky=N)
 
@@ -3028,7 +3028,8 @@ class MY_GUI(tk.Tk):
 
         pane10 = Frame()
         items = (
-            'http://www.baidu.com', 'https://czcwyc.mmjtsw.com:8082/login', 'https://taxitest.car900.com:8082/login','https://rvhelp.cn/remote-pc')
+            'http://www.baidu.com', 'https://czcwyc.mmjtsw.com:8082/login', 'https://taxitest.car900.com:8082/login',
+            'https://rvhelp.cn/remote-pc')
         self.entry = ttk.Combobox(pane10, width=140, values=items)
         self.entry.grid(row=1, column=1, sticky=W)
 
@@ -3164,10 +3165,10 @@ def wjj():
 
 
 # #
-# log1 = os.getcwd() + "\\conf\\log.out"
-# f = open(log1, 'w')
-# sys.stdout = f
-# sys.stderr = f
+log1 = os.getcwd() + "\\conf\\log.out"
+f = open(log1, 'w')
+sys.stdout = f
+sys.stderr = f
 
 if __name__ == '__main__':
     if check_ipv4():

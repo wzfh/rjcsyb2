@@ -6,6 +6,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import uiautomator2 as u2
 from PIL import Image
+
 # import PIL
 
 # 发件人信息
@@ -24,9 +25,6 @@ def countdown(t):
     for i in range(t):
         print("\r休眠倒计时：%02d" % (t - i) + '秒', end='')
         time.sleep(1)
-
-
-
 
 
 def click_text(self, str, sq=0):  # 对于无法直接点击的控件写了个函数
@@ -55,7 +53,7 @@ class MY():
         region_image.save(self.file_path)
         print('\n重新截取屏幕')
 
-    def remove_whitespace(self,text):
+    def remove_whitespace(self, text):
         return text.replace('\n', '').strip()
 
     def 识别图片(self):
@@ -133,7 +131,7 @@ def click(text1):
             print('\n返回')
             click_text(d, '打卡')
             print('点击打卡页面按钮')
-            countdown(80)
+            countdown(60)
             d(text=f"{text1}").click_exists(timeout=5.0)
             MY().截图()
             count += 1
@@ -288,6 +286,14 @@ def job2():
     # os.system('adb shell input keyevent 26')
 
 
+import sys
+
+log1 = os.getcwd() + "\\log.out"
+print(log1)
+f = open(log1, 'w')
+sys.stdout = f
+sys.stderr = f
+
 if __name__ == "__main__":
 
     print("正在连接设备")
@@ -314,11 +320,7 @@ if __name__ == "__main__":
     else:
         job2()
 
-
     # MY().截图()
     #     MY().识别图片()
     #     MY().识别图片1()
     #     MY().识别图片2()
-
-
-

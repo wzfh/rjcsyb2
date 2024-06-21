@@ -22,7 +22,6 @@ def crc1(data):
 # print(res)
 
 
-
 def shebeihao2Vip(sSim):
     if sSim is None or sSim == "":
         return None
@@ -95,6 +94,7 @@ def shebeihao2Vip(sSim):
     except Exception as e:
         print("设备号转伪ip失败！原因：%s" % e)
         return None
+
 
 # shebeihao2Vip('13534912299')
 
