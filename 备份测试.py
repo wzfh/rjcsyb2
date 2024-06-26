@@ -2469,7 +2469,7 @@ class MY_GUI(tk.Tk):
         self.data_Text = Combobox(pane1, width=50, height=2, values=items)
         self.data_Text.grid(row=19, column=0, sticky=N)
 
-        self.result_Text = Button(pane1, text="发送", command=lambda: self.thread_it(self.qo_send))
+        self.result_Text = Button(pane1, text="自定义发送", command=lambda: self.thread_it(self.qo_send))
         self.result_Text.grid(row=19, column=10)
 
         self.result_data_label1 = Label(pane1, text="输出结果")
@@ -2479,7 +2479,7 @@ class MY_GUI(tk.Tk):
         self.result_data_Text1.grid(row=1, column=11, rowspan=13, columnspan=15)
 
         # 按钮
-        self.str_trans_to_md5_button = Button(pane1, text="专用905生成", width=10,
+        self.str_trans_to_md5_button = Button(pane1, text="专用905发送", width=10,
                                               command=lambda: self.thread_it(self.qo_login))
         self.str_trans_to_md5_button.grid(row=5, column=10)
         pane2 = Frame()
@@ -2610,7 +2610,7 @@ class MY_GUI(tk.Tk):
         self.data_Text2 = Combobox(pane2, width=50, height=2, values=items)
         self.data_Text2.grid(row=19, column=0, sticky=N)
 
-        self.result_Text2 = Button(pane2, text="发送", command=lambda: self.thread_it(self.qo_send2))
+        self.result_Text2 = Button(pane2, text="自定义发送", command=lambda: self.thread_it(self.qo_send2))
         self.result_Text2.grid(row=19, column=10, )
 
         self.result_Text3 = Button(pane2, text="解析808网站", width=10,
@@ -2625,7 +2625,7 @@ class MY_GUI(tk.Tk):
         self.result_data_Text2.grid(row=1, column=11, rowspan=13, columnspan=15)
 
         # 按钮
-        self.str_trans_to_md5_button2 = Button(pane2, text="专用808生成", width=10,
+        self.str_trans_to_md5_button2 = Button(pane2, text="专用808发送", width=10,
                                                command=lambda: self.thread_it(self.qo_login部标))
         self.str_trans_to_md5_button2.grid(row=5, column=10)
 
@@ -2687,7 +2687,7 @@ class MY_GUI(tk.Tk):
         self.data_Text3 = Text(pane3, width=52, height=2, relief='solid')
         self.data_Text3.grid(row=13, column=0, sticky=N)
 
-        self.result_Text3 = Button(pane3, text="发送", command=lambda: self.thread_it(self.qo_send3))
+        self.result_Text3 = Button(pane3, text="自定义发送", command=lambda: self.thread_it(self.qo_send3))
         self.result_Text3.grid(row=13, column=10)
 
         self.result_data_label3 = Label(pane3, text="输出结果")
@@ -2790,7 +2790,7 @@ class MY_GUI(tk.Tk):
         self.data_Text4 = Text(pane4, width=50, height=2, relief='solid')
         self.data_Text4.grid(row=24, column=0, sticky=N)
 
-        self.result_Text4 = Button(pane4, text="发送", command=lambda: self.thread_it(self.qo_send4))
+        self.result_Text4 = Button(pane4, text="自定义发送", command=lambda: self.thread_it(self.qo_send4))
         self.result_Text4.grid(row=24, column=10, )
 
         self.result_data_label4 = Label(pane4, text="输出结果：有返回，即发送成功")
@@ -2843,7 +2843,7 @@ class MY_GUI(tk.Tk):
         self.ip_on_Text5.grid(row=5, column=11, columnspan=1, sticky=N)
 
         # 按钮
-        self.str_trans_to_md5_button5 = Button(pane5, text="专用V3生成", width=10,
+        self.str_trans_to_md5_button5 = Button(pane5, text="专用V3发送", width=10,
                                                command=self.qo_loginV3)
         self.str_trans_to_md5_button5.grid(row=3, column=11, sticky=N)
 

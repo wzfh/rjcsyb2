@@ -1,6 +1,0 @@
-–›√ﬂµπº∆ ±£∫15√Î–›√ﬂµπº∆ ±£∫14√Î–›√ﬂµπº∆ ±£∫13√Î–›√ﬂµπº∆ ±£∫12√Î–›√ﬂµπº∆ ±£∫11√Î–›√ﬂµπº∆ ±£∫10√Î–›√ﬂµπº∆ ±£∫09√Î–›√ﬂµπº∆ ±£∫08√Î–›√ﬂµπº∆ ±£∫07√Î–›√ﬂµπº∆ ±£∫06√Î–›√ﬂµπº∆ ±£∫05√Î–›√ﬂµπº∆ ±£∫04√Î–›√ﬂµπº∆ ±£∫03√Î–›√ﬂµπº∆ ±£∫02√Î–›√ﬂµπº∆ ±£∫01√Î–›√ﬂµπº∆ ±£∫15√Î–›√ﬂµπº∆ ±£∫14√Î–›√ﬂµπº∆ ±£∫13√Î–›√ﬂµπº∆ ±£∫12√Î–›√ﬂµπº∆ ±£∫11√Î–›√ﬂµπº∆ ±£∫10√Î–›√ﬂµπº∆ ±£∫09√Î–›√ﬂµπº∆ ±£∫08√Î–›√ﬂµπº∆ ±£∫07√Î–›√ﬂµπº∆ ±£∫06√Î–›√ﬂµπº∆ ±£∫05√Î–›√ﬂµπº∆ ±£∫04√Î–›√ﬂµπº∆ ±£∫03√Î–›√ﬂµπº∆ ±£∫02√Î–›√ﬂµπº∆ ±£∫01√Î–›√ﬂµπº∆ ±£∫15√Î–›√ﬂµπº∆ ±£∫14√Î–›√ﬂµπº∆ ±£∫13√Î–›√ﬂµπº∆ ±£∫12√Î–›√ﬂµπº∆ ±£∫11√Î–›√ﬂµπº∆ ±£∫10√Î–›√ﬂµπº∆ ±£∫09√Î–›√ﬂµπº∆ ±£∫08√Î–›√ﬂµπº∆ ±£∫07√Î–›√ﬂµπº∆ ±£∫06√Î–›√ﬂµπº∆ ±£∫05√Î–›√ﬂµπº∆ ±£∫04√Î–›√ﬂµπº∆ ±£∫03√Î–›√ﬂµπº∆ ±£∫02√Î–›√ﬂµπº∆ ±£∫01√ÎTraceback (most recent call last):
-  File "C:\Users\rjcsyb2\Desktop\workcard-master\±∏∑›≤‚ ‘.py", line 3164, in <module>
-    show_popup()
-  File "C:\Users\rjcsyb2\Desktop\workcard-master\±∏∑›≤‚ ‘.py", line 3150, in show_popup
-    tk.attributes("-topmost", True)
-AttributeError: module 'tkinter' has no attribute 'attributes'
