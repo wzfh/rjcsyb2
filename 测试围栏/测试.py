@@ -12,6 +12,7 @@ try:
     device = os.popen("adb devices").readlines()
     device_id = device[1]
     d = u2.connect_usb(f'{device_id.split()[0]}')
+    print(device_id.split())
     if device_id.split()[1] != 'device':
         print('设备连接失败')
         os.system('adb  kill-server')
@@ -131,6 +132,8 @@ def 上班():
         if is_similar(zhu上班_image, region_image):
             d.click(520, 1430)
             print('上班打卡成功')
+            time.sleep(3)
+            截图()
             d.app_stop(package_name)
             email()
             break
@@ -167,6 +170,7 @@ def 下班():
             if is_similar(zhu下班_image, region_image):
                 d.click(520, 1430)
                 print('下班打卡成功')
+                time.sleep(3)
                 截图()
                 d.app_stop(package_name)
                 email()
@@ -187,6 +191,11 @@ def 下班():
             os.system('adb  devices')
 
 
+now = datetime.now()
+current_time = now.strftime("%H:%M")
+print(current_time)
+
+
 # import sys
 #
 # log1 = os.getcwd() + "\\log.out"
@@ -194,8 +203,7 @@ def 下班():
 # f = open(log1, 'w')
 # sys.stdout = f
 # sys.stderr = f
-
-if __name__ == "__main__":
+def run():
     now = datetime.now()
     current_time = now.strftime("%H:%M")
     print(current_time)
@@ -203,6 +211,23 @@ if __name__ == "__main__":
         上班()
     if current_time > "17:30":
         下班()
+
+
+if __name__ == "__main__":
+    if "06：20" < current_time < "09:00":
+        run()
+    elif "17：40" < current_time:
+        run()
+    else:
+        from apscheduler.schedulers.blocking import BlockingScheduler
+
+        sched = BlockingScheduler(timezone='Asia/Shanghai')
+        print('等待打卡计划时间')
+        sched.add_job(run, 'cron', day_of_week='mon-sat', hour='06', minute='00', second='00')
+        sched.add_job(下班, 'cron', day_of_week='sat', hour='12', minute='00', second='01')
+        sched.add_job(run, 'cron', day_of_week='mon-fri', hour='17', minute='30', second='01')
+        # 每天的20:30:00执行一次
+        sched.start()
 
     # imge = d.screenshot()
     # region_image = imge.crop((86, 646, 940, 1427))

