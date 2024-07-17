@@ -149,7 +149,8 @@ class MY_GUI(tk.Tk):
             速度 = self.sdu()[2:].zfill(4).upper()
             方向 = f'{random.randint(12, 20)}'
             时间 = now_time[2:]
-            附加 = f'0104000000{self.lic1().zfill(2)}0202044C250400000000300103'
+            高程 = '0302' + f'{1}'.zfill(4)
+            附加 = f'0104000000{self.lic1().zfill(2)}0202044C{高程}250400000000300103'
             if self.sb_on() == '是':
                 for i in range(int(su), int(plsu)):
                     ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
@@ -335,7 +336,7 @@ class MY_GUI(tk.Tk):
         return ""
 
     def 轨迹808(self):
-        file_path = os.getcwd() + '/conf/12.csv'
+        file_path = os.getcwd() + '/conf/茂名-12.csv'
         fCase = open(file_path, 'r', encoding='gbk')
         datas = csv.reader(fCase)
         data1 = []
@@ -348,7 +349,7 @@ class MY_GUI(tk.Tk):
             now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
             消息ID = '0200'
             消息体属性 = '002F'
-            设备号 = "0" + f'{self.sb_hao8()}'
+            设备号 = f'{self.sb_hao8()}'.zfill(12)
             print(f'设备号:{设备号}')
             流水号 = f'{0}'.zfill(4)
             baojlxs = [
@@ -372,11 +373,11 @@ class MY_GUI(tk.Tk):
             jd2 = float(t[1]) * 1000000
             jd3 = hex(int(jd2))
             经度 = jd3[2:].zfill(8).upper()
-            高程 = f'00{random.randint(12, 20)}'
+            高程 = f'{nob1}'.zfill(4)
             速度 = f'0{random.randint(20, 30)}0'
             方向 = f'00{random.randint(10, 90)}'
             时间 = now_time[2:]
-            附加里程 = f'0104000000{random.randint(10, 20)}'
+            附加里程 = '0104' + f'{nob1}0'.zfill(8)
             附加信息ID = '0202044C250400000000300103'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加里程 + 附加信息ID
             a = get_xor(w)
@@ -413,7 +414,7 @@ class MY_GUI(tk.Tk):
         showinfo("发送结果", "发送成功")
 
     def 轨迹905(self):
-        file_path = os.getcwd() + '/conf/12.csv'
+        file_path = os.getcwd() + '/conf/茂名-12.csv'
         fCase = open(file_path, 'r', encoding='gbk')
         datas = csv.reader(fCase)
         data1 = []
@@ -431,7 +432,7 @@ class MY_GUI(tk.Tk):
             标识位 = '7E'
             消息ID = '0200'
             消息体属性 = '0023'
-            ISU标识 = self.sbei905
+            ISU标识 = f'{self.sb905_hao8()}'.zfill(12)
             流水号 = f'{1}'.zfill(4)
             baojing = [
                 self.baojing['紧急报警'],
@@ -473,10 +474,11 @@ class MY_GUI(tk.Tk):
             速度 = f'0{random.randint(20, 35)}0'
             方向 = f'{random.randint(10, 95)}'
             时间 = now_time[2:]
-            附加里程 = f'0104000000{random.randint(10, 15)}'
+            附加里程 = '0104' + f'{nob1}0'.zfill(8)
             油量 = ['5208', '044C', '04B0']
             附加油量 = f'0202{random.choice(油量)}'
-            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加里程 + 附加油量
+            高程 = '0302' + f'{nob1}'.zfill(4)
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加里程 + 附加油量 + 高程
             a = get_xor(w)
             b = get_bcc(a).zfill(2)
             E = w + b.upper()
@@ -493,7 +495,7 @@ class MY_GUI(tk.Tk):
             print(t)
             print(data)
             s = socket(AF_INET, SOCK_STREAM)
-            s.connect((self.conf_wg, int(self.conf_905wg_port)))  # 测试
+            s.connect((f'{self.ip8()}', int(self.port905_8())))
             s.settimeout(5)
             try:
                 s.send(bytes().fromhex(data))
@@ -3169,10 +3171,10 @@ def wjj():
 
 
 # #
-log1 = os.getcwd() + "\\conf\\log.out"
-f = open(log1, 'w')
-sys.stdout = f
-sys.stderr = f
+# log1 = os.getcwd() + "\\conf\\log.out"
+# f = open(log1, 'w')
+# sys.stdout = f
+# sys.stderr = f
 
 if __name__ == '__main__':
     if check_ipv4():

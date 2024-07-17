@@ -236,7 +236,7 @@ class MY_GUI(tk.Tk):
         return ""
 
     def 轨迹808(self):
-        file_path = os.getcwd() + '/conf/12.csv'
+        file_path = os.getcwd() + '/conf/e-茂名-12.csv'
         fCase = open(file_path, 'r', encoding='gbk')
         datas = csv.reader(fCase)
         data1 = []
@@ -314,7 +314,7 @@ class MY_GUI(tk.Tk):
         showinfo("发送结果", "发送成功")
 
     def 轨迹905(self):
-        file_path = os.getcwd() + '/conf/12.csv'
+        file_path = os.getcwd() + '/conf/e-茂名-12.csv'
         fCase = open(file_path, 'r', encoding='gbk')
         datas = csv.reader(fCase)
         data1 = []

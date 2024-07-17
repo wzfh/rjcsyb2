@@ -1,0 +1,18 @@
+7E020000230158752260340001080000000000030000C6767A03F78061030090240702162530010400000011020204B0BF7E
+7E 02 00 00 23 01 58 75 22 60 34 00 01 08 00 00 00 00 00 03 00 00 C6 76 7A 03 F7 80 61 03 00 90 24 07 02 16 25 30 01 04 00 00 00 11 02 02 04 B0 BF 7E
+Exception in thread Thread-1:
+Traceback (most recent call last):
+  File "E:\python\lib\threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "E:\python\lib\threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\rjcsyb2\Desktop\workcard-master\±∏∑›≤‚ ‘.py", line 496, in πÏº£905
+    s.connect((self.conf_wg, int(self.conf_905wg_port)))  # ≤‚ ‘
+  File "E:\python\lib\tkinter\__init__.py", line 2354, in __getattr__
+    return getattr(self.tk, attr)
+  File "E:\python\lib\tkinter\__init__.py", line 2354, in __getattr__
+    return getattr(self.tk, attr)
+  File "E:\python\lib\tkinter\__init__.py", line 2354, in __getattr__
+    return getattr(self.tk, attr)
+  [Previous line repeated 993 more times]
+RecursionError: maximum recursion depth exceeded

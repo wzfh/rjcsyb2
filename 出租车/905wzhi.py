@@ -67,7 +67,7 @@ class login:
 
     def ww1(self):
         # path = os.path.dirname(__file__)
-        # file_path = path + '/12.csv'
+        # file_path = path + '/e-茂名-12.csv'
         # fCase = open(file_path, 'r', encoding='gbk')
         # datas = csv.reader(fCase)
         # data1 = []
@@ -176,5 +176,5 @@ class login:
 
 
 if __name__ == '__main__':
-        ll = login()
-        ll.ww1()
+    ll = login()
+    ll.ww1()

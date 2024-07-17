@@ -11,7 +11,6 @@ def login():
     headers = {"User-Agent": "Apipost/8 (https://www.apipost.cn)"}
     response = requests.request("GET", url, data=payload, headers=headers)
     user_dict = ast.literal_eval(response.text)
-    print(user_dict)
     img_str = f"{user_dict['obj']['code'][22:]}"
     bytes_img = base64.b64decode(img_str)
     with open('yzm.png', mode='wb') as f:
@@ -25,11 +24,11 @@ def login():
     uuid = user_dict['obj']['uuid']
     url = "http://tx.dev.car900.com:9999/oauth/v4/token"
     payload = "-----011000010111000001101001\r\n" \
-              "Content-Disposition: form-data; name=\"username\"\r\n\r\nyaoziqi1\r\n" \
+              "Content-Disposition: form-data; name=\"username\"\r\n\r\ntest-cs\r\n" \
               "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"scope\"\r\n\r\n" \
               "carWeb4\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"tenantId\"\r\n\r\n1\r\n" \
               "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\n" \
-              "gVsweVZH75MvWpn3hkPe+A==\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"code\"\r\n\r\n" \
+              "yxpgOP/E5xEbcPyvzEXbQw==\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"code\"\r\n\r\n" \
               f"{result2}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"uuid\"\r\n\r\n" \
               f"{uuid}\r\n-----011000010111000001101001--\r\n\r\n"
     headers = {
@@ -47,9 +46,16 @@ def 部门(count):
     login()
     for i in range(count):
         url = "http://tx.dev.car900.com:9999/car/v4/api/v4Department/addVehGroup.json"
+        import random
+
+        first_name = ["王", "李", "张", "刘", "赵", "蒋", "孟", "陈", "徐", "杨", "沈", "马", "高", "殷", "上官", "钟",
+                      "常"]
+        second_name = ["伟", "华", "建国", "洋", "刚", "万里", "爱民", "牧", "陆", "路", "昕", "鑫", "兵", "硕", "志宏",
+                       "峰", "磊", "雷", "文", "明浩", "光", "超", "军", "达"]
+        name = random.choice(first_name) + random.choice(second_name)
         payload = {
-            "groupName": f"测试{i}",
-            "parentId": 1024,
+            "groupName": f"{name}",
+            "parentId": 1131,
             "contactName": None,
             "phone": None,
             "remark": None,
@@ -70,14 +76,17 @@ def 部门(count):
 def 车辆(count):
     login()
     for i in range(count):
+        import requests
+
         url = "http://tx.dev.car900.com:9999/car/v4/api/assets/add.json"
+
         payload = {
             "assetsBaseVO": {
-                "plate": f"1356854775{i}",
-                "groupId": 1024,
+                "plate": "13" + f"{i}".zfill(5) + "4450",
+                "groupId": 1120,
                 "iconType": 0,
                 "terminalType": "GPRS-部标",
-                "terminalNo": f"1356854775{i}",
+                "terminalNo": "13" + f"{i}".zfill(5) + "4450",
                 "terminalStatus": 0,
                 "displayYear": None,
                 "activationTmeStr": None,
@@ -103,18 +112,22 @@ def 车辆(count):
                 "installPlace": None,
                 "installPerson": None,
                 "installRemark": None,
-                "installDate": "2024-06-24 12:50:41"
+                "installDate": "2024-07-09 09:48:01"
             }
         }
         headers = {
-            "Sessionid": f"{sessionId}",
-            "User-Agent": "Apipost/8 (https://www.apipost.cn)",
+            "sessionid": f"{sessionId}",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+            "Connection": "keep-alive",
             "Content-Type": "application/json"
         }
+
         response = requests.request("POST", url, json=payload, headers=headers)
         print(response.text)
 
 
 if __name__ == '__main__':
-    车辆(10)
-    部门(10)
+    # 车辆(10000)
+    部门(1)

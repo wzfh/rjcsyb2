@@ -1,13 +1,11 @@
 import schedule
 from datetime import datetime
 
-
 import csv
 import os
 import re
 import time
 from socket import *
-
 
 import random
 import math
@@ -84,12 +82,11 @@ def countdown(t):
         time.sleep(1)
 
 
-
 def ww1():
     try:
         global s, t
         path = os.path.dirname(__file__)
-        file_path = path + '/12.csv'
+        file_path = path + '/e-茂名-12.csv'
         fCase = open(file_path, 'r', encoding='gbk')
         datas = csv.reader(fCase)
         data1 = []
@@ -192,9 +189,8 @@ def ww1():
 
 
 if __name__ == '__main__':
-
-# 设置定时任务
+    # 设置定时任务
     sched = BlockingScheduler()  # 设置定时任务，周一至周五 上午8.50自动打上班卡，下午6.10自动打下班卡
-    sched.add_job(ww1,  'cron', day_of_week='mon-fri', hour='15', minute='39')
+    sched.add_job(ww1, 'cron', day_of_week='mon-fri', hour='15', minute='39')
     # 开始执行定时任务
     sched.start()
