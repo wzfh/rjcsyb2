@@ -2,6 +2,7 @@ import base64
 import requests
 import ast
 import ddddocr
+import random
 
 
 def login():
@@ -75,18 +76,24 @@ def 部门(count):
 
 def 车辆(count):
     login()
+    group_ids = [1221, 2121, 11121, 2122, 2123]
+    selected_ids = []
+    shu = int(count / len(group_ids))
+    print(shu)
     for i in range(count):
         import requests
 
         url = "http://tx.dev.car900.com:9999/car/v4/api/assets/add.json"
 
+        # 随机选择一个组ID
+        selected_id = random.choice(group_ids)
         payload = {
             "assetsBaseVO": {
-                "plate": "13" + f"{i}".zfill(5) + "4450",
-                "groupId": 1120,
+                "plate": "10" + "4450" + f"{i}".zfill(5),
+                "groupId": f'{selected_id}',
                 "iconType": 0,
                 "terminalType": "GPRS-部标",
-                "terminalNo": "13" + f"{i}".zfill(5) + "4450",
+                "terminalNo": "10" + "4450" + f"{i}".zfill(5),
                 "terminalStatus": 0,
                 "displayYear": None,
                 "activationTmeStr": None,
@@ -115,6 +122,7 @@ def 车辆(count):
                 "installDate": "2024-07-09 09:48:01"
             }
         }
+        selected_ids.append(selected_id)
         headers = {
             "sessionid": f"{sessionId}",
             "Accept": "*/*",
@@ -126,8 +134,10 @@ def 车辆(count):
 
         response = requests.request("POST", url, json=payload, headers=headers)
         print(response.text)
+        if selected_ids.count(selected_id) == int(shu):
+            group_ids.remove(selected_id)
+        print("剩余的组ID：", group_ids)
 
 
 if __name__ == '__main__':
-    # 车辆(10000)
-    部门(1)
+    车辆(1000)

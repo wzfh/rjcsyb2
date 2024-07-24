@@ -219,6 +219,8 @@ def run():
     now = datetime.now()
     current_time = now.strftime("%H:%M")
     print(current_time)
+    os.system('adb  kill-server')
+    os.system('adb  devices')
     if current_time < "09:00":
         上班()
     if current_time > "17:29":
@@ -228,18 +230,17 @@ def run():
 if __name__ == "__main__":
     if "06:20" < current_time < "09:00":
         上班()
-    elif "17:31" < current_time < "20:00":
+    elif "17:31" < current_time < "19:00":
         下班()
     else:
         from apscheduler.schedulers.blocking import BlockingScheduler
 
         sched = BlockingScheduler(timezone='Asia/Shanghai')
-        time_minute = random.randint(0, 5)
-        print(time_minute)
-        print('等待时间打卡')
-        sched.add_job(run, 'cron', day_of_week='mon-sat', hour='06', minute=f'0{time_minute}', second='00')
-        sched.add_job(下班, 'cron', day_of_week='sat', hour='12', minute=f'08', second='01')
-        sched.add_job(run, 'cron', day_of_week='mon-fri', hour='17', minute=f'30', second='00')
+        print('等待打卡')
+        sched.add_job(run, 'cron', day_of_week='mon-sat', hour='06', minute=f'0{random.randint(0, 5)}', second='00',
+                      misfire_grace_time=3600)
+        sched.add_job(下班, 'cron', day_of_week='sat', hour='12', minute=f'08', second='01', misfire_grace_time=3600)
+        sched.add_job(run, 'cron', day_of_week='mon-fri', hour='17', minute=f'30', second='01', misfire_grace_time=3600)
         # 每天的20:30:00执行一次
         sched.start()
 
