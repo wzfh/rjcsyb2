@@ -8,18 +8,6 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
-try:
-    device = os.popen("adb devices").readlines()
-    device_id = device[1]
-    d = u2.connect_usb(f'{device_id.split()[0]}')
-    print(device_id.split())
-    if device_id.split()[1] != 'device':
-        print('设备连接失败')
-        os.system('adb  kill-server')
-        os.system('adb  devices')
-except AttributeError:
-    os.system('adb  kill-server')
-    os.system('adb  devices')
 package_name = "com.tencent.wework"
 activity_name = "com.tencent.wework.launch.LaunchSplashActivity"
 sender_email = "1114377437@qq.com"
@@ -38,7 +26,6 @@ zhu上班_image = Image.open("img/zhu上班.jpg")
 
 now = datetime.now()
 current_time = now.strftime("%H:%M")
-print(current_time)
 current_directory = os.getcwd()
 
 
@@ -58,6 +45,14 @@ def 识别图片2(file_path):
 def 打开应用():
     global d
     try:
+        device = os.popen("adb devices").readlines()
+        device_id = device[1]
+        d = u2.connect_usb(f'{device_id.split()[0]}')
+        print(device_id.split())
+        if device_id.split()[1] != 'device':
+            print('设备连接失败')
+            os.system('adb  kill-server')
+            os.system('adb  devices')
         os.system('adb shell input keyevent 224')
         os.system(r'adb push C:\Users\rjcsyb2\Desktop\atx-agent_0.10.0_linux_armv7\atx-agent /data/local/tmp')
         os.system('adb shell chmod 755 /data/local/tmp/atx-agent')
@@ -80,6 +75,8 @@ def 打开应用():
         d(text="打卡").click()
         print("点击打卡")
     except:
+        os.system('adb  kill-server')
+        os.system('adb  devices')
         os.system('python -m uiautomator2 init')
         d.app_start(package_name)
         print("启动企业微信成功")
@@ -101,14 +98,15 @@ def 截图():
     global region_image
     time.sleep(3)
     imge = d.screenshot()
-    region_image = imge.crop((86, 646, 940, 1527))
     if os.path.exists('img/bei.jpg'):
         os.remove('img/bei.jpg')
         print("文件 bei.jpg 已被成功删除.")
-    time.sleep(3)
+    region_image = imge.crop((86, 646, 940, 1527))
     print('重新截取屏幕')
     region_image.save('img/bei.jpg')
+    time.sleep(2)
     识别图片2('img/bei.jpg')
+    time.sleep(2)
 
 
 def email():
@@ -117,7 +115,7 @@ def email():
     os.system('adb shell svc bluetooth disable')
     print('关闭定位')
     os.system('adb shell settings put secure location_mode 0')
-    os.system('adb shell input keyevent 26')
+    # os.system('adb shell input keyevent 26')
     print('息屏')
     msg['Subject'] = f"{识别图片2('img/bei.jpg')}"
     with open('img/bei.jpg', "rb") as attachment:
@@ -219,8 +217,7 @@ def run():
     now = datetime.now()
     current_time = now.strftime("%H:%M")
     print(current_time)
-    os.system('adb  kill-server')
-    os.system('adb  devices')
+    os.system('adb shell input keyevent 26')
     if current_time < "09:00":
         上班()
     if current_time > "17:29":
@@ -239,8 +236,8 @@ if __name__ == "__main__":
         print('等待打卡')
         sched.add_job(run, 'cron', day_of_week='mon-sat', hour='06', minute=f'0{random.randint(0, 5)}', second='00',
                       misfire_grace_time=3600)
-        sched.add_job(下班, 'cron', day_of_week='sat', hour='12', minute=f'08', second='01', misfire_grace_time=3600)
-        sched.add_job(run, 'cron', day_of_week='mon-fri', hour='17', minute=f'30', second='01', misfire_grace_time=3600)
+        sched.add_job(下班, 'cron', day_of_week='sat', hour='12', minute=f'00', second='00', misfire_grace_time=3600)
+        sched.add_job(run, 'cron', day_of_week='mon-fri', hour='17', minute=f'30', second='00', misfire_grace_time=3600)
         # 每天的20:30:00执行一次
         sched.start()
 
