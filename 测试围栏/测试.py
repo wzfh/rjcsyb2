@@ -7,6 +7,7 @@ import smtplib
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+import keyboard
 
 package_name = "com.tencent.wework"
 activity_name = "com.tencent.wework.launch.LaunchSplashActivity"
@@ -31,6 +32,13 @@ current_directory = os.getcwd()
 
 def remove_whitespace(text):
     return text.replace('\n', '').replace(' ', '').strip()
+
+
+def on_key_press(event):
+    if event.name == 'home':
+        上班()
+    elif event.name == 'end':
+        下班()
 
 
 def 识别图片2(file_path):
@@ -104,9 +112,8 @@ def 截图():
     region_image = imge.crop((86, 646, 940, 1527))
     print('重新截取屏幕')
     region_image.save('img/bei.jpg')
-    time.sleep(2)
     识别图片2('img/bei.jpg')
-    time.sleep(2)
+    time.sleep(5)
 
 
 def email():
@@ -115,7 +122,6 @@ def email():
     os.system('adb shell svc bluetooth disable')
     print('关闭定位')
     os.system('adb shell settings put secure location_mode 0')
-    # os.system('adb shell input keyevent 26')
     print('息屏')
     msg['Subject'] = f"{识别图片2('img/bei.jpg')}"
     with open('img/bei.jpg', "rb") as attachment:
@@ -206,13 +212,6 @@ def 下班():
             os.system('adb  devices')
 
 
-# import sys
-#
-# log1 = os.getcwd() + "\\log.out"
-# print(log1)
-# f = open(log1, 'w')
-# sys.stdout = f
-# sys.stderr = f
 def run():
     now = datetime.now()
     current_time = now.strftime("%H:%M")
@@ -225,28 +224,13 @@ def run():
 
 
 if __name__ == "__main__":
-    if "06:20" < current_time < "09:00":
-        上班()
-    elif "17:31" < current_time < "19:00":
-        下班()
-    else:
-        from apscheduler.schedulers.blocking import BlockingScheduler
+    from apscheduler.schedulers.blocking import BlockingScheduler
 
-        sched = BlockingScheduler(timezone='Asia/Shanghai')
-        print('等待打卡')
-        sched.add_job(run, 'cron', day_of_week='mon-sat', hour='06', minute=f'0{random.randint(0, 5)}', second='00',
-                      misfire_grace_time=3600)
-        sched.add_job(下班, 'cron', day_of_week='sat', hour='12', minute=f'00', second='00', misfire_grace_time=3600)
-        sched.add_job(run, 'cron', day_of_week='mon-fri', hour='17', minute=f'30', second='00', misfire_grace_time=3600)
-        # 每天的20:30:00执行一次
-        sched.start()
-
-    # imge = d.screenshot()
-    # region_image = imge.crop((86, 646, 940, 1527))
-    # if os.path.exists('img/ces.jpg'):
-    #     os.remove('img/ces.jpg')
-    #     print("\n文件 ces.jpg 已被成功删除.")
-    # time.sleep(3)
-    # region_image.save('img/ces.jpg')
-    # print('\n重新截取屏幕')
-    # 识别图片2('img/今日打卡已完成.jpg')
+    sched = BlockingScheduler(timezone='Asia/Shanghai')
+    print('等待打卡')
+    keyboard.on_press(on_key_press)
+    sched.add_job(run, 'cron', day_of_week='mon-sat', hour='06', minute=f'0{random.randint(0, 5)}', second='00',
+                  misfire_grace_time=3600)
+    sched.add_job(下班, 'cron', day_of_week='sat', hour='12', minute=f'00', second='00', misfire_grace_time=3600)
+    sched.add_job(run, 'cron', day_of_week='mon-fri', hour='17', minute=f'30', second='00', misfire_grace_time=3600)
+    sched.start()

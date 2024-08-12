@@ -77,21 +77,3 @@
 #     executor.submit(print_numbers, 4000, 6000)
 #     executor.submit(print_numbers, 6000, 8000)
 #     executor.submit(print_numbers, 8000, 10000)
-# 蚂蚁的体重
-ant_weight = 50  # 毫克
-
-# 蚂蚁能举起的最大重量（体重的40倍）
-max_lift = ant_weight * 40  # 毫克
-
-# 蚂蚁能拖运的最大重量（体重的1700倍）
-max_drag = ant_weight * 1700  # 毫克
-
-# 食物重量列表
-food_weights = [500, 60000, 25, 1200, 2200, 1800, 10000, 80000, 3000, 65]
-
-# 计算可以举起和需要拖运的食物数量
-can_lift = sum(1 for weight in food_weights if weight <= max_lift)
-can_drag = sum(1 for weight in food_weights if weight > max_lift and weight <= max_drag)
-
-# 输出结果
-print(f"该蚂蚁可以举起的食物有{can_lift}个，可以拖运的食物有{can_drag}个。")
