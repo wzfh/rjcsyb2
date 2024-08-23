@@ -22,29 +22,31 @@ def login():
     result2 = ocr.classification(image)
     print('图形验证码:\t' + result2)  # 图形验证码
     print('uuid:\t\t' + user_dict['obj']['uuid'])
-    uuid = user_dict['obj']['uuid']
-    url = "http://tx.dev.car900.com:9999/oauth/v4/token"
-    payload = "-----011000010111000001101001\r\n" \
-              "Content-Disposition: form-data; name=\"username\"\r\n\r\ntest-cs\r\n" \
-              "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"scope\"\r\n\r\n" \
-              "carWeb4\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"tenantId\"\r\n\r\n1\r\n" \
-              "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\n" \
-              "yxpgOP/E5xEbcPyvzEXbQw==\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"code\"\r\n\r\n" \
-              f"{result2}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"uuid\"\r\n\r\n" \
-              f"{uuid}\r\n-----011000010111000001101001--\r\n\r\n"
-    headers = {
-        "Sessionid": "null",
-        "User-Agent": "Apipost/8 (https://www.apipost.cn)",
-        "content-type": "multipart/form-data; boundary=---011000010111000001101001"
-    }
-    response = requests.request("POST", url, data=payload, headers=headers)
-    user_dict1 = ast.literal_eval(response.text)
-    sessionId = user_dict1['obj']['sessionId']
-    print('sessionId:\t' + sessionId)
+    # uuid = user_dict['obj']['uuid']
+    # url = "http://tx.dev.car900.com:9999/oauth/v4/token"
+    # payload = "-----011000010111000001101001\r\n" \
+    #           "Content-Disposition: form-data; name=\"username\"\r\n\r\ntest-cs\r\n" \
+    #           "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"scope\"\r\n\r\n" \
+    #           "carWeb4\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"tenantId\"\r\n\r\n1\r\n" \
+    #           "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"password\"\r\n\r\n" \
+    #           "yxpgOP/E5xEbcPyvzEXbQw==\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; " \
+    #           "name=\"code\"\r\n\r\n" \
+    #           f"{result2}\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"uuid\"\r\n\r\n" \
+    #           f"{uuid}\r\n-----011000010111000001101001--\r\n\r\n"
+    # headers = {
+    #     "Sessionid": "null",
+    #     "User-Agent": "Apipost/8 (https://www.apipost.cn)",
+    #     "content-type": "multipart/form-data; boundary=---011000010111000001101001"
+    # }
+    # response = requests.request("POST", url, data=payload, headers=headers)
+    # print(response.text)
+    # user_dict1 = ast.literal_eval(response.text)
+    # sessionId = user_dict1['obj']['sessionId']
+    # print('sessionId:\t' + sessionId)
 
 
 def 部门(count):
-    login()
+    # login()
     for i in range(count):
         url = "http://tx.dev.car900.com:9999/car/v4/api/v4Department/addVehGroup.json"
         import random
@@ -66,7 +68,8 @@ def 部门(count):
             "address": None
         }
         headers = {
-            "Sessionid": f"{sessionId}",
+            # "Sessionid": f"{sessionId}",
+            "Sessionid": f"6820abbb4ce9499db4a491c56d5d47",
             "User-Agent": "Apipost/8 (https://www.apipost.cn)",
             "Content-Type": "application/json"
         }
@@ -140,4 +143,6 @@ def 车辆(count):
 
 
 if __name__ == '__main__':
-    车辆(1000)
+    # 车辆(1000)
+    部门(1)
+    # login()

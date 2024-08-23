@@ -122,6 +122,7 @@ def email():
     os.system('adb shell svc bluetooth disable')
     print('关闭定位')
     os.system('adb shell settings put secure location_mode 0')
+    os.system('adb shell settings put secure location_mode 0')
     print('息屏')
     msg['Subject'] = f"{识别图片2('img/bei.jpg')}"
     with open('img/bei.jpg', "rb") as attachment:
@@ -229,7 +230,7 @@ if __name__ == "__main__":
     sched = BlockingScheduler(timezone='Asia/Shanghai')
     print('等待打卡')
     keyboard.on_press(on_key_press)
-    sched.add_job(run, 'cron', day_of_week='mon-sat', hour='06', minute=f'0{random.randint(0, 5)}', second='00',
+    sched.add_job(run, 'cron', day_of_week='mon-sat', hour='06', minute=f'0{random.randint(5, 9)}', second='00',
                   misfire_grace_time=3600)
     sched.add_job(下班, 'cron', day_of_week='sat', hour='12', minute=f'00', second='00', misfire_grace_time=3600)
     sched.add_job(run, 'cron', day_of_week='mon-fri', hour='17', minute=f'30', second='00', misfire_grace_time=3600)

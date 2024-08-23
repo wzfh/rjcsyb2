@@ -1,8 +1,9 @@
 import requests
 import zipfile
 import os
+import 蓝奏云直链
 
-url = 'https://c1029.lanosso.com/de4fe86e3817acfceddf89c1147d4428/66bb4f03/2022/04/29/568824c3c0cd7cb3c807d11946aea9a0.zip?fn=Zombie.zip'
+url = f"{蓝奏云直链.run('https://fzw.lanzouh.com/imhbz03zfa1a')}"
 response = requests.get(url)
 with open('Zombie.zip', 'wb') as f:
     f.write(response.content)

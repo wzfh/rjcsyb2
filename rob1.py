@@ -930,7 +930,7 @@ class MY_GUI(tk.Tk):
         return sb
 
     def 标志位(self):
-        标志位=self.init_data4_Text7.get().strip()
+        标志位 = self.init_data4_Text7.get().strip()
         if 标志位 == '开始':
             return '01'
         else:
@@ -1092,10 +1092,7 @@ class MY_GUI(tk.Tk):
 
     def button_mode2(self):
         global is_on
-        # 确定它是开启还是关闭状态
 
-        # if is_on:
-        #     self.on_.config(text="随机关闭")
         wd1 = get_latitude(base_lat=float(self.wd部标()), radius=100000)
         jd1 = get_longitude(base_log=float(self.jd部标()), radius=100000)
         self.wd_Text2.delete(0, END)
@@ -1113,7 +1110,7 @@ class MY_GUI(tk.Tk):
 
     def getMon1(self, items):
         inits = self.init_data2_Text7.get()
-        if inits == "苏标" :
+        if inits == "苏标":
             items = ("疲劳驾驶报警", "接打手持电话报警", "抽烟报警", "长时间不目视前方报警", "未检测到驾驶员报警",
                      "双手同时脱离方向盘报警", "驾驶员行为监测功能失效报警")
         else:
@@ -2397,7 +2394,7 @@ class MY_GUI(tk.Tk):
 
         self.init_data3_label7 = Label(pane7, text="主动报警:")
         self.init_data3_label7.grid(row=2, column=0)
-        items=()
+        items = ()
         self.init_data3_Text7 = Combobox(pane7, width=50, height=20, values=items)
         self.init_data3_Text7.grid(row=2, column=1, columnspan=2, sticky=W)
 

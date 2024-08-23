@@ -104,5 +104,5 @@ def run(url):
 
 
 if __name__ == '__main__':
-    url = "https://fzw.lanzouh.com/imhbz03zfa1a"
+    url = "https://2fzb.lanzn.com/iQiwp27fjdmj"
     run(url)
