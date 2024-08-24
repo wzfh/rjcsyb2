@@ -1514,11 +1514,182 @@ class MY_GUI(tk.Tk):
         if inits == "报警数据":
             items = ("SOS报警", "关机报警", "缺电报警", "自动关机报警", "开机报警",
                      "设备充电", "电源已断开", "设备电量已充满")
+            self.zd_data_label11.grid(row=14, column=0, sticky=N)
+            self.zd_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.power_data_label11.grid_remove()
+            self.power_data_Text11.grid_remove()
+            self.busu_data_label11.grid_remove()
+            self.busu_data_Text11.grid_remove()
+            self.zd_data_Text11.delete(0, 10)
+            inits = self.zd_data_Text11.get()
+            if inits == "关机报警" or inits == "缺电报警" or inits == "自动关机报警" or inits == "开机报警" or inits == "设备充电" or inits == "电源已断开" or inits == "设备电量已充满":
+                self.repower_data_label11.grid(row=16, column=0, sticky=N)
+                self.repower_data_Text11.grid(row=17, column=0, columnspan=10, sticky=N)
+            else:
+                self.repower_data_label11.grid_remove()
+                self.repower_data_Text11.grid_remove()
+                self.phone_data_label11.grid_remove()
+                self.phone_data_Text11.grid_remove()
+                self.dial_data_label11.grid_remove()
+                self.dial_data_Text11.grid_remove()
+                self.mode_data_label11.grid_remove()
+                self.mode_data_Text11.grid_remove()
+                self.wendu_data_label11.grid_remove()
+                self.wendu_data_Text11.grid_remove()
+        elif inits == "心跳数据":
+            self.zd_data_label11.grid_remove()
+            self.zd_data_Text11.grid_remove()
+            self.zd_data_Text11.delete(0, 10)
+            self.repower_data_label11.grid_remove()
+            self.repower_data_Text11.grid_remove()
+            self.mode_data_label11.grid_remove()
+            self.mode_data_Text11.grid_remove()
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.power_data_label11.grid(row=14, columnspan=2, sticky=W)
+            self.power_data_Text11.grid(row=15, column=0, sticky=W)
+            self.busu_data_label11.grid(row=14, columnspan=2, sticky=E)
+            self.busu_data_Text11.grid(row=15, column=0, sticky=E)
         elif inits == "终端上报":
-            items = ("心跳数据", "设备模式上报", "设备登录", "健康参数上报", "通话记录上报")
+            items = ("设备模式上报", "设备登录", "获取天气信息", "健康心率血氧参数上报", "健康参数上报", "通话记录上报")
+            self.zd_data_label11.grid(row=14, column=0, sticky=N)
+            self.zd_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
+            self.zd_data_Text11.delete(0, 10)
+            self.repower_data_label11.grid_remove()
+            self.repower_data_Text11.grid_remove()
+            self.phone_data_label11.grid_remove()
+            self.dial_data_Text11.grid_remove()
+            self.mode_data_label11.grid_remove()
+            self.mode_data_Text11.grid_remove()
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.power_data_label11.grid_remove()
+            self.power_data_Text11.grid_remove()
+            self.busu_data_label11.grid_remove()
+            self.busu_data_Text11.grid_remove()
         else:
             items = ()
+            self.power_data_label11.grid_remove()
+            self.power_data_Text11.grid_remove()
+            self.busu_data_label11.grid_remove()
+            self.busu_data_Text11.grid_remove()
+            self.phone_data_label11.grid_remove()
+            self.phone_data_Text11.grid_remove()
+            self.dial_data_label11.grid_remove()
+            self.dial_data_Text11.grid_remove()
+            self.mode_data_label11.grid_remove()
+            self.mode_data_Text11.grid_remove()
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.zd_data_Text11.delete(0, 10)
         self.zd_data_Text11["values"] = items
+
+    def getMon3(self, items):
+        inits = self.zd_data_Text11.get()
+        if inits == "关机报警" or inits == "缺电报警" or inits == "自动关机报警" or inits == "开机报警" or inits == "设备充电" or inits == "电源已断开" or inits == "设备电量已充满":
+            self.repower_data_label11.grid(row=16, column=0, sticky=N)
+            self.repower_data_Text11.grid(row=17, column=0, columnspan=10, sticky=N)
+        elif inits == "通话记录上报":
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.phone_data_label11.grid(row=16, columnspan=2, sticky=W)
+            self.phone_data_Text11.grid(row=17, column=0, sticky=W)
+            self.dial_data_label11.grid(row=16, columnspan=2, sticky=E)
+            self.dial_data_Text11.grid(row=17, column=0, sticky=E)
+        elif inits == "设备模式上报":
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.mode_data_label11.grid(row=16, column=0, sticky=N)
+            self.mode_data_Text11.grid(row=17, column=0, columnspan=10, sticky=N)
+        elif inits == "健康心率血氧参数上报":
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.xue_data_label11.grid(row=16, columnspan=2, sticky=W)
+            self.xue_data_Text11.grid(row=17, column=0, sticky=W)
+            self.xinlv_data_label11.grid(row=16, columnspan=2, sticky=E)
+            self.xinlv_data_Text11.grid(row=17, column=0, sticky=E)
+            self.wendu1_data_label11.grid(row=18, column=0, sticky=N)
+            self.wendu1_data_Text11.grid(row=19, column=0, columnspan=10, sticky=N)
+            self.pdai_data_label11.grid(row=20, columnspan=2, sticky=W)
+            self.pdai_data_Text11.grid(row=21, column=0, sticky=W)
+            self.sb_data_label11.grid(row=20, columnspan=2, sticky=E)
+            self.sb_data_Text11.grid(row=21, column=0, sticky=E)
+        elif inits == "健康参数上报":
+            self.phone_data_label11.grid_remove()
+            self.phone_data_Text11.grid_remove()
+            self.dial_data_label11.grid_remove()
+            self.dial_data_Text11.grid_remove()
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.wendu_data_label11.grid(row=16, column=0, sticky=N)
+            self.wendu_data_Text11.grid(row=17, column=0, columnspan=10, sticky=N)
+        else:
+            self.repower_data_label11.grid_remove()
+            self.repower_data_Text11.grid_remove()
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.phone_data_label11.grid_remove()
+            self.phone_data_Text11.grid_remove()
+            self.dial_data_label11.grid_remove()
+            self.dial_data_Text11.grid_remove()
+            self.mode_data_label11.grid_remove()
+            self.mode_data_Text11.grid_remove()
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
 
     def show_menu(self, event):
         self.init_window_name.menu.post(event.x_root, event.y_root)
@@ -2620,6 +2791,45 @@ class MY_GUI(tk.Tk):
             return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
         return ""
 
+    def 心跳数据(self):
+        try:
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            消息头起始符 = '['
+            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+            分隔符 = ','
+            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+            交易流水号 = f'{now_time}0000'
+            报文类型 = '3'
+            时间 = f'{now_time}'
+            结束标识符 = ']'
+            当前电量 = f'{self.power_data_Text11.get()}'
+            当前步数 = f'{self.busu_data_Text11.get()}'
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{当前电量}%@{当前步数}' + 结束标识符
+            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+            res1 = res0.encode('raw_unicode_escape')
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((f'{self.ip11()}', int(self.port11())))
+            s.send(res1)
+            recv_msg = s.recv(1024).decode("utf8")
+            aa = str_split(recv_msg, 0)
+            res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+            match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+            tip_content = '心跳数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(1.0, tip_content)
+            if match:
+                # 提取匹配到的内容（不包括中括号）
+                content_inside_brackets = match.group(1)
+                tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
+                self.result_data_Text11.insert(END, tip_content)
+            else:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(END, 'No match found.')
+        except:
+            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        return ""
+
     def 报警数据(self, value):
         try:
             now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
@@ -2631,22 +2841,23 @@ class MY_GUI(tk.Tk):
             报文类型 = '3'
             时间 = f'{now_time}'
             结束标识符 = ']'
+            剩余电量 = f'{self.repower_data_Text11.get()}'
             if value == "SOS报警":
                 data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SOS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + '1' + 结束标识符
             elif value == "关机报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '2@' + 结束标识符
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'2@{剩余电量}%' + 结束标识符
             elif value == "缺电报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '1@10%' + 结束标识符
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'1@{剩余电量}%' + 结束标识符
             elif value == "自动关机报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '3@5%' + 结束标识符
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'3@{剩余电量}%' + 结束标识符
             elif value == "开机报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '4@90%' + 结束标识符
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'4@{剩余电量}%' + 结束标识符
             elif value == "设备充电":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '5@' + 结束标识符
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'5@{剩余电量}%' + 结束标识符
             elif value == "电源已断开":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '6@' + 结束标识符
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'6@{剩余电量}%' + 结束标识符
             elif value == "设备电量已充满":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + '7@100%' + 结束标识符
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'7@{剩余电量}%' + 结束标识符
             res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
             res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
             res1 = res0.encode('raw_unicode_escape')
@@ -2683,20 +2894,50 @@ class MY_GUI(tk.Tk):
             报文类型 = '3'
             时间 = f'{now_time}'
             结束标识符 = ']'
-            手机号 = '13829622823'
             开始时间 = now_time[:12] + '00'
             结束时间 = now_time
             时长 = int(结束时间) - int(开始时间)
-            if value == "设备模式上报":  # 平衡模式
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{random.randint(1, 3)}@{int(time.time() * 1000)}@20' + 结束标识符
+            手机号码 = f'{self.phone_data_Text11.get()}'.zfill(11)
+            拨通方 = f'{self.dial_data_Text11.get()}'
+            设备模式 = f'{self.mode_data_Text11.get()}'
+            温度 = f'{float(self.wendu_data_Text11.get())}'
+            血氧 = f'{self.xue_data_Text11.get()}'
+            心率 = f'{self.xinlv_data_Text11.get()}'
+            温度1 = f'{float(self.wendu1_data_Text11.get())}'
+            佩戴状态 = f'{self.pdai_data_Text11.get()}'
+            上报状态 = f'{self.sb_data_Text11.get()}'
+            if value == "设备模式上报":
+                if 设备模式 == "待机模式":
+                    mode = 0
+                elif 设备模式 == "省电模式":
+                    mode = 1
+                elif 设备模式 == "平衡模式":
+                    mode = 2
+                elif 设备模式 == "实时模式":
+                    mode = 3
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{mode}@{int(time.time() * 1000)}@20' + 结束标识符
             elif value == "设备登录":
                 data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_LOGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '22' + 分隔符 + f'5@1@111@1@1@100@0' + 结束标识符
+            elif value == "获取天气信息":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{self.jd11()}N{self.wd11()}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
             elif value == "健康参数上报":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'0000-0000@000!000!000!000!@{random.randint(35, 38)}@0000' + 结束标识符
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'0000-0000@000!000!000!000!@{温度}@0000' + 结束标识符
             elif value == "通话记录上报":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CALL_LOG' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '26' + 分隔符 + f'{手机号}@{开始时间}!{结束时间}@{时长}@{random.randint(0, 1)}' + 结束标识符
-            elif value == "心跳数据":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{random.randint(80, 100)}%@{random.randint(100, 2000)}' + 结束标识符
+                if 拨通方 == "呼入":
+                    dial = '0'
+                elif 拨通方 == "呼出":
+                    dial = '1'
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CALL_LOG' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '26' + 分隔符 + f'{手机号码}@{开始时间}!{结束时间}@{时长}@{dial}' + 结束标识符
+            elif value == "健康心率血氧参数上报":
+                if 佩戴状态 == "未佩戴":
+                    pdai = 0
+                elif 佩戴状态 == "已佩戴":
+                    pdai = 1
+                if 上报状态 == "定时上报":
+                    sb = 0
+                elif 上报状态 == "主动上报":
+                    sb = 1
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEART_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'{血氧}@{心率}@{温度1}@{pdai}@{sb}' + 结束标识符
             res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
             res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
             res1 = res0.encode('raw_unicode_escape')
@@ -2733,6 +2974,14 @@ class MY_GUI(tk.Tk):
                 self.result_data_Text11.insert(1.0, "请输入设备号")
             else:
                 self.result_data_Text11.insert(END, self.定位数据())
+        elif src == "心跳数据":
+            sbb1 = self.imei_Text11.get()
+            print(sbb1)
+            if not sbb1:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请输入设备号")
+            else:
+                self.result_data_Text11.insert(END, self.心跳数据())
         elif src == "报警数据":
             lx = self.zd_data_Text11.get()
             print(lx)
@@ -3508,7 +3757,7 @@ class MY_GUI(tk.Tk):
         self.init_data_label11 = Label(pane11,
                                        text="数据类型")
         self.init_data_label11.grid(row=8, column=0, sticky=N)
-        items = ("定位数据", "报警数据", "终端上报")
+        items = ("定位数据", "心跳数据", "报警数据", "终端上报")
         self.init_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
         self.init_data_Text11.current(0)
         self.init_data_Text11.grid(row=9, column=0, columnspan=10, sticky=N)
@@ -3533,10 +3782,69 @@ class MY_GUI(tk.Tk):
         self.jd_Text11.grid(row=13, column=0, sticky=N, columnspan=10)
 
         self.zd_data_label11 = Label(pane11, text="终端类型")
-        self.zd_data_label11.grid(row=14, column=0, sticky=N)
         items = ()
         self.zd_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
-        self.zd_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
+        self.zd_data_Text11.bind("<<ComboboxSelected>>", self.getMon3)
+
+        self.power_data_label11 = Label(pane11, text="当前电量")
+        items = ("60")
+        self.power_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+        self.power_data_Text11.current(0)
+
+        self.busu_data_label11 = Label(pane11, text="当前步数")
+        items = ("220")
+        self.busu_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+        self.busu_data_Text11.current(0)
+
+        self.repower_data_label11 = Label(pane11, text="剩余电量")
+        items = ("60")
+        self.repower_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.repower_data_Text11.current(0)
+
+        self.phone_data_label11 = Label(pane11, text="手机号码")
+        items = ("13829622823", "15875226034")
+        self.phone_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+        self.phone_data_Text11.current(0)
+
+        self.dial_data_label11 = Label(pane11, text="拨通方")
+        items = ("呼入", "呼出")
+        self.dial_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+        self.dial_data_Text11.current(0)
+
+        self.mode_data_label11 = Label(pane11, text="设备模式")
+        items = ("待机模式", "省电模式", "平衡模式", "实时模式")
+        self.mode_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.mode_data_Text11.current(0)
+
+        self.wendu_data_label11 = Label(pane11, text="温度")
+        items = ("36.2", "37", "38", "39.4")
+        self.wendu_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.wendu_data_Text11.current(0)
+
+        self.xue_data_label11 = Label(pane11, text="血氧")
+        items = ("98", "80")
+        self.xue_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+        self.xue_data_Text11.current(0)
+
+        self.xinlv_data_label11 = Label(pane11, text="心率")
+        items = ("120", "130")
+        self.xinlv_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+        self.xinlv_data_Text11.current(0)
+
+        self.wendu1_data_label11 = Label(pane11, text="温度")
+        items = ("36.2", "37", "38", "39.4")
+        self.wendu1_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.wendu1_data_Text11.current(0)
+
+        self.pdai_data_label11 = Label(pane11, text="佩戴状态")
+        items = ("未佩戴", "已佩戴")
+        self.pdai_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+        self.pdai_data_Text11.current(0)
+
+        self.sb_data_label11 = Label(pane11, text="上报状态")
+        items = ("定时上报", "主动上报")
+        self.sb_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+        self.sb_data_Text11.current(0)
 
         self.str_trans_to_md11_button = Button(pane11, text="穿戴通讯发送", width=10,
                                                command=lambda: self.thread_it(self.xsz_login))

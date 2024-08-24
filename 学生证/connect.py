@@ -94,6 +94,8 @@ def 报警数据(value):
 
 
 def 终端上报(value):
+    WD = '21.677431'
+    JD = '110.919843'
     now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
     消息头起始符 = '['
     设备号 = '867082058798585'.zfill(15)
@@ -107,6 +109,11 @@ def 终端上报(value):
     开始时间 = now_time[:12] + '00'
     结束时间 = now_time
     时长 = int(结束时间) - int(开始时间)
+    血氧 = f''
+    心率 = f''
+    温度 = f'{float()}'
+    佩戴状态 = f''
+    上报状态 = f''
     if value == "设备模式上报":  # 平衡模式
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{random.randint(1, 3)}@{int(time.time() * 1000)}@20' + 结束标识符
     elif value == "设备登录":
@@ -115,10 +122,38 @@ def 终端上报(value):
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'0000-0000@000!000!000!000!@{random.randint(35, 38)}@0000' + 结束标识符
     elif value == "通话记录上报":
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CALL_LOG' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '26' + 分隔符 + f'{手机号}@{开始时间}!{结束时间}@{时长}@{random.randint(0, 1)}' + 结束标识符
-    elif value == "心跳数据":
-        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{random.randint(80, 100)}%@{random.randint(100, 2000)}' + 结束标识符
+    elif value == "获取天气信息":
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{JD}N{WD}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
+    elif value == "健康心率血氧参数上报":
+        if 佩戴状态 == "未佩戴":
+            pdai = 0
+        elif 佩戴状态 == "已佩戴":
+            pdai = 1
+        if 上报状态 == "定时上报":
+            sb = 0
+        elif 上报状态 == "主动上报":
+            sb = 1
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEART_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'{血氧}@{心率}@{温度}@{pdai}@{sb}' + 结束标识符
+
     print(data)
     return data
+
+
+def 心跳数据():
+    now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+    消息头起始符 = '['
+    设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+    分隔符 = ','
+    ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+    交易流水号 = f'{now_time}0000'
+    报文类型 = '3'
+    时间 = f'{now_time}'
+    结束标识符 = ']'
+    开始时间 = now_time[:12] + '00'
+    结束时间 = now_time
+    data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{random.randint(80, 100)}%@{random.randint(100, 2000)}' + 结束标识符
+    print(data)
+
 
 # str1 = f"{data}"
 # str1 = "[867082058798193,89860000192027575560,202408221639450000,REPORT_HEARTBEAT3,20240822163945,5,97%@0]"
@@ -178,3 +213,44 @@ def 终端上报(value):
 #     print("接收到的信息为:%s" % str(recv_msg))
 # except:
 #     print('失败')
+血氧 = f'{self.xue_data_Text11.get()}'
+心率 = f'{self.xinlv_data_Text11.get()}'
+温度1 = f'{float(self.wendu1_data_Text11.get())}'
+佩戴状态 = f'{self.pdai_data_Text11.get()}'
+上报状态 = f'{self.sb_data_Text11.get()}'
+
+self.xue_data_label11 = Label(pane11, text="血氧")
+items = ("98", "80")
+self.xue_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+self.xue_data_Text11.current(0)
+
+self.xinlv_data_label11 = Label(pane11, text="心率")
+items = ("120", "130")
+self.xinlv_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+self.xinlv_data_Text11.current(0)
+
+self.wendu1_data_label11 = Label(pane11, text="温度")
+items = ("36.2", "37", "38", "39.4")
+self.wendu1_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+self.wendu1_data_Text11.current(0)
+
+self.pdai_data_label11 = Label(pane11, text="佩戴状态")
+items = ("未佩戴", "已佩戴")
+self.pdai_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+self.pdai_data_Text11.current(0)
+
+self.sb_data_label11 = Label(pane11, text="上报状态")
+items = ("定时上报", "主动上报")
+self.sb_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+self.sb_data_Text11.current(0)
+
+self.xue_data_label11.grid_remove()
+self.xue_data_Text11.grid_remove()
+self.xinlv_data_label11.grid_remove()
+self.xinlv_data_Text11.grid_remove()
+self.wendu1_data_label11.grid_remove()
+self.wendu1_data_Text11.grid_remove()
+self.pdai_data_label11.grid_remove()
+self.pdai_data_Text11.grid_remove()
+self.sb_data_label11.grid_remove()
+self.sb_data_Text11.grid_remove()
