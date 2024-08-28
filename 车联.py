@@ -142,7 +142,61 @@ def 车辆(count):
         print("剩余的组ID：", group_ids)
 
 
+def 学生(value):
+    group_ids = [16202, 16203, 16204, 16205, 16206, 16207, 16208, 16209, 16210, 16211]
+    selected_ids = []
+    shu = int(value / len(group_ids))
+    print(shu)
+    for i in range(value):
+        import requests
+        selected_id = random.choice(group_ids)
+        url = "https://www.tfzhijiao.com:6443/v1/api/student/add"
+        first_name = ['张', '王', '李', '赵', '刘', '陈', '杨', '黄', '周', '吴', '徐', '孙', '胡', '朱', '高', '林',
+                      '何', '郭', '马', '罗',
+                      '梁', '宋', '郑', '谢', '韩', '唐', '冯', '于', '董', '萧', '程', '曹', '袁', '邓', '许', '傅',
+                      '沈', '曾', '彭', '吕',
+                      '苏', '卢', '蔡', '余', '丁', '蒋', '魏', '薛', '叶', '阎', '余', '潘', '杜', '戴', '夏', '钟',
+                      '汪', '田', '任', '姜',
+                      '范', '方', '石', '姚', '谭', '廖', '邹', '熊', '金', '陆', '郝', '孔', '白', '崔', '康', '毛',
+                      '邱', '秦', '江', '史',
+                      '顾', '侯', '龚', '邵', '孟', '龙', '段', '雷', '钱', '汤', '尹', '黎', '易', '常', '武', '乔',
+                      '贺', '赖', '庞', '樊']
+        second_name = ["伟", "华", "建国", "洋", "刚", "万里", "爱民", "牧", "陆", "路", "昕", "鑫", "兵", "硕", "志宏",
+                       "峰", "磊", "雷", "文", "明浩", "光", "超", "军", "达"]
+        name = random.choice(first_name) + random.choice(second_name)
+        payload = {
+            "studentName": f"{name}",
+            "finger": "",
+            "sex": 1,
+            "schoolId": 1402,
+            "gradeId": 10,
+            "classId": f'{selected_id}',
+            "deviceType": 1,
+            "imei": "",
+            "rfid": None,
+            "studentNo": None,
+            "phone": None,
+            "devSn": "",
+            "idCard": ""
+        }
+        headers = {
+            "sessionId": "40340264171842ca8a92f336f853f3fa",
+            "Content-Type": "application/json",
+            "from": "PC",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+            "Connection": "keep-alive"
+        }
+        selected_ids.append(selected_id)
+        response = requests.request("POST", url, json=payload, headers=headers)
+        if selected_ids.count(selected_id) == int(shu):
+            group_ids.remove(selected_id)
+        print(response.text)
+
+
 if __name__ == '__main__':
     # 车辆(1000)
-    部门(1)
+    # 部门(129)
     # login()
+    学生(30000)

@@ -55,7 +55,7 @@ if __name__ == '__main__':
     key = "96 B6 71 5E F5 0F A4 55 7F 6C F9 77 17 8E 86 C9"
     iv = "11 C5 00 74 0B E4 4D 4E E5 BD AE D0 3C E7 6F FF"
     res = AES_CBC_encrypt(
-        f"{connect.终端上报('健康心率血氧参数上报')}",
+        f"{connect.终端上报('获取学生信息(FA67专用)')}",
         key, iv)
     res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
     res1 = res0.encode('raw_unicode_escape')

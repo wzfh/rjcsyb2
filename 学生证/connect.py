@@ -124,6 +124,9 @@ def 终端上报(value):
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CALL_LOG' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '26' + 分隔符 + f'{手机号}@{开始时间}!{结束时间}@{时长}@{random.randint(0, 1)}' + 结束标识符
     elif value == "获取天气信息":
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{JD}N{WD}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
+    elif value == "获取学生信息(FA67专用)":
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_STUDENT_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1' + 结束标识符
+
     elif value == "健康心率血氧参数上报":
         if 佩戴状态 == "未佩戴":
             pdai = 0
@@ -213,44 +216,203 @@ def 心跳数据():
 #     print("接收到的信息为:%s" % str(recv_msg))
 # except:
 #     print('失败')
-血氧 = f'{self.xue_data_Text11.get()}'
-心率 = f'{self.xinlv_data_Text11.get()}'
-温度1 = f'{float(self.wendu1_data_Text11.get())}'
-佩戴状态 = f'{self.pdai_data_Text11.get()}'
-上报状态 = f'{self.sb_data_Text11.get()}'
+first_name = ['张', '王', '李', '赵', '刘', '陈', '杨', '黄', '周', '吴', '徐', '孙', '胡', '朱', '高', '林',
+              '何', '郭', '马', '罗',
+              '梁', '宋', '郑', '谢', '韩', '唐', '冯', '于', '董', '萧', '程', '曹', '袁', '邓', '许', '傅',
+              '沈', '曾', '彭', '吕',
+              '苏', '卢', '蔡', '余', '丁', '蒋', '魏', '薛', '叶', '阎', '余', '潘', '杜', '戴', '夏', '钟',
+              '汪', '田', '任', '姜',
+              '范', '方', '石', '姚', '谭', '廖', '邹', '熊', '金', '陆', '郝', '孔', '白', '崔', '康', '毛',
+              '邱', '秦', '江', '史',
+              '顾', '侯', '龚', '邵', '孟', '龙', '段', '雷', '钱', '汤', '尹', '黎', '易', '常', '武', '乔',
+              '贺', '赖', '庞', '樊']
+second_name = ["伟第一中学", "华第一中学", "建国第一中学", "洋第一中学", "刚第一中学", "万里第一中学",
+               "爱民第一中学", "牧第一中学", "陆第一中学",
+               "路第一中学", "昕第一中学", "鑫第一中学", "兵第一中学", "硕第一中学", "志宏第一中学",
+               "峰第一中学", "磊第一中学", "雷第一中学", "文第一中学", "明浩第一中学", "光第一中学",
+               "超第一中学", "军第一中学", "达第一中学"]
+name = random.choice(first_name) + random.choice(second_name)
 
-self.xue_data_label11 = Label(pane11, text="血氧")
-items = ("98", "80")
-self.xue_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
-self.xue_data_Text11.current(0)
 
-self.xinlv_data_label11 = Label(pane11, text="心率")
-items = ("120", "130")
-self.xinlv_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
-self.xinlv_data_Text11.current(0)
+def 组织(value):
+    import requests
+    for i in range(value):
+        url = "https://www.tfzhijiao.com:6443/v1/api/org/addMore"
+        payload = {
+            "isLockSim": 0,
+            "orgId": None,
+            "orgName": f"{name}",
+            "orgPid": 402,
+            "province": "110000",
+            "city": "110100",
+            "district": "110116",
+            "sortNum": None,
+            "remark": "",
+            "roleType": 1,
+            "roleId": 1,
+            "loginName": f"{name}",
+            "isCreateSchool": 0,
+            "school": {
+                "num": 10,
+                "schoolName": "",
+                "schoolType": 1,
+                "educationStage": 1,
+                "roleId": 3
+            }
+        }
+        headers = {
+            "sessionId": "40340264171842ca8a92f336f853f3fa",
+            "Content-Type": "application/json",
+            "from": "PC",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+            "Connection": "keep-alive"
+        }
 
-self.wendu1_data_label11 = Label(pane11, text="温度")
-items = ("36.2", "37", "38", "39.4")
-self.wendu1_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
-self.wendu1_data_Text11.current(0)
+        response = requests.request("POST", url, json=payload, headers=headers)
 
-self.pdai_data_label11 = Label(pane11, text="佩戴状态")
-items = ("未佩戴", "已佩戴")
-self.pdai_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
-self.pdai_data_Text11.current(0)
+        print(response.text)
 
-self.sb_data_label11 = Label(pane11, text="上报状态")
-items = ("定时上报", "主动上报")
-self.sb_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
-self.sb_data_Text11.current(0)
 
-self.xue_data_label11.grid_remove()
-self.xue_data_Text11.grid_remove()
-self.xinlv_data_label11.grid_remove()
-self.xinlv_data_Text11.grid_remove()
-self.wendu1_data_label11.grid_remove()
-self.wendu1_data_Text11.grid_remove()
-self.pdai_data_label11.grid_remove()
-self.pdai_data_Text11.grid_remove()
-self.sb_data_label11.grid_remove()
-self.sb_data_Text11.grid_remove()
+def 学校(value):
+    for i in range(value):
+        import requests
+        url = "https://www.tfzhijiao.com:6443/v1/api/school/addMore"
+        payload = {
+            "num": 10,
+            "schoolName": f"{name}",
+            "schoolType": 1,
+            "headName": None,
+            "orgId": 402,
+            "headPhone": None,
+            "provinces": "110000",
+            "schoolAddress": f"{name}",
+            "city": "110100",
+            "county": "110116",
+            "educationStage": 3,
+            "remark": "",
+            "roleId": 3,
+            "loginName": f"{name}",
+            "extendId": "",
+            "lngLat": []
+        }
+        headers = {
+            "sessionId": "40340264171842ca8a92f336f853f3fa",
+            "Content-Type": "application/json",
+            "from": "PC",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+            "Connection": "keep-alive"
+        }
+
+        response = requests.request("POST", url, json=payload, headers=headers)
+
+        print(response.text)
+
+
+def 设备(value):
+    for i in range(value):
+        import requests
+
+        url = "https://www.tfzhijiao.com:6443/v1/api/card/add"
+        '000089799874470'
+        payload = {
+            "imei": f"8979987447" + f"{i}".zfill(5),
+            "finger": "",
+            "rfid": "",
+            "deviceType": "SC01",
+            "orgId": 402,
+            "cardId": None,
+            "bindingPhone": None
+        }
+        headers = {
+            "sessionId": "40340264171842ca8a92f336f853f3fa",
+            "Content-Type": "application/json",
+            "from": "PC",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+            "Connection": "keep-alive"
+        }
+
+        response = requests.request("POST", url, json=payload, headers=headers)
+
+        print(response.text)
+
+
+def 学生(value):
+    for i in range(value):
+        import requests
+
+        url = "https://www.tfzhijiao.com:6443/v1/api/student/add"
+        first_name = ['张', '王', '李', '赵', '刘', '陈', '杨', '黄', '周', '吴', '徐', '孙', '胡', '朱', '高', '林',
+                      '何', '郭', '马', '罗',
+                      '梁', '宋', '郑', '谢', '韩', '唐', '冯', '于', '董', '萧', '程', '曹', '袁', '邓', '许', '傅',
+                      '沈', '曾', '彭', '吕',
+                      '苏', '卢', '蔡', '余', '丁', '蒋', '魏', '薛', '叶', '阎', '余', '潘', '杜', '戴', '夏', '钟',
+                      '汪', '田', '任', '姜',
+                      '范', '方', '石', '姚', '谭', '廖', '邹', '熊', '金', '陆', '郝', '孔', '白', '崔', '康', '毛',
+                      '邱', '秦', '江', '史',
+                      '顾', '侯', '龚', '邵', '孟', '龙', '段', '雷', '钱', '汤', '尹', '黎', '易', '常', '武', '乔',
+                      '贺', '赖', '庞', '樊']
+        second_name = ["伟", "华", "建国", "洋", "刚", "万里", "爱民", "牧", "陆", "路", "昕", "鑫", "兵", "硕", "志宏",
+                       "峰", "磊", "雷", "文", "明浩", "光", "超", "军", "达"]
+        name = random.choice(first_name) + random.choice(second_name)
+        payload = {
+            "studentName": f"{name}",
+            "finger": "",
+            "sex": 1,
+            "schoolId": 1402,
+            "gradeId": 10,
+            "classId": 16202,
+            "deviceType": 1,
+            "imei": "",
+            "rfid": None,
+            "studentNo": None,
+            "phone": None,
+            "devSn": "",
+            "idCard": ""
+        }
+        headers = {
+            "sessionId": "40340264171842ca8a92f336f853f3fa",
+            "Content-Type": "application/json",
+            "from": "PC",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+            "Connection": "keep-alive"
+        }
+
+        response = requests.request("POST", url, json=payload, headers=headers)
+
+        print(response.text)
+
+
+if __name__ == '__main__':
+    # 组织数量200个，学校数量500个，班级数量1000个，学生证数量30000个，学生30000个；
+    # 组织(2)
+    # 学校(1)
+    import os
+
+
+    def get_filenames_without_extension(directory):
+        # 获取目录下的所有文件和文件夹
+        items = os.listdir(directory)
+        # 存储不带扩展名的文件名
+        filenames_without_extension = []
+
+        for item in items:
+            # 分离文件名和扩展名
+            file_name, file_extension = os.path.splitext(item)
+            # 将不带扩展名的文件名添加到列表中
+            filenames_without_extension.append(file_name)
+
+        return filenames_without_extension
+
+
+    # 调用函数，传入目录路径
+    directory = r"C:\Users\rjcsyb2\Desktop\开发库迁移\开发库迁移"
+    result = get_filenames_without_extension(directory)
+    print(result)

