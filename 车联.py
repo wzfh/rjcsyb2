@@ -199,4 +199,13 @@ if __name__ == '__main__':
     # 车辆(1000)
     # 部门(129)
     # login()
-    学生(30000)
+    import os
+    import fnmatch
+
+    csv_pattern = '*.csv'
+    files = []
+    for filename in os.listdir(os.getcwd() + '/conf/'):
+        if fnmatch.fnmatch(filename, csv_pattern):
+            file_path = os.getcwd() + f'/conf/{filename}'
+            files.append(file_path)
+    print(files[0])
