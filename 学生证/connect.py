@@ -158,9 +158,9 @@ def 终端上报(value):
 def 心跳数据():
     now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
     消息头起始符 = '['
-    设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+    设备号 = f'{1}'.zfill(15)
     分隔符 = ','
-    ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+    ICCID = f'{1}'.zfill(20)
     交易流水号 = f'{now_time}0000'
     报文类型 = '3'
     时间 = f'{now_time}'
@@ -169,7 +169,6 @@ def 心跳数据():
     结束时间 = now_time
     data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{random.randint(80, 100)}%@{random.randint(100, 2000)}' + 结束标识符
     print(data)
-
 
 # str1 = f"{data}"
 # str1 = "[867082058798193,89860000192027575560,202408221639450000,REPORT_HEARTBEAT3,20240822163945,5,97%@0]"
@@ -229,9 +228,3 @@ def 心跳数据():
 #     print("接收到的信息为:%s" % str(recv_msg))
 # except:
 #     print('失败')
-self.skip_data_label11.grid_remove()
-self.skip_data_Text11.grid_remove()
-self.sktime_data_label11.grid_remove()
-self.sktime_data_Text11.grid_remove()
-self.skci_data_label11.grid_remove()
-self.skci_data_Text11.grid_remove()

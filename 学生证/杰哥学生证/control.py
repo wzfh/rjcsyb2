@@ -122,7 +122,7 @@ class Controller:
         mm = "[%s,89860120801790891086,202109271427200000,REPORT_LOCATION_INFO,3,20210927142720,341,2E0.000000N0.000000T00000000000000@460!1!9671!73129860!-56@wifi1!5C:E8:83:9D:F8:C1!-45#wifi2!5C:E8:83:9D:F8:C0!-45#wifi3!5C:E8:83:9E:01:61!-47#wifi4!E8:68:19:62:1B:E1!-57#wifi5!5C:E8:83:9E:01:60!-57#wifi6!5C:E8:83:9E:69:A0!-60#wifi7!E8:68:19:62:1B:E0!-60#wifi8!3C:CD:5D:27:E4:C4!-63#wifi9!E8:68:19:62:1B:E2!-69#wifi10!40:F4:20:8F:F9:1A!-71]" % imei
         try:
             self.send_msg1(self.tcp_socket, mm)
-            # self.ui.tk_text_lxy5p1aw.insert('insert', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+"  发送数据："+"%s\n"%mm)
+        # self.ui.tk_text_lxy5p1aw.insert('insert', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+"  发送数据："+"%s\n"%mm)
         except:
             messagebox.showinfo('提示', message="请先连接服务器")
 
@@ -137,12 +137,12 @@ class Controller:
                 gps2 = self.ui.tk_input_lxygxzvc.get().strip()
                 mm = "[%s,89860484012080099999,202109271427200000,REPORT_LOCATION_INFO,3,20210927142720,79,0E%sN%sT20210927142720@0!0!0!0!0]" % (
                     imei, gps1, gps2)
-                try:
-                    print(mm)
-                    self.send_msg1(self.tcp_socket, mm)
-                    # self.ui.tk_text_lxy5p1aw.insert('insert', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+"  发送数据："+"%s\n"%mm)
-                except:
-                    messagebox.showinfo('提示', message="请先连接服务器")
+                # try:
+                print(mm)
+                self.send_msg1(self.tcp_socket, mm)
+                # self.ui.tk_text_lxy5p1aw.insert('insert', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))+"  发送数据："+"%s\n"%mm)
+                # except:
+                #     messagebox.showinfo('提示', message="请先连接服务器")
 
             elif name == "报警数据":
                 alarm_value = self.ui.tk_select_box_ly703s7u.get().strip()
@@ -269,138 +269,138 @@ class Controller:
             else:
                 print("No match found.")
 
-            a = str_split2(str(bb), ",")
-            try:
-                name2 = a[3]
-            except:
-                name2 = ""
-            if name2 != "":
-                if a[3] == "SET_LOCATION_MODE":
-                    jj = "[123456789012347,89860484012080099999,202109282146240006,SET_LOCATION_MODE,2,20210928214624,1,0]"
-                    kk = jj.replace("202109282146240006", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20210928214624", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_REDAY_MODE":
-                    jj = "[123456789012347,89860484012080099999,202109282146240006,SET_REDAY_MODE,2,20210928214624,1,0]"
-                    kk = jj.replace("202109282146240006", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20210928214624", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_CLASS_MODEL":
-                    jj = "[123456789012347,89860484012080099999,202109282146240006,SET_CLASS_MODEL,2,20210928214624,1,0]"
-                    kk = jj.replace("202109282146240006", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20210928214624", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_DEVICE_RFID":
-                    jj = "[123456789012347,89860484012080099999,202109282146240006,SET_DEVICE_RFID,2,20210928214624,1,1]"
-                    kk = jj.replace("202109282146240006", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20210928214624", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "LOCATION_INFO_GET":
-                    jj = "[123456789012347,89860802012080190052,202109282146240006,LOCATION_INFO_GET,2,20210928214624,339,2E0.000000N0.000000T00000000000000@460!0!955  6!24012039!-50@wifi1!5C:E8:83:9E:01:61!-32#wifi2!5C:E8:83:9E:01:60!-32#wifi3!E8:68:19:62:2A:C1!-55#wifi4!5C:E8:83:9D:F8:C0!-59#wifi5!E8:68:19:62:2A:C0!-59#wifi6!E8:68:19:62:2A:C2!-63#wifi7!5C:E8:83:9D:F8:C1!-64#wifi8!3C:CD:5D:27:E4:C5!-65#wifi9!E8:68:19:62:27:60!-71#wifi10!5C:E8:83:9E:69:A0!-73]"
-                    # jj = "[123456789012347,89860802012080190052,202109282146240006,REPORT_LOCATION_INFO,3,20210928214624,79,0E114.107596N22.652717T00000000000000@0!0!0!0!0]"
-                    kk = jj.replace("202109282146240006", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20210928214624", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "GET_HEALTH_INFO":
-                    pass
-                    # aa = input("请输入验证码")
-                    # TRIP(tcp_socket,aa)
-                elif a[3] == "DEVICE_LOGIN":
-                    # logger.info("开始获取健康码")
-                    #       # aa = "[866136055799444,89860477012170573202,202203181413300009,GET_HEALTH_INFO,3,20220318141330,1,0]"
-                    #       # send_msg1(tcp_socket, aa, "健康码")
-                    pass
-                # if a[3] == "SET_NORMAL_BUTTON":
-                #     jj = "[123456789012347,89860320757558907795,202109282146240006,SET_NORMAL_BUTTON,2,20210928214624,1,0]"
-                #     kk = jj.replace("202109282146240006", a[2])
-                #     time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                #     ll = kk.replace("20210928214624", time1)
-                #     mm = ll.replace("123456789012347", str(a[0])[3:])
-                #     logger.info("回复的消息:%s" % str(mm))
-                #     send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_HEALTH_NUM":
-                    jj = "[123456789012347,89860484012080099944,202109282146241000,SET_HEALTH_NUM,2,20210928214624,1,0]"
-                    kk = jj.replace("202109282146241000", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20210928214624", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_NORMAL_BUTTON":
-                    jj = "[123456789012347,898608051921C0078553,202109282146241000,SET_NORMAL_BUTTON,2,20210928214624,1,0]"
-                    kk = jj.replace("202109282146241000", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20210928214624", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_ANSWER_MODE":
-                    jj = "[123456789012347,898608051921C0078553,202110181648490143,SET_ANSWER_MODE,2,20211018164849,1,0]"
-                    kk = jj.replace("202110181648490143", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20211018164849", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    logger.info("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SEND_SMS":
-                    jj = "[123456789012347,89860484012080099999,202110181648490143,SEND_SMS,2,20211018164849,1,0]"
-                    kk = jj.replace("202110181648490143", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20211018164849", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "REMOTE_OPERATE_TERMINAL":
-                    jj = "[123456789012347,89860484012080099999,202110181648490143,REMOTE_OPERATE_TERMINAL,2,20211018164849,1,0]"
-                    kk = jj.replace("202110181648490143", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20211018164849", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_STUDENT_INFO":
-                    jj = "[123456789012347,89860484012080099999,202110181648490143,SET_STUDENT_INFO,2,20211018164849,1,0]"
-                    kk = jj.replace("202110181648490143", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20211018164849", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_SKIP_MAC":
-                    jj = "[123456789012347,89860484012080099999,202110181648490143,SET_SKIP_MAC,2,20211018164849,1,0]"
-                    kk = jj.replace("202110181648490143", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20211018164849", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                elif a[3] == "SET_FIND_DEVICES":
-                    jj = "[123456789012347,89860484012080099999,202110181648490143,SET_FIND_DEVICES,2,20211018164849,1,0]"
-                    kk = jj.replace("202110181648490143", a[2])
-                    time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-                    ll = kk.replace("20211018164849", time1)
-                    mm = ll.replace("123456789012347", str(a[0])[3:])
-                    print("回复的消息:%s" % str(mm))
-                    self.send_msg1(tcp_socket, mm)
-                else:
-                    pass
-            else:
-                pass
+            # a = str_split2(str(bb), ",")
+            # try:
+            #     name2 = a[3]
+            # except:
+            #     name2 = ""
+            # if name2 != "":
+            #     if a[3] == "SET_LOCATION_MODE":
+            #         jj = "[123456789012347,89860484012080099999,202109282146240006,SET_LOCATION_MODE,2,20210928214624,1,0]"
+            #         kk = jj.replace("202109282146240006", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20210928214624", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_REDAY_MODE":
+            #         jj = "[123456789012347,89860484012080099999,202109282146240006,SET_REDAY_MODE,2,20210928214624,1,0]"
+            #         kk = jj.replace("202109282146240006", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20210928214624", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_CLASS_MODEL":
+            #         jj = "[123456789012347,89860484012080099999,202109282146240006,SET_CLASS_MODEL,2,20210928214624,1,0]"
+            #         kk = jj.replace("202109282146240006", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20210928214624", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_DEVICE_RFID":
+            #         jj = "[123456789012347,89860484012080099999,202109282146240006,SET_DEVICE_RFID,2,20210928214624,1,1]"
+            #         kk = jj.replace("202109282146240006", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20210928214624", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "LOCATION_INFO_GET":
+            #         jj = "[123456789012347,89860802012080190052,202109282146240006,LOCATION_INFO_GET,2,20210928214624,339,2E0.000000N0.000000T00000000000000@460!0!955  6!24012039!-50@wifi1!5C:E8:83:9E:01:61!-32#wifi2!5C:E8:83:9E:01:60!-32#wifi3!E8:68:19:62:2A:C1!-55#wifi4!5C:E8:83:9D:F8:C0!-59#wifi5!E8:68:19:62:2A:C0!-59#wifi6!E8:68:19:62:2A:C2!-63#wifi7!5C:E8:83:9D:F8:C1!-64#wifi8!3C:CD:5D:27:E4:C5!-65#wifi9!E8:68:19:62:27:60!-71#wifi10!5C:E8:83:9E:69:A0!-73]"
+            #         # jj = "[123456789012347,89860802012080190052,202109282146240006,REPORT_LOCATION_INFO,3,20210928214624,79,0E114.107596N22.652717T00000000000000@0!0!0!0!0]"
+            #         kk = jj.replace("202109282146240006", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20210928214624", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "GET_HEALTH_INFO":
+            #         pass
+            #         # aa = input("请输入验证码")
+            #         # TRIP(tcp_socket,aa)
+            #     elif a[3] == "DEVICE_LOGIN":
+            #         # logger.info("开始获取健康码")
+            #         #       # aa = "[866136055799444,89860477012170573202,202203181413300009,GET_HEALTH_INFO,3,20220318141330,1,0]"
+            #         #       # send_msg1(tcp_socket, aa, "健康码")
+            #         pass
+            #     # if a[3] == "SET_NORMAL_BUTTON":
+            #     #     jj = "[123456789012347,89860320757558907795,202109282146240006,SET_NORMAL_BUTTON,2,20210928214624,1,0]"
+            #     #     kk = jj.replace("202109282146240006", a[2])
+            #     #     time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #     #     ll = kk.replace("20210928214624", time1)
+            #     #     mm = ll.replace("123456789012347", str(a[0])[3:])
+            #     #     logger.info("回复的消息:%s" % str(mm))
+            #     #     send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_HEALTH_NUM":
+            #         jj = "[123456789012347,89860484012080099944,202109282146241000,SET_HEALTH_NUM,2,20210928214624,1,0]"
+            #         kk = jj.replace("202109282146241000", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20210928214624", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_NORMAL_BUTTON":
+            #         jj = "[123456789012347,898608051921C0078553,202109282146241000,SET_NORMAL_BUTTON,2,20210928214624,1,0]"
+            #         kk = jj.replace("202109282146241000", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20210928214624", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_ANSWER_MODE":
+            #         jj = "[123456789012347,898608051921C0078553,202110181648490143,SET_ANSWER_MODE,2,20211018164849,1,0]"
+            #         kk = jj.replace("202110181648490143", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20211018164849", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         logger.info("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SEND_SMS":
+            #         jj = "[123456789012347,89860484012080099999,202110181648490143,SEND_SMS,2,20211018164849,1,0]"
+            #         kk = jj.replace("202110181648490143", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20211018164849", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "REMOTE_OPERATE_TERMINAL":
+            #         jj = "[123456789012347,89860484012080099999,202110181648490143,REMOTE_OPERATE_TERMINAL,2,20211018164849,1,0]"
+            #         kk = jj.replace("202110181648490143", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20211018164849", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_STUDENT_INFO":
+            #         jj = "[123456789012347,89860484012080099999,202110181648490143,SET_STUDENT_INFO,2,20211018164849,1,0]"
+            #         kk = jj.replace("202110181648490143", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20211018164849", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_SKIP_MAC":
+            #         jj = "[123456789012347,89860484012080099999,202110181648490143,SET_SKIP_MAC,2,20211018164849,1,0]"
+            #         kk = jj.replace("202110181648490143", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20211018164849", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     elif a[3] == "SET_FIND_DEVICES":
+            #         jj = "[123456789012347,89860484012080099999,202110181648490143,SET_FIND_DEVICES,2,20211018164849,1,0]"
+            #         kk = jj.replace("202110181648490143", a[2])
+            #         time1 = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            #         ll = kk.replace("20211018164849", time1)
+            #         mm = ll.replace("123456789012347", str(a[0])[3:])
+            #         print("回复的消息:%s" % str(mm))
+            #         self.send_msg1(tcp_socket, mm)
+            #     else:
+            #         pass
+            # else:
+            #     pass
 
     def send_msg(self, tcp_socket):
         global true
@@ -432,3 +432,7 @@ class Controller:
         logger.info("消息发送成功:%s" % (str(res1)))
         if self.send_msg == "exit":
             true = False
+
+
+if __name__ == '__main__':
+    pass

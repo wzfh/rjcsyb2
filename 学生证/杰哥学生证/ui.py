@@ -570,7 +570,6 @@ class Win(WinGUI):
         self.ctl = controller
         super().__init__()
         self.__event_bind()
-        self.__style_config()
         self.ctl.init(self)
 
     def __event_bind(self):
@@ -581,14 +580,6 @@ class Win(WinGUI):
         self.tk_button_lxyh2e7d.bind('<Button>', self.ctl.random_gps)
         self.tk_button_lxyh2v5m.bind('<Button>', self.ctl.wifi_data)
         self.tk_select_box_ly8bh0v7.bind('<<ComboboxSelected>>', self.ctl.change_page1)
-        pass
-
-        # frame1 = tk.LabelFrame(root, text="Page 1")
-        # frame2 = tk.LabelFrame(root, text="Page 2")
-        # frame3 = tk.LabelFrame(root, text="Page 3")
-
-    def __style_config(self):
-        pass
 
 
 if __name__ == "__main__":

@@ -169,241 +169,256 @@ class MY_GUI(tk.Tk):
         self.jinyong = config['Zombie']['jinyong']
         self.key = config['xsz']['key']
         self.iv = config['xsz']['iv']
+        self.轨迹时间 = config['Zombie']['轨迹time']
 
     def wzhi905(self, su, plsu):
         global data, t
         count = 0
-        try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            wd1 = float(self.wd()) * 60 / 0.0001
-            wd2 = hex(int(wd1))
-            jd1 = float(self.jd()) * 60 / 0.0001
-            jd2 = hex(int(jd1))
-            标识位 = '7E'
-            消息ID = '0200'
-            消息体属性 = '002F'
-            流水号 = f'{random.randint(12, 20)}'.zfill(4)
-            报警 = self.sb_bj()
-            状态 = self.sb_ztai()
-            纬度 = wd2[2:].zfill(8).upper()
-            经度 = jd2[2:].zfill(8).upper()
-            速度 = self.sdu()[2:].zfill(4).upper()
-            方向 = f'{random.randint(12, 20)}'
-            时间 = now_time[2:]
-            高程 = '0302' + f'{1}'.zfill(4)
-            附加 = f'0104000000{self.lic1().zfill(2)}0202044C{高程}250400000000300103'
-            if self.sb_on() == '是':
-                with ThreadPoolExecutor(max_workers=5) as executor:
-                    # 将任务提交给线程池
-                    executor.submit(self.qo_login批量905, 0, int(plsu) / 4)
-                    executor.submit(self.qo_login批量905, int(plsu) / 4, int(plsu) / 2)
-                    executor.submit(self.qo_login批量905, int(plsu) / 2, int(plsu) / 1.3)
-                    executor.submit(self.qo_login批量905, int(plsu) / 1.3, int(plsu) / 1.25)
-                    executor.submit(self.qo_login批量905, int(plsu) / 1.25, int(plsu))
-                self.result_data_Text1.insert(1.0, "位置数据发送成功\n\n")
-            else:
-                ISU标识 = self.sb_hao().zfill(12)
-                w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加
-                a = get_xor(w)
-                b = get_bcc(a)
-                E = w + b.upper().zfill(2)
-                t = 标识位 + E.replace("7E", "00") + 标识位
-                D = get_xor(E)
-                data = '7E ' + D + ' 7E'
-                if data[:2] != "7E":
-                    print(f"错误：{data}")
-                    t = t[:81] + "00" + t[82:]
-                    data = get_xor(t)
-                    print("修改后data：{}".format(data))
-                    print('\n' * 1)
-                count += 1
-                tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
-                self.result_data_Text1.insert(1.0, tip_content)
-                time.sleep(float(self.times()))
-                if self.ip_on() == '是':
-                    s = socket(AF_INET, SOCK_STREAM)
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        wd1 = float(self.wd()) * 60 / 0.0001
+        wd2 = hex(int(wd1))
+        jd1 = float(self.jd()) * 60 / 0.0001
+        jd2 = hex(int(jd1))
+        标识位 = '7E'
+        消息ID = '0200'
+        消息体属性 = '002F'
+        流水号 = f'{random.randint(12, 20)}'.zfill(4)
+        报警 = self.sb_bj()
+        状态 = self.sb_ztai()
+        纬度 = wd2[2:].zfill(8).upper()
+        经度 = jd2[2:].zfill(8).upper()
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        高程 = '0302' + f'{1}'.zfill(4)
+        附加 = f'0104000000{self.lic1().zfill(2)}0202044C{高程}250400000000300103'
+        if self.sb_on() == '是':
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                # 将任务提交给线程池
+                executor.submit(self.qo_login批量905, 0, int(plsu) / 4)
+                executor.submit(self.qo_login批量905, int(plsu) / 4, int(plsu) / 2)
+                executor.submit(self.qo_login批量905, int(plsu) / 2, int(plsu) / 1.3)
+                executor.submit(self.qo_login批量905, int(plsu) / 1.3, int(plsu) / 1.25)
+                executor.submit(self.qo_login批量905, int(plsu) / 1.25, int(plsu))
+            self.result_data_Text1.insert(1.0, f"位置数据发送成功,发送条数：{plsu}\n\n")
+        else:
+            ISU标识 = self.sb_hao().zfill(12)
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加
+            a = get_xor(w)
+            b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            count += 1
+            tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
+            self.result_data_Text1.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
                     s.connect((f'{self.ip()}', int(self.port())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text1.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text1.delete(1.0, END)
-                        self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功位置数据条数:  {}".format(str(count)))
-                self.result_data_Text1.insert(1.0, "总计发送成功位置数据条数:{}\n\n".format(str(count)))
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text1.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, str(e))
         return ''
 
     # 部标位置
     def wzhi部标(self, su2, plsu2):
         global data
         count = 0
-        try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            wd1 = float(self.wd部标())
-            wd2 = wd1 * 1000000
-            wd3 = hex(int(wd2))
-            jd1 = float(self.jd部标())
-            jd2 = jd1 * 1000000
-            jd3 = hex(int(jd2))
-            标识位 = '7E'
-            消息ID = '0200'
-            消息体属性 = '002F'
-            流水号 = f'{random.randint(12, 20)}'.zfill(4)
-            报警 = self.sb_bj2()
-            状态 = self.sb_ztai2()
-            纬度 = wd3[2:].zfill(8).upper()
-            经度 = jd3[2:].zfill(8).upper()
-            高程 = f'00{random.randint(12, 20)}'
-            速度 = self.sdu2()[2:].zfill(4).upper()
-            方向 = f'00{random.randint(12, 20)}'
-            时间 = now_time[2:]
-            附加信息ID = f'0104000000{self.lic().zfill(2)}0202044C250400000000300103'
-            if self.sb_on2() == '是':
-                # 创建一个线程池，包含两个线程
-                with ThreadPoolExecutor(max_workers=5) as executor:
-                    # 将任务提交给线程池
-                    executor.submit(self.qo_login批量部标, 0, int(plsu2) / 4)
-                    executor.submit(self.qo_login批量部标, int(plsu2) / 4, int(plsu2) / 2)
-                    executor.submit(self.qo_login批量部标, int(plsu2) / 2, int(plsu2) / 1.3)
-                    executor.submit(self.qo_login批量部标, int(plsu2) / 1.3, int(plsu2) / 1.25)
-                    executor.submit(self.qo_login批量部标, int(plsu2) / 1.25, int(plsu2))
-                self.result_data_Text2.insert(1.0, "位置数据发送成功\n\n")
-            else:
-                设备号 = self.sb_hao2().zfill(12)
-                w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
-                a = get_xor(w)
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        wd1 = float(self.wd部标())
+        wd2 = wd1 * 1000000
+        wd3 = hex(int(wd2))
+        jd1 = float(self.jd部标())
+        jd2 = jd1 * 1000000
+        jd3 = hex(int(jd2))
+        标识位 = '7E'
+        消息ID = '0200'
+        消息体属性 = '002F'
+        流水号 = f'{random.randint(12, 20)}'.zfill(4)
+        报警 = self.sb_bj2()
+        状态 = self.sb_ztai2()
+        纬度 = wd3[2:].zfill(8).upper()
+        经度 = jd3[2:].zfill(8).upper()
+        高程 = f'00{random.randint(12, 20)}'
+        速度 = self.sdu2()[2:].zfill(4).upper()
+        方向 = f'00{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        附加信息ID = f'0104000000{self.lic().zfill(2)}0202044C250400000000300103'
+        if self.sb_on2() == '是':
+            # 创建一个线程池，包含两个线程
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                # 将任务提交给线程池
+                executor.submit(self.qo_login批量部标, 0, int(plsu2) / 4)
+                executor.submit(self.qo_login批量部标, int(plsu2) / 4, int(plsu2) / 2)
+                executor.submit(self.qo_login批量部标, int(plsu2) / 2, int(plsu2) / 1.3)
+                executor.submit(self.qo_login批量部标, int(plsu2) / 1.3, int(plsu2) / 1.25)
+                executor.submit(self.qo_login批量部标, int(plsu2) / 1.25, int(plsu2))
+            self.result_data_Text2.insert(1.0, f"位置数据发送成功,发送条数：{plsu2}\n\n")
+        else:
+            设备号 = self.sb_hao2().zfill(12)
+            w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
+            a = get_xor(w)
+            b = get_bcc(a)
+            if b.upper() == "7E":
+                a.replace("00", "01")
                 b = get_bcc(a)
-                if b.upper() == "7E":
-                    a.replace("00", "01")
-                    b = get_bcc(a)
-                E = w + b.upper().zfill(2)
-                t = 标识位 + E.replace("7E", "01") + 标识位
-                D = get_xor(E)
-                data = '7E ' + D + ' 7E'
-                if data[:2] != "7E":
-                    print(f"错误：{data}")
-                    t = t[:81] + "00" + t[82:]
-                    data = get_xor(t)
-                    print("修改后data：{}".format(data))
-                    print('\n' * 1)
-                print(data)
-                count += 1
-                tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
-                self.result_data_Text2.insert(1.0, tip_content)
-                time.sleep(float(self.times()))
-                if self.ip_on2() == '是':
-                    s = socket(AF_INET, SOCK_STREAM)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "01") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(data)
+            count += 1
+            tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
+            self.result_data_Text2.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on2() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
                     s.connect((f'{self.ip2()}', int(self.port2())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text2.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text2.delete(1.0, END)
-                        self.result_data_Text2.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功位置数据条数:  {}".format(str(count)))
-                self.result_data_Text2.insert(1.0, "总计发送成功位置数据条数:{}\n".format(str(count)))
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text2.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text2.delete(1.0, END)
+                    self.result_data_Text2.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text2.delete(1.0, END)
+                    self.result_data_Text2.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text2.delete(1.0, END)
+                    self.result_data_Text2.insert(END, str(e))
         return ""
 
     def wzhi部标心跳(self):
         count = 0
-        try:
-            da = '00020000' + f"{self.sb_hao2().zfill(12)}" + "0001"
-            a = get_xor(da)
+        da = '00020000' + f"{self.sb_hao2().zfill(12)}" + "0001"
+        a = get_xor(da)
+        b = get_bcc(a)
+        if b.upper() == "7E":
+            a.replace("00", "01")
             b = get_bcc(a)
-            if b.upper() == "7E":
-                a.replace("00", "01")
-                b = get_bcc(a)
-            E = da + b.upper().zfill(2)
-            t = "7E" + E.replace("7E", "01") + "7E"
-            D = get_xor(E)
-            data = '7E ' + D + ' 7E'
-            if data[:2] != "7E":
-                print(f"错误：{data}")
-                t = t[:81] + "00" + t[82:]
-                data = get_xor(t)
-                print("修改后data：{}".format(data))
-                print('\n' * 1)
-            print(data)
-            count += 1
-            tip_content = '\n心跳数据：\n{}\n源数据：\n{}\n'.format(data, t)
-            self.result_data_Text2.insert(1.0, tip_content)
-            time.sleep(float(self.times()))
-            if self.ip_on2() == '是':
-                s = socket(AF_INET, SOCK_STREAM)
+        E = da + b.upper().zfill(2)
+        t = "7E" + E.replace("7E", "01") + "7E"
+        D = get_xor(E)
+        data = '7E ' + D + ' 7E'
+        if data[:2] != "7E":
+            print(f"错误：{data}")
+            t = t[:81] + "00" + t[82:]
+            data = get_xor(t)
+            print("修改后data：{}".format(data))
+            print('\n' * 1)
+        print(data)
+        count += 1
+        tip_content = '\n心跳数据：\n{}\n源数据：\n{}\n'.format(data, t)
+        self.result_data_Text2.insert(1.0, tip_content)
+        time.sleep(float(self.times()))
+        if self.ip_on2() == '是':
+            s = socket(AF_INET, SOCK_STREAM)
+            try:
                 s.connect((f'{self.ip2()}', int(self.port2())))
-                s.settimeout(5)
-                try:
-                    s.send(bytes().fromhex(data))
-                    send = s.recv(1024).hex()
-                    print(send.upper())
-                    print('\n' * 1)
-                    tip_content = '服务器应答：\n{}\n'.format(send.upper())
-                    self.result_data_Text2.insert(1.0, tip_content)
-                except:
-                    self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "总计发送成功心跳数据条数:  {}".format(str(count)))
-            self.result_data_Text2.insert(1.0, "总计发送成功心跳数据条数:{}\n".format(str(count)))
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                s.send(bytes().fromhex(data))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '服务器应答：\n{}\n'.format(send.upper())
+                self.result_data_Text2.insert(1.0, tip_content)
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, str(e))
         return ""
 
     def wzhi终端注销(self):
         count = 0
-        try:
-            da = '00030000' + f"{self.sb_hao2().zfill(12)}" + "0001"
-            a = get_xor(da)
+        da = '00030000' + f"{self.sb_hao2().zfill(12)}" + "0001"
+        a = get_xor(da)
+        b = get_bcc(a)
+        if b.upper() == "7E":
+            a.replace("00", "01")
             b = get_bcc(a)
-            if b.upper() == "7E":
-                a.replace("00", "01")
-                b = get_bcc(a)
-            E = da + b.upper().zfill(2)
-            t = "7E" + E.replace("7E", "01") + "7E"
-            D = get_xor(E)
-            data = '7E ' + D + ' 7E'
-            if data[:2] != "7E":
-                print(f"错误：{data}")
-                t = t[:81] + "00" + t[82:]
-                data = get_xor(t)
-                print("修改后data：{}".format(data))
-                print('\n' * 1)
-            print(data)
-            count += 1
-            tip_content = '\n终端注销数据：\n{}\n源数据：\n{}\n'.format(data, t)
-            self.result_data_Text2.insert(1.0, tip_content)
-            time.sleep(float(self.times()))
-            if self.ip_on2() == '是':
-                s = socket(AF_INET, SOCK_STREAM)
+        E = da + b.upper().zfill(2)
+        t = "7E" + E.replace("7E", "01") + "7E"
+        D = get_xor(E)
+        data = '7E ' + D + ' 7E'
+        if data[:2] != "7E":
+            print(f"错误：{data}")
+            t = t[:81] + "00" + t[82:]
+            data = get_xor(t)
+            print("修改后data：{}".format(data))
+            print('\n' * 1)
+        print(data)
+        count += 1
+        tip_content = '\n终端注销数据：\n{}\n源数据：\n{}\n'.format(data, t)
+        self.result_data_Text2.insert(1.0, tip_content)
+        time.sleep(float(self.times()))
+        if self.ip_on2() == '是':
+            s = socket(AF_INET, SOCK_STREAM)
+            try:
                 s.connect((f'{self.ip2()}', int(self.port2())))
-                s.settimeout(5)
-                try:
-                    s.send(bytes().fromhex(data))
-                    send = s.recv(1024).hex()
-                    print(send.upper())
-                    print('\n' * 1)
-                    tip_content = '服务器应答：\n{}\n'.format(send.upper())
-                    self.result_data_Text2.insert(1.0, tip_content)
-                except:
-                    self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "总计发送成功终端注销数据条数:  {}".format(str(count)))
-            self.result_data_Text2.insert(1.0, "总计发送成功终端注销数据条数:{}\n".format(str(count)))
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                s.send(bytes().fromhex(data))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '服务器应答：\n{}\n'.format(send.upper())
+                self.result_data_Text2.insert(1.0, tip_content)
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, str(e))
         return ""
 
     def 轨迹808(self):
@@ -475,19 +490,27 @@ class MY_GUI(tk.Tk):
                     print('\n' * 1)
                 print(data)
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip8()}', int(self.port8())))
-                s.settimeout(5)
                 try:
+                    s.connect((f'{self.ip8()}', int(self.port8())))
                     s.send(bytes().fromhex(data))
                     send = s.recv(1024).hex()
                     print(send.upper())
                     print('\n' * 1)
                     tip_content = '\n位置数据：\n{}\n源数据：\n{}\n 服务器应答：\n{}\n'.format(data, t, send.upper())
                     self.result_data_Text8.insert(1.0, tip_content)
-                except:
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
                     self.result_data_Text8.delete(1.0, END)
-                    self.result_data_Text8.insert(1.0, "连接超时，未收到服务器响应")
-                time.sleep(4)
+                    self.result_data_Text8.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text8.delete(1.0, END)
+                    self.result_data_Text8.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text8.delete(1.0, END)
+                    self.result_data_Text8.insert(END, str(e))
+                time.sleep(int(self.轨迹时间))
             self.result_data_Text8.insert(1.0, "\n完成")
             showinfo("发送结果", "发送成功")
         else:
@@ -581,481 +604,567 @@ class MY_GUI(tk.Tk):
                 print(t)
                 print(data)
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip8()}', int(self.port905_8())))
-                s.settimeout(5)
                 try:
+                    s.connect((f'{self.ip8()}', int(self.port905_8())))
                     s.send(bytes().fromhex(data))
                     send = s.recv(1024).hex()
                     print(send.upper())
                     print('\n' * 1)
                     tip_content = '\n位置数据：\n{}\n源数据：\n{}\n 服务器应答：\n{}\n'.format(data, t, send.upper())
                     self.result905_Text8.insert(1.0, tip_content)
-                except:
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
                     self.result905_Text8.delete(1.0, END)
-                    self.result905_Text8.insert(1.0, "连接超时，未收到服务器响应")
-                time.sleep(2)
+                    self.result905_Text8.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result905_Text8.delete(1.0, END)
+                    self.result905_Text8.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result905_Text8.delete(1.0, END)
+                    self.result905_Text8.insert(END, str(e))
+                time.sleep(int(self.轨迹时间))
             self.result905_Text8.insert(1.0, "\n完成")
             showinfo("发送结果", "发送成功")
         else:
             print('取消执行代码')
 
+    def 穿戴轨迹(self):
+        files = []
+        for filename in os.listdir(os.getcwd() + '/conf/'):
+            if fnmatch.fnmatch(filename, csv_pattern):
+                file_path = os.getcwd() + f'/conf/{filename}'
+                files.append(file_path)
+        result = askyesno("提醒", f"是否使用   {files[0]}       跑轨迹文件？")
+        if result:
+            fCase = open(files[0], 'r', encoding='gbk')
+            datas = csv.reader(fCase)
+            data1 = []
+            o = 0
+            for line in datas:
+                data1.append(line)
+            for nob1 in range(0, int(self.穿戴条数())):
+                t = data1[nob1]
+                o += 1
+                now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+                消息头起始符 = '['
+                设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+                分隔符 = ','
+                ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+                交易流水号 = f'{now_time}0000'
+                接口标识 = 'REPORT_LOCATION_INFO'
+                报文类型 = '3'  # 平台下发请求标示 1，则终 端响应标示为 2，终端上报接口标 示为 3，平台响应标示为 4
+                时间 = f'{now_time}'
+                报文长度 = '79'
+                报文体 = f'0E{t[1]}N{t[0]}T{now_time}@0!0!0!0!0'
+                结束标识符 = ']'
+                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 接口标识 + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + 报文长度 + 分隔符 + 报文体 + 结束标识符
+                res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+                res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+                res1 = res0.encode('raw_unicode_escape')
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
+                    s.connect((f'{self.ip11()}', int(self.port11())))
+                    s.send(res1)
+                    recv_msg = s.recv(1024).decode("utf8")
+                    aa = str_split(recv_msg, 0)
+                    res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
+                    match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
+                    tip_content = '定位数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+                    self.result_data_Text11.delete(1.0, END)
+                    self.result_data_Text11.insert(1.0, tip_content)
+                    if match:
+                        # 提取匹配到的内容（不包括中括号）
+                        content_inside_brackets = match.group(1)
+                        tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg,
+                                                                                          content_inside_brackets)
+                        self.result_data_Text11.insert(END, tip_content)
+                    else:
+                        self.result_data_Text11.delete(1.0, END)
+                        self.result_data_Text11.insert(END, 'No match found.')
+                    time.sleep(int(self.轨迹时间))
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text11.delete(1.0, END)
+                    self.result_data_Text11.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text11.delete(1.0, END)
+                    self.result_data_Text11.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text11.delete(1.0, END)
+                    self.result_data_Text11.insert(END, str(e))
+        else:
+            print("取消执行代码")
+        self.result_data_Text11.insert(1.0, "\n完成")
+        showinfo("发送结果", "发送成功")
+        return ""
+
     def qdao(self, su, plsu):
         count = 0
         hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
         驾驶员从业资格证号1 = ''.join(hex_list)
-        try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            wd1 = float(self.wd()) * 60 / 0.0001
-            wd2 = hex(int(wd1))
-            jd1 = float(self.jd()) * 60 / 0.0001
-            jd2 = hex(int(jd1))
-            标识位 = '7E'
-            消息ID = '0B03'
-            消息体属性 = '0043'
-            流水号 = f'00{random.randint(12, 20)}'
-            报警 = self.sb_bj()
-            状态 = self.sb_ztai()
-            纬度 = wd2[2:].zfill(8).upper()
-            经度 = jd2[2:].zfill(8).upper()
-            速度 = self.sdu()[2:].zfill(4).upper()
-            方向 = f'{random.randint(12, 20)}'
-            时间 = now_time[2:]
-            企业经营许可证号 = '534E3132333435363738390000000000'
-            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
-            车牌号 = '534E31323435'
-            开机时间 = now_time[:12]
-            附加 = '01040000006E0202044C250400000000300103'
-            if self.sb_on() == '是':
-                with ThreadPoolExecutor(max_workers=5) as executor:
-                    # 将任务提交给线程池
-                    executor.submit(self.qo_login批量905签到, 0, int(plsu) / 4)
-                    executor.submit(self.qo_login批量905签到, int(plsu) / 4, int(plsu) / 2)
-                    executor.submit(self.qo_login批量905签到, int(plsu) / 2, int(plsu) / 1.3)
-                    executor.submit(self.qo_login批量905签到, int(plsu) / 1.3, int(plsu) / 1.25)
-                    executor.submit(self.qo_login批量905签到, int(plsu) / 1.25, int(plsu))
-                self.result_data_Text1.insert(1.0, "签到数据发送成功\n\n")
-            else:
-                ISU标识 = self.sb_hao().zfill(12)
-                w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 开机时间 + 附加
-                a = get_xor(w)
-                b = get_bcc(a)
-                E = w + b.upper().zfill(2)
-                t = 标识位 + E.replace("7E", "00") + 标识位
-                D = get_xor(E)
-                data = '7E ' + D + ' 7E'
-                if data[:2] != "7E":
-                    print(f"错误：{data}")
-                    t = t[:81] + "00" + t[82:]
-                    data = get_xor(t)
-                    print("修改后data：{}".format(data))
-                    print('\n' * 1)
-                print(t)
-                print(data)
-                count += 1
-                tip_content = '\n签到数据：\n{}\n源数据：{}\n'.format(data, t)
-                self.result_data_Text1.insert(1.0, tip_content)
-                time.sleep(float(self.times()))
-                if self.ip_on() == '是':
-                    s = socket(AF_INET, SOCK_STREAM)
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        wd1 = float(self.wd()) * 60 / 0.0001
+        wd2 = hex(int(wd1))
+        jd1 = float(self.jd()) * 60 / 0.0001
+        jd2 = hex(int(jd1))
+        标识位 = '7E'
+        消息ID = '0B03'
+        消息体属性 = '0043'
+        流水号 = f'00{random.randint(12, 20)}'
+        报警 = self.sb_bj()
+        状态 = self.sb_ztai()
+        纬度 = wd2[2:].zfill(8).upper()
+        经度 = jd2[2:].zfill(8).upper()
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        企业经营许可证号 = '534E3132333435363738390000000000'
+        驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
+        车牌号 = '534E31323435'
+        开机时间 = now_time[:12]
+        附加 = '01040000006E0202044C250400000000300103'
+        if self.sb_on() == '是':
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                executor.submit(self.qo_login批量905签到, 0, int(plsu) / 4)
+                executor.submit(self.qo_login批量905签到, int(plsu) / 4, int(plsu) / 2)
+                executor.submit(self.qo_login批量905签到, int(plsu) / 2, int(plsu) / 1.3)
+                executor.submit(self.qo_login批量905签到, int(plsu) / 1.3, int(plsu) / 1.25)
+                executor.submit(self.qo_login批量905签到, int(plsu) / 1.25, int(plsu))
+            self.result_data_Text1.insert(1.0, f"签到数据发送成功,发送条数：{plsu}\n\n")
+        else:
+            ISU标识 = self.sb_hao().zfill(12)
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 开机时间 + 附加
+            a = get_xor(w)
+            b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(t)
+            print(data)
+            count += 1
+            tip_content = '\n签到数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text1.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
                     s.connect((f'{self.ip()}', int(self.port())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text1.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text1.delete(1.0, END)
-                        self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功签到数据条数:  {}".format(str(count)))
-                self.result_data_Text1.insert(1.0, "总计发送成功签到数据条数:{}\n\n".format(str(count)))
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text1.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, str(e))
         return ""
 
     def qtui(self, su, plsu):
         count = 0
         hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
         驾驶员从业资格证号1 = ''.join(hex_list)
-        try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            wd1 = float(self.wd()) * 60 / 0.0001
-            wd2 = hex(int(wd1))
-            jd1 = float(self.jd()) * 60 / 0.0001
-            jd2 = hex(int(jd1))
-            标识位 = '7E'
-            消息ID = '0B04'
-            消息体属性 = '0043'
-            流水号 = f'00{random.randint(12, 20)}'
-            报警 = self.sb_bj()
-            状态 = self.sb_ztai()
-            纬度 = wd2[2:].zfill(8).upper()
-            经度 = jd2[2:].zfill(8).upper()
-            速度 = self.sdu()[2:].zfill(4).upper()
-            方向 = f'{random.randint(12, 20)}'
-            时间 = now_time[2:]
-            企业经营许可证号 = '534E3132333435363738390000000000'
-            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
-            车牌号 = '534E31323435'
-            计价器K值 = f'00{random.randint(12, 20)}'
-            当班开机时间 = now_time[:12]
-            当班关机时间 = now_time[:12]
-            当班里程 = f'000{random.randint(30, 36)}0'
-            当班营运里程 = f'000{random.randint(30, 36)}0'
-            车次 = f'00{random.randint(12, 20)}'
-            计时时间 = now_time1
-            总计金额 = f'000{random.randint(12, 20)}0'
-            卡收金额 = f'000{random.randint(12, 20)}0'
-            卡次 = f'00{random.randint(12, 20)}'
-            班间里程 = f'0{random.randint(30, 36)}0'
-            总计里程 = f'00000{random.randint(30, 36)}0'
-            总营运里程 = f'00000{random.randint(30, 36)}0'
-            单价 = f'{random.randint(12, 20)}00'  # 12.00块
-            总营运次数 = '0000001A'  # 高位在前就是在后面
-            附加 = '01040000006E0202044C250400000000300103'
-            if self.sb_on() == '是':
-                with ThreadPoolExecutor(max_workers=5) as executor:
-                    # 将任务提交给线程池
-                    executor.submit(self.qo_login批量905签退, 0, int(plsu) / 4)
-                    executor.submit(self.qo_login批量905签退, int(plsu) / 4, int(plsu) / 2)
-                    executor.submit(self.qo_login批量905签退, int(plsu) / 2, int(plsu) / 1.3)
-                    executor.submit(self.qo_login批量905签退, int(plsu) / 1.3, int(plsu) / 1.25)
-                    executor.submit(self.qo_login批量905签退, int(plsu) / 1.25, int(plsu))
-                self.result_data_Text1.insert(1.0, "签退数据发送成功\n\n")
-            else:
-                ISU标识 = self.sb_hao().zfill(12)
-                签退方式 = '00'
-                w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 计价器K值 + 当班开机时间 + 当班关机时间 + 当班里程 + 当班营运里程 + 车次 + 计时时间 + 总计金额 + 卡收金额 + 卡次 + 班间里程 + 总计里程 + 总营运里程 + 单价 + 总营运次数 + 签退方式 + 附加
-                a = get_xor(w)
-                b = get_bcc(a)
-                E = w + b.upper().zfill(2)
-                t = 标识位 + E.replace("7E", "00") + 标识位
-                D = get_xor(E)
-                data = '7E ' + D + ' 7E'
-                if data[:2] != "7E":
-                    print(f"错误：{data}")
-                    t = t[:81] + "00" + t[82:]
-                    data = get_xor(t)
-                    print("修改后data：{}".format(data))
-                    print('\n' * 1)
-                print(t)
-                print(data)
-                count += 1
-                tip_content = '\n签退数据：\n{}\n源数据：{}\n'.format(data, t)
-                self.result_data_Text1.insert(1.0, tip_content)
-                time.sleep(float(self.times()))
-                if self.ip_on() == '是':
-                    s = socket(AF_INET, SOCK_STREAM)
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        wd1 = float(self.wd()) * 60 / 0.0001
+        wd2 = hex(int(wd1))
+        jd1 = float(self.jd()) * 60 / 0.0001
+        jd2 = hex(int(jd1))
+        标识位 = '7E'
+        消息ID = '0B04'
+        消息体属性 = '0043'
+        流水号 = f'00{random.randint(12, 20)}'
+        报警 = self.sb_bj()
+        状态 = self.sb_ztai()
+        纬度 = wd2[2:].zfill(8).upper()
+        经度 = jd2[2:].zfill(8).upper()
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        企业经营许可证号 = '534E3132333435363738390000000000'
+        驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
+        车牌号 = '534E31323435'
+        计价器K值 = f'00{random.randint(12, 20)}'
+        当班开机时间 = now_time[:12]
+        当班关机时间 = now_time[:12]
+        当班里程 = f'000{random.randint(30, 36)}0'
+        当班营运里程 = f'000{random.randint(30, 36)}0'
+        车次 = f'00{random.randint(12, 20)}'
+        计时时间 = now_time1
+        总计金额 = f'000{random.randint(12, 20)}0'
+        卡收金额 = f'000{random.randint(12, 20)}0'
+        卡次 = f'00{random.randint(12, 20)}'
+        班间里程 = f'0{random.randint(30, 36)}0'
+        总计里程 = f'00000{random.randint(30, 36)}0'
+        总营运里程 = f'00000{random.randint(30, 36)}0'
+        单价 = f'{random.randint(12, 20)}00'  # 12.00块
+        总营运次数 = '0000001A'  # 高位在前就是在后面
+        附加 = '01040000006E0202044C250400000000300103'
+        if self.sb_on() == '是':
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                executor.submit(self.qo_login批量905签退, 0, int(plsu) / 4)
+                executor.submit(self.qo_login批量905签退, int(plsu) / 4, int(plsu) / 2)
+                executor.submit(self.qo_login批量905签退, int(plsu) / 2, int(plsu) / 1.3)
+                executor.submit(self.qo_login批量905签退, int(plsu) / 1.3, int(plsu) / 1.25)
+                executor.submit(self.qo_login批量905签退, int(plsu) / 1.25, int(plsu))
+            self.result_data_Text1.insert(1.0, f"签退数据发送成功,发送条数：{plsu}\n\n")
+        else:
+            ISU标识 = self.sb_hao().zfill(12)
+            签退方式 = '00'
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 企业经营许可证号 + 驾驶员从业资格证号 + 车牌号 + 计价器K值 + 当班开机时间 + 当班关机时间 + 当班里程 + 当班营运里程 + 车次 + 计时时间 + 总计金额 + 卡收金额 + 卡次 + 班间里程 + 总计里程 + 总营运里程 + 单价 + 总营运次数 + 签退方式 + 附加
+            a = get_xor(w)
+            b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(t)
+            print(data)
+            count += 1
+            tip_content = '\n签退数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text1.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
                     s.connect((f'{self.ip()}', int(self.port())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text1.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text1.delete(1.0, END)
-                        self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功签退数据条数:  {}".format(str(count)))
-                self.result_data_Text1.insert(1.0, "总计发送成功签退数据条数:{}\n\n".format(str(count)))
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text1.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, str(e))
         return ""
 
     def yyun(self, su, plsu):
         count = 0
         hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
         驾驶员从业资格证号1 = ''.join(hex_list)
-        try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            wd1 = float(self.conf_wd) * 60 / 0.0001
-            wd2 = float(self.wd()) * 60 / 0.0001
-            wd3 = hex(int(wd1))
-            wd4 = hex(int(wd2))
-
-            jd1 = float(self.conf_jd) * 60 / 0.0001
-            jd2 = float(self.jd()) * 60 / 0.0001
-            jd3 = hex(int(jd1))
-            jd4 = hex(int(jd2))
-            标识位 = '7E'
-            消息ID = '0B05'
-            消息体属性 = '0073'
-            流水号 = f'00{random.randint(12, 20)}'
-            报警 = self.sb_bj()
-            状态 = self.sb_ztai()
-            纬度 = wd3[2:].zfill(8).upper()
-            经度 = jd3[2:].zfill(8).upper()
-            速度 = self.sdu()[2:].zfill(4).upper()
-            方向 = f'{random.randint(12, 20)}'
-            时间 = now_time[2:]
-
-            报警1 = self.sb_bj()
-            状态1 = self.sb_ztai()
-            纬度1 = wd4[2:].zfill(8).upper()
-            经度1 = jd4[2:].zfill(8).upper()
-            速度1 = self.sdu()[2:].zfill(4).upper()
-            方向1 = f'{random.randint(12, 20)}'
-            时间1 = now_time[2:]
-
-            营运ID = '3590AA28'
-            评价ID = '3590AA28'
-            评价选项 = '01'
-            评价选项扩展 = '0000'
-            电召订单ID = '000'.zfill(8)
-            车牌号 = '534E31323535'  # 4B3132333435
-            企业经营许可证号 = '534E3132333435363738393100000000'
-            驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
-            上车时间 = 时间[:10]
-            上车时间1 = 时间[:8] + '00'
-            上车 = 时间[6:8].replace(f"{时间[6:8]}", "%02d" % (int(时间[6:8]) + 1))
-            下车时间 = 上车 + 上车时间[8:]
-            计程公里数 = f'000{random.randint(30, 36)}0'
-            空驶里程 = f'0{random.randint(12, 30)}0'
-            附加费 = f'000{random.randint(12, 20)}0'
-            等待计时时间 = f'0{random.randint(12, 20)}0'
-            交易金额 = f'000{random.randint(12, 20)}0'
-            交易类型 = '03'
-            附加 = '01040000006E0202044C250400000000300103'
-            if self.sb_on() == '是':
-                with ThreadPoolExecutor(max_workers=5) as executor:
-                    # 将任务提交给线程池
-                    executor.submit(self.qo_login批量905营运, 0, int(plsu) / 4)
-                    executor.submit(self.qo_login批量905营运, int(plsu) / 4, int(plsu) / 2)
-                    executor.submit(self.qo_login批量905营运, int(plsu) / 2, int(plsu) / 1.3)
-                    executor.submit(self.qo_login批量905营运, int(plsu) / 1.3, int(plsu) / 1.25)
-                    executor.submit(self.qo_login批量905营运, int(plsu) / 1.25, int(plsu))
-                self.result_data_Text1.insert(1.0, "营运数据发送成功\n\n")
-            else:
-                ISU标识 = self.sb_hao().zfill(12)
-                当前车次 = f'{2}'.zfill(8)
-                w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 报警1 + 状态1 + 纬度1 + 经度1 + 速度1 + 方向1 + 时间1 + 营运ID + 评价ID + 评价选项 + 评价选项扩展 + 电召订单ID + 车牌号 + 企业经营许可证号 + 驾驶员从业资格证号 + 上车时间1 + 下车时间 + 计程公里数 + 空驶里程 + 附加费 + 等待计时时间 + 交易金额 + 当前车次 + 交易类型 + 附加
-                a = get_xor(w)
-                b = get_bcc(a)
-                E = w + b.upper().zfill(2)
-                t = 标识位 + E.replace("7E", "00") + 标识位
-                D = get_xor(E)
-                data = '7E ' + D + ' 7E'
-                if data[:2] != "7E":
-                    print(f"错误：{data}")
-                    t = t[:81] + "00" + t[82:]
-                    data = get_xor(t)
-                    print("修改后data：{}".format(data))
-                    print('\n' * 1)
-                print(t)
-                print(data)
-                count += 1
-                tip_content = '\n营运数据：\n{}\n源数据：{}\n'.format(data, t)
-                self.result_data_Text1.insert(1.0, tip_content)
-                time.sleep(float(self.times()))
-                if self.ip_on() == '是':
-                    s = socket(AF_INET, SOCK_STREAM)
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        wd1 = float(self.conf_wd) * 60 / 0.0001
+        wd2 = float(self.wd()) * 60 / 0.0001
+        wd3 = hex(int(wd1))
+        wd4 = hex(int(wd2))
+        jd1 = float(self.conf_jd) * 60 / 0.0001
+        jd2 = float(self.jd()) * 60 / 0.0001
+        jd3 = hex(int(jd1))
+        jd4 = hex(int(jd2))
+        标识位 = '7E'
+        消息ID = '0B05'
+        消息体属性 = '0073'
+        流水号 = f'00{random.randint(12, 20)}'
+        报警 = self.sb_bj()
+        状态 = self.sb_ztai()
+        纬度 = wd3[2:].zfill(8).upper()
+        经度 = jd3[2:].zfill(8).upper()
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'{random.randint(12, 20)}'
+        时间 = now_time[2:]
+        报警1 = self.sb_bj()
+        状态1 = self.sb_ztai()
+        纬度1 = wd4[2:].zfill(8).upper()
+        经度1 = jd4[2:].zfill(8).upper()
+        速度1 = self.sdu()[2:].zfill(4).upper()
+        方向1 = f'{random.randint(12, 20)}'
+        时间1 = now_time[2:]
+        营运ID = '3590AA28'
+        评价ID = '3590AA28'
+        评价选项 = '01'
+        评价选项扩展 = '0000'
+        电召订单ID = '000'.zfill(8)
+        车牌号 = '534E31323535'  # 4B3132333435
+        企业经营许可证号 = '534E3132333435363738393100000000'
+        驾驶员从业资格证号 = 驾驶员从业资格证号1.zfill(38)
+        上车时间 = 时间[:10]
+        上车时间1 = 时间[:8] + '00'
+        上车 = 时间[6:8].replace(f"{时间[6:8]}", "%02d" % (int(时间[6:8]) + 1))
+        下车时间 = 上车 + 上车时间[8:]
+        计程公里数 = f'000{random.randint(30, 36)}0'
+        空驶里程 = f'0{random.randint(12, 30)}0'
+        附加费 = f'000{random.randint(12, 20)}0'
+        等待计时时间 = f'0{random.randint(12, 20)}0'
+        交易金额 = f'000{random.randint(12, 20)}0'
+        交易类型 = '03'
+        附加 = '01040000006E0202044C250400000000300103'
+        if self.sb_on() == '是':
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                # 将任务提交给线程池
+                executor.submit(self.qo_login批量905营运, 0, int(plsu) / 4)
+                executor.submit(self.qo_login批量905营运, int(plsu) / 4, int(plsu) / 2)
+                executor.submit(self.qo_login批量905营运, int(plsu) / 2, int(plsu) / 1.3)
+                executor.submit(self.qo_login批量905营运, int(plsu) / 1.3, int(plsu) / 1.25)
+                executor.submit(self.qo_login批量905营运, int(plsu) / 1.25, int(plsu))
+            self.result_data_Text1.insert(1.0, f"营运数据发送成功,发送条数：{plsu}\n\n")
+        else:
+            ISU标识 = self.sb_hao().zfill(12)
+            当前车次 = f'{2}'.zfill(8)
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 报警1 + 状态1 + 纬度1 + 经度1 + 速度1 + 方向1 + 时间1 + 营运ID + 评价ID + 评价选项 + 评价选项扩展 + 电召订单ID + 车牌号 + 企业经营许可证号 + 驾驶员从业资格证号 + 上车时间1 + 下车时间 + 计程公里数 + 空驶里程 + 附加费 + 等待计时时间 + 交易金额 + 当前车次 + 交易类型 + 附加
+            a = get_xor(w)
+            b = get_bcc(a)
+            E = w + b.upper().zfill(2)
+            t = 标识位 + E.replace("7E", "00") + 标识位
+            D = get_xor(E)
+            data = '7E ' + D + ' 7E'
+            if data[:2] != "7E":
+                print(f"错误：{data}")
+                t = t[:81] + "00" + t[82:]
+                data = get_xor(t)
+                print("修改后data：{}".format(data))
+                print('\n' * 1)
+            print(t)
+            print(data)
+            count += 1
+            tip_content = '\n营运数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text1.insert(1.0, tip_content)
+            time.sleep(float(self.times()))
+            if self.ip_on() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
                     s.connect((f'{self.ip()}', int(self.port())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text1.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text1.delete(1.0, END)
-                        self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功营运数据条数:  {}".format(str(count)))
-                self.result_data_Text1.insert(1.0, "总计发送成功营运数据条数:{}\n\n".format(str(count)))
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text1.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, str(e))
         return ""
 
     # 抢答订单
     def qda(self, su3):
         count = 0
         for i in range(int(su3)):
-            try:
-                标识位 = '7E'
-                消息ID = '0B01'
-                消息体属性 = '002F'
-                ISU标识 = self.sb_hao3()
-                流水号 = f'{1}'.zfill(4)
-                业务ID = f'{self.yewid()}'.zfill(8).upper()
-                print(业务ID)
-                w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 业务ID
-                a = get_xor(w)
-                b = get_bcc(a)
-                t = 标识位 + w + b.upper() + 标识位
-                data = get_xor(t)
-                print(t)
-                print(data)
-                tip_content = '\n抢单数据：\n{}\n源数据：{}\n'.format(data, t)
-                self.result_data_Text3.insert(1.0, tip_content)
-                time.sleep(2)
-                count += 1
-                if self.ip_on3() == '是':
-                    s = socket(AF_INET, SOCK_STREAM)
+            标识位 = '7E'
+            消息ID = '0B01'
+            消息体属性 = '002F'
+            ISU标识 = self.sb_hao3()
+            流水号 = f'{1}'.zfill(4)
+            业务ID = f'{self.yewid()}'.zfill(8).upper()
+            print(业务ID)
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 业务ID
+            a = get_xor(w)
+            b = get_bcc(a)
+            t = 标识位 + w + b.upper() + 标识位
+            data = get_xor(t)
+            print(t)
+            print(data)
+            tip_content = '\n抢单数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text3.insert(1.0, tip_content)
+            time.sleep(2)
+            count += 1
+            if self.ip_on3() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
                     s.connect((f'{self.ip3()}', int(self.port3())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text3.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text3.delete(1.0, END)
-                        self.result_data_Text3.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功抢单数据条数:  {}".format(str(count)))
-                else:
-                    continue
-            except:
-                return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-        self.result_data_Text3.insert(1.0, "总计发送成功抢单数据条数:{}\n\n".format(str(count)))
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text3.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, str(e))
         return ""
 
     def qr(self, su3):
         count = 0
         for i in range(int(su3)):
-            try:
-                标识位 = '7E'
-                消息ID = '0B07'
-                消息体属性 = '002F'
-                ISU标识 = self.sb_hao3()
-                流水号 = f'{i}'.zfill(4)
-                业务ID = f'{self.yewid()}'.zfill(8).upper()
-                w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 业务ID
-                a = get_xor(w)
-                b = get_bcc(a)
-                t = 标识位 + w + b.upper() + 标识位
-                data = get_xor(t)
-                print(t)
-                print(data)
-                tip_content = '\n完成订单数据：\n{}\n源数据：{}\n'.format(data, t)
-                self.result_data_Text3.insert(1.0, tip_content)
-                time.sleep(2)
-                count += 1
-                if self.ip_on3() == '是':
-                    s = socket(AF_INET, SOCK_STREAM)
+            标识位 = '7E'
+            消息ID = '0B07'
+            消息体属性 = '002F'
+            ISU标识 = self.sb_hao3()
+            流水号 = f'{i}'.zfill(4)
+            业务ID = f'{self.yewid()}'.zfill(8).upper()
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 业务ID
+            a = get_xor(w)
+            b = get_bcc(a)
+            t = 标识位 + w + b.upper() + 标识位
+            data = get_xor(t)
+            print(t)
+            print(data)
+            tip_content = '\n完成订单数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text3.insert(1.0, tip_content)
+            time.sleep(2)
+            count += 1
+            if self.ip_on3() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
                     s.connect((f'{self.ip3()}', int(self.port3())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text3.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text3.delete(1.0, END)
-                        self.result_data_Text3.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功完成订单数据条数:  {}".format(str(count)))
-                else:
-                    continue
-            except:
-                return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-        self.result_data_Text3.insert(1.0, "总计发送成功完成订单数据条数:{}\n\n".format(str(count)))
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text3.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, str(e))
         return ""
 
     def qx(self, su3):
         count = 0
         for i in range(int(su3)):
-            try:
-                标识位 = '7E'
-                消息ID = '0B08'
-                消息体属性 = '002F'
-                ISU标识 = self.sb_hao3()
-                流水号 = f'{i}'.zfill(4)
-                业务ID = f'{self.yewid()}'.zfill(8).upper()
-                取消原因 = '01'
-                w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 业务ID + 取消原因
-                a = get_xor(w)
-                b = get_bcc(a)
-                t = 标识位 + w + b.upper() + 标识位
-                data = get_xor(t)
-                print(t)
-                print(data)
-                tip_content = '\n取消订单数据：\n{}\n源数据：{}\n'.format(data, t)
-                self.result_data_Text3.insert(1.0, tip_content)
-                time.sleep(2)
-                count += 1
-                if self.ip_on3() == '是':
-                    s = socket(AF_INET, SOCK_STREAM)
+            标识位 = '7E'
+            消息ID = '0B08'
+            消息体属性 = '002F'
+            ISU标识 = self.sb_hao3()
+            流水号 = f'{i}'.zfill(4)
+            业务ID = f'{self.yewid()}'.zfill(8).upper()
+            取消原因 = '01'
+            w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 业务ID + 取消原因
+            a = get_xor(w)
+            b = get_bcc(a)
+            t = 标识位 + w + b.upper() + 标识位
+            data = get_xor(t)
+            print(t)
+            print(data)
+            tip_content = '\n取消订单数据：\n{}\n源数据：{}\n'.format(data, t)
+            self.result_data_Text3.insert(1.0, tip_content)
+            time.sleep(2)
+            count += 1
+            if self.ip_on3() == '是':
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
                     s.connect((f'{self.ip3()}', int(self.port3())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text3.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text3.delete(1.0, END)
-                        self.result_data_Text3.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功取消订单数据条数:  {}".format(str(count)))
-                else:
-                    continue
-            except:
-                return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-            self.result_data_Text3.insert(1.0, "总计发送成功取消订单数据条数:{}\n\n".format(str(count)))
-            return ""
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text3.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text3.delete(1.0, END)
+                    self.result_data_Text3.insert(END, str(e))
+        return ""
 
     def wzhi2929(self, su4):
         count = 0
         for i in range(int(su4)):
-            try:
-                print(count)
-                now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-                wd2 = float(self.wd4()) / 0.00001
-                print(str(int(wd2)))
-                jd2 = float(self.jd4()) / 0.00001
-                print(str(int(jd2)))
-                标识位 = '2929'
-                消息ID = '80'
-                消息体属性 = '0028'
-                伪ip = self.sb_hao4().zfill(8)
-                时间 = now_time[2:]
-                纬度 = str(int(wd2)).zfill(8)
-                经度 = str(int(jd2)).zfill(8)
-                速度 = self.sdu4().zfill(4).upper()
-                方向 = self.fx().zfill(4).upper()
-                定位 = 'F0'
-                附加信息ID = '000000FEFC0000001E000000000000'
-                w = 消息ID + 消息体属性 + 伪ip + 时间 + 纬度 + 经度 + 速度 + 方向 + 定位 + 附加信息ID
-                a = get_xor(w)
-                b = get_bcc(a).zfill(2)
-                E = w + b.upper()
-                t = 标识位 + E.replace("7E", "00") + '0D'
-                print(t)
-                data = get_xor(t)
-                count += 1
-
-                tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
-                self.result_data_Text4.insert(1.0, tip_content)
-                time.sleep(float(self.times4()))
-                if self.ip_on4() == '是':
-                    s = socket(AF_INET, SOCK_DGRAM)
+            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+            wd2 = float(self.wd4()) / 0.00001
+            print(str(int(wd2)))
+            jd2 = float(self.jd4()) / 0.00001
+            print(str(int(jd2)))
+            标识位 = '2929'
+            消息ID = '80'
+            消息体属性 = '0028'
+            伪ip = self.sb_hao4().zfill(8)
+            时间 = now_time[2:]
+            纬度 = str(int(wd2)).zfill(8)
+            经度 = str(int(jd2)).zfill(8)
+            速度 = self.sdu4().zfill(4).upper()
+            方向 = self.fx().zfill(4).upper()
+            定位 = 'F0'
+            附加信息ID = '000000FEFC0000001E000000000000'
+            w = 消息ID + 消息体属性 + 伪ip + 时间 + 纬度 + 经度 + 速度 + 方向 + 定位 + 附加信息ID
+            a = get_xor(w)
+            b = get_bcc(a).zfill(2)
+            E = w + b.upper()
+            t = 标识位 + E.replace("7E", "00") + '0D'
+            print(t)
+            data = get_xor(t)
+            count += 1
+            tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
+            self.result_data_Text4.insert(1.0, tip_content)
+            time.sleep(float(self.times4()))
+            if self.ip_on4() == '是':
+                s = socket(AF_INET, SOCK_DGRAM)
+                try:
                     s.connect((f'{self.ip4()}', int(self.port4())))
-                    s.settimeout(5)
-                    try:
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text4.insert(1.0, tip_content)
-                    except:
-                        self.result_data_Text4.delete(1.0, END)
-                        self.result_data_Text4.insert(1.0, "连接超时，未收到服务器响应")
-                    showinfo("发送结果", "总计发送成功位置数据条数:  {}".format(str(count)))
-                else:
-                    continue
-            except:
-                return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
-        self.result_data_Text4.insert(1.0, "总计发送成功位置数据条数:{}\n".format(str(count)))
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    self.result_data_Text4.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text4.delete(1.0, END)
+                    self.result_data_Text4.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text4.delete(1.0, END)
+                    self.result_data_Text4.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text4.delete(1.0, END)
+                    self.result_data_Text4.insert(END, str(e))
         return ""
 
     def shebeihao2Vip(self, sSim):
@@ -1156,7 +1265,6 @@ class MY_GUI(tk.Tk):
 
     def button_mode4(self):
         global is_on
-
         wd1 = get_latitude(base_lat=float(self.wd4()), radius=150)
         jd1 = get_longitude(base_log=float(self.jd4()), radius=150)
         wd2 = float(wd1)
@@ -1369,7 +1477,6 @@ class MY_GUI(tk.Tk):
 
     def times(self):
         times = self.times_Text.get().strip()
-        print(times)
         return times
 
     def ip_on(self):
@@ -1398,6 +1505,10 @@ class MY_GUI(tk.Tk):
 
     def count8(self):
         sb = self.count_Text8.get().strip()
+        return int(sb)
+
+    def 穿戴条数(self):
+        sb = self.gji_data_Text11.get().strip()
         return int(sb)
 
     def count905_8(self):
@@ -1659,6 +1770,13 @@ class MY_GUI(tk.Tk):
                 self.mode_data_Text11.grid_remove()
                 self.wendu_data_label11.grid_remove()
                 self.wendu_data_Text11.grid_remove()
+        elif inits == "穿戴轨迹":
+            self.power_data_label11.grid_remove()
+            self.power_data_Text11.grid_remove()
+            self.busu_data_label11.grid_remove()
+            self.busu_data_Text11.grid_remove()
+            self.gji_data_label11.grid(row=14, column=0, sticky=N)
+            self.gji_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
         elif inits == "心跳数据":
             self.skip_data_label11.grid_remove()
             self.skip_data_Text11.grid_remove()
@@ -1685,6 +1803,8 @@ class MY_GUI(tk.Tk):
             self.pdai_data_Text11.grid_remove()
             self.sb_data_label11.grid_remove()
             self.sb_data_Text11.grid_remove()
+            self.gji_data_label11.grid_remove()
+            self.gji_data_Text11.grid_remove()
             self.power_data_label11.grid(row=14, columnspan=2, sticky=W)
             self.power_data_Text11.grid(row=15, column=0, sticky=W)
             self.busu_data_label11.grid(row=14, columnspan=2, sticky=E)
@@ -1744,6 +1864,8 @@ class MY_GUI(tk.Tk):
             self.sktime_data_Text11.grid_remove()
             self.skci_data_label11.grid_remove()
             self.skci_data_Text11.grid_remove()
+            self.gji_data_label11.grid_remove()
+            self.gji_data_Text11.grid_remove()
             self.zd_data_Text11.delete(0, 20)
         self.zd_data_Text11["values"] = items
 
@@ -2009,184 +2131,199 @@ class MY_GUI(tk.Tk):
         return ip_on
 
     def login5(self):
-        try:
-            qsw = '7878'
-            bcd1 = '17'
-            bcd = hex(int(bcd1))[2:].upper()
-            xyh = '01'
-            zdid = '0' + self.sb_hao5()
-            lxsbh = '0100'
-            sqyy = '3200'
-            xxxlh = '0001'
-            cwjy = bcd + xyh + zdid + lxsbh + sqyy + xxxlh
-            cwjy1 = crc1(cwjy)[2:].zfill(4).upper()
-            tzw = '0D0A'
-            w = qsw + cwjy + cwjy1 + tzw
-            data = get_xor(w)
-            print(data)
-            tip_content = 'V3登录包数据：\n{}\n\n设备号：{}\n\n源数据：{}\n'.format(data, data[12:-30], w)
-            self.result_data_Text5.insert(1.0, tip_content)
-            if self.ip_on5() == '是':
-                s = socket(AF_INET, SOCK_STREAM)
+        qsw = '7878'
+        bcd1 = '17'
+        bcd = hex(int(bcd1))[2:].upper()
+        xyh = '01'
+        zdid = '0' + self.sb_hao5()
+        lxsbh = '0100'
+        sqyy = '3200'
+        xxxlh = '0001'
+        cwjy = bcd + xyh + zdid + lxsbh + sqyy + xxxlh
+        cwjy1 = crc1(cwjy)[2:].zfill(4).upper()
+        tzw = '0D0A'
+        w = qsw + cwjy + cwjy1 + tzw
+        data = get_xor(w)
+        print(data)
+        tip_content = 'V3登录包数据：\n{}\n\n设备号：{}\n\n源数据：{}\n'.format(data, data[12:-30], w)
+        self.result_data_Text5.insert(1.0, tip_content)
+        if self.ip_on5() == '是':
+            s = socket(AF_INET, SOCK_STREAM)
+            try:
                 s.connect((f'{self.ip5()}', int(self.port5())))
-                s.settimeout(5)
-                try:
-                    s.send(bytes().fromhex(data))
-                    send = s.recv(1024).hex()
-                    print(send.upper())
-                    print('\n' * 1)
-                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                    self.result_data_Text5.insert(1.0, tip_content)
-                except:
-                    self.result_data_Text5.delete(1.0, END)
-                    self.result_data_Text5.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "发送成功")
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                s.send(bytes().fromhex(data))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                self.result_data_Text5.insert(1.0, tip_content)
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, str(e))
         return ""
 
     def dwei5(self):
-        try:
-            qsw = '7878'
-            ti = time.strftime("%Y%m%d%H%M%S")
-            ti2 = str(ti)
-            ti3 = 2 * '' + ti2[2:]
-            ti4 = (hex(int(ti3[0:2]))[2:4]).zfill(2)
-            ti5 = (hex(int(ti3[2:4]))[2:4]).zfill(2)
-            ti6 = (hex(int(ti3[4:6]))[2:4]).zfill(2)
-            ti7 = (hex(int(ti3[6:8]) - 8)[2:4]).zfill(2)
-            ti8 = (hex(int(ti3[8:10]))[2:4]).zfill(2)
-            ti9 = (hex(int(ti3[10:12]))[2:4]).zfill(2)
-            ti10 = ti4 + ti5 + ti6 + ti7 + ti8 + ti9
-            ti10 = ti10.upper()
-            cwjy = '22' + '22' + ti10 + f'CF027AC7EB0C46584911D54C01CC00287D001FB80001000007'
-            cwjy1 = crc1(cwjy)[2:].zfill(4).upper()
-            tzw = '0D0A'
-            w = qsw + cwjy + cwjy1 + tzw
-            a = get_xor(w)
-            t = a + ''
-            print(t)
-
-            tip_content = 'V3定位包数据：{}\n\n源数据：{}\n'.format(t, w)
-            self.result_data_Text5.insert(1.0, tip_content)
-            if self.ip_on5() == '是':
-                s = socket(AF_INET, SOCK_STREAM)
+        qsw = '7878'
+        ti = time.strftime("%Y%m%d%H%M%S")
+        ti2 = str(ti)
+        ti3 = 2 * '' + ti2[2:]
+        ti4 = (hex(int(ti3[0:2]))[2:4]).zfill(2)
+        ti5 = (hex(int(ti3[2:4]))[2:4]).zfill(2)
+        ti6 = (hex(int(ti3[4:6]))[2:4]).zfill(2)
+        ti7 = (hex(int(ti3[6:8]) - 8)[2:4]).zfill(2)
+        ti8 = (hex(int(ti3[8:10]))[2:4]).zfill(2)
+        ti9 = (hex(int(ti3[10:12]))[2:4]).zfill(2)
+        ti10 = ti4 + ti5 + ti6 + ti7 + ti8 + ti9
+        ti10 = ti10.upper()
+        cwjy = '22' + '22' + ti10 + f'CF027AC7EB0C46584911D54C01CC00287D001FB80001000007'
+        cwjy1 = crc1(cwjy)[2:].zfill(4).upper()
+        tzw = '0D0A'
+        w = qsw + cwjy + cwjy1 + tzw
+        a = get_xor(w)
+        t = a + ''
+        print(t)
+        tip_content = 'V3定位包数据：{}\n\n源数据：{}\n'.format(t, w)
+        self.result_data_Text5.insert(1.0, tip_content)
+        if self.ip_on5() == '是':
+            s = socket(AF_INET, SOCK_STREAM)
+            try:
                 s.connect((f'{self.ip5()}', int(self.port5())))
-                s.settimeout(5)
-                try:
-                    s.send(bytes().fromhex(t))
-                    send = s.recv(1024).hex()
-                    print(send.upper())
-                    print('\n' * 1)
-                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                    self.result_data_Text5.insert(1.0, tip_content)
-                except:
-                    self.result_data_Text5.delete(1.0, END)
-                    self.result_data_Text5.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "发送成功")
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                s.send(bytes().fromhex(t))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                self.result_data_Text5.insert(1.0, tip_content)
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, str(e))
         return ""
 
     def beep5(self):
-        try:
-            qsw = '7878'
-            bcd1 = '37'
-            bcd = hex(int(bcd1))[2:].upper()
-            xyh = '26'
-            ti = time.strftime("%Y%m%d%H%M%S")
-            ti2 = str(ti)
-            ti3 = 2 * '' + ti2[2:]
-            ti4 = (hex(int(ti3[0:2]))[2:4]).zfill(2)
-            ti5 = (hex(int(ti3[2:4]))[2:4]).zfill(2)
-            ti6 = (hex(int(ti3[4:6]))[2:4]).zfill(2)
-            ti7 = (hex(int(ti3[6:8]) - 8)[2:4]).zfill(2)
-            ti8 = (hex(int(ti3[8:10]))[2:4]).zfill(2)
-            ti9 = (hex(int(ti3[10:12]))[2:4]).zfill(2)
-            ti10 = ti4 + ti5 + ti6 + ti7 + ti8 + ti9
-            ti10 = ti10.upper()
-            gpscd = '12'
-            gpscd1 = hex(int(gpscd))[2:].upper()
-            gpsgs = '11'
-            gpsgs1 = hex(int(gpsgs))[2:].upper()
-            gps = gpscd1 + gpsgs1
-            wd = '026DDEC0'
-            jd = '0C3BFEE6'
-            sd = '25'
-            hxzt = '1400'
-            lbscd = '08'
-            mcc = '01CC'
-            mnc = '00'
-            lac = '262C'
-            cellid = '000EBA'
-            zdxxnrs = ["4C", "54", "64", "44", "74"]
-            zdxxnr = random.choice(zdxxnrs)
-            dydj = '03'
-            gsm = '03'
-            bjs = ["03", "00", "02", "04", "05", "06", "0D", "0E", "09", "01", "11", "12", "10", "0A", "0C", "0F",
-                   "40",
-                   "41", "42", "43", "44"]
-            bj = random.choice(bjs)
-            yy = '01'
-            xxxlh = '0003'
-            bjyy = bj + yy
-            cwjy = bcd + xyh + ti10 + gps + wd + jd + sd + hxzt + lbscd + mcc + mnc + lac + cellid + zdxxnr + dydj + gsm + bjyy + xxxlh
-            cwjy1 = crc1(cwjy)[2:].upper().zfill(4)
-            tzw = '0D0A'
-            w = qsw + cwjy + cwjy1 + tzw
-            a = get_xor(w)
-            t = a + ''
-            print(t)
-            tip_content = 'V3报警包数据：{}\n\n源数据：{}\n'.format(t, w)
-            self.result_data_Text5.insert(1.0, tip_content)
-            if self.ip_on5() == '是':
-                s = socket(AF_INET, SOCK_STREAM)
+        qsw = '7878'
+        bcd1 = '37'
+        bcd = hex(int(bcd1))[2:].upper()
+        xyh = '26'
+        ti = time.strftime("%Y%m%d%H%M%S")
+        ti2 = str(ti)
+        ti3 = 2 * '' + ti2[2:]
+        ti4 = (hex(int(ti3[0:2]))[2:4]).zfill(2)
+        ti5 = (hex(int(ti3[2:4]))[2:4]).zfill(2)
+        ti6 = (hex(int(ti3[4:6]))[2:4]).zfill(2)
+        ti7 = (hex(int(ti3[6:8]) - 8)[2:4]).zfill(2)
+        ti8 = (hex(int(ti3[8:10]))[2:4]).zfill(2)
+        ti9 = (hex(int(ti3[10:12]))[2:4]).zfill(2)
+        ti10 = ti4 + ti5 + ti6 + ti7 + ti8 + ti9
+        ti10 = ti10.upper()
+        gpscd = '12'
+        gpscd1 = hex(int(gpscd))[2:].upper()
+        gpsgs = '11'
+        gpsgs1 = hex(int(gpsgs))[2:].upper()
+        gps = gpscd1 + gpsgs1
+        wd = '026DDEC0'
+        jd = '0C3BFEE6'
+        sd = '25'
+        hxzt = '1400'
+        lbscd = '08'
+        mcc = '01CC'
+        mnc = '00'
+        lac = '262C'
+        cellid = '000EBA'
+        zdxxnrs = ["4C", "54", "64", "44", "74"]
+        zdxxnr = random.choice(zdxxnrs)
+        dydj = '03'
+        gsm = '03'
+        bjs = ["03", "00", "02", "04", "05", "06", "0D", "0E", "09", "01", "11", "12", "10", "0A", "0C", "0F",
+               "40",
+               "41", "42", "43", "44"]
+        bj = random.choice(bjs)
+        yy = '01'
+        xxxlh = '0003'
+        bjyy = bj + yy
+        cwjy = bcd + xyh + ti10 + gps + wd + jd + sd + hxzt + lbscd + mcc + mnc + lac + cellid + zdxxnr + dydj + gsm + bjyy + xxxlh
+        cwjy1 = crc1(cwjy)[2:].upper().zfill(4)
+        tzw = '0D0A'
+        w = qsw + cwjy + cwjy1 + tzw
+        a = get_xor(w)
+        t = a + ''
+        print(t)
+        tip_content = 'V3报警包数据：{}\n\n源数据：{}\n'.format(t, w)
+        self.result_data_Text5.insert(1.0, tip_content)
+        if self.ip_on5() == '是':
+            s = socket(AF_INET, SOCK_STREAM)
+            try:
                 s.connect((f'{self.ip5()}', int(self.port5())))
-                s.settimeout(5)
-                try:
-                    s.send(bytes().fromhex(t))
-                    send = s.recv(1024).hex()
-                    print(send.upper())
-                    print('\n' * 1)
-                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                    self.result_data_Text5.insert(1.0, tip_content)
-                except:
-                    self.result_data_Text5.delete(1.0, END)
-                    self.result_data_Text5.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "发送成功")
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                s.send(bytes().fromhex(t))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                self.result_data_Text5.insert(1.0, tip_content)
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, str(e))
         return ""
 
     def pant5(self):
-        try:
-            qsw = '7878'
-            cwjy = '0A1377060300010003'
-            cwjy1 = crc1(cwjy)[2:].upper()
-            tzw = '0D0A'
-            w = qsw + cwjy + cwjy1 + tzw
-            a = get_xor(w)
-            t = a + ''
-            print(t)
-            tip_content = 'V3心跳包数据：{}\n\n源数据：{}'.format(t, w)
-            self.result_data_Text5.insert(1.0, tip_content)
-            if self.ip_on5() == '是':
-                s = socket(AF_INET, SOCK_STREAM)
+        qsw = '7878'
+        cwjy = '0A1377060300010003'
+        cwjy1 = crc1(cwjy)[2:].upper()
+        tzw = '0D0A'
+        w = qsw + cwjy + cwjy1 + tzw
+        a = get_xor(w)
+        t = a + ''
+        print(t)
+        tip_content = 'V3心跳包数据：{}\n\n源数据：{}'.format(t, w)
+        self.result_data_Text5.insert(1.0, tip_content)
+        if self.ip_on5() == '是':
+            s = socket(AF_INET, SOCK_STREAM)
+            try:
                 s.connect((f'{self.ip5()}', int(self.port5())))
-                s.settimeout(5)
-                try:
-                    s.send(bytes().fromhex(t))
-                    send = s.recv(1024).hex()
-                    print(send.upper())
-                    print('\n' * 1)
-                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                    self.result_data_Text5.insert(1.0, tip_content)
-                except:
-                    self.result_data_Text5.delete(1.0, END)
-                    self.result_data_Text5.insert(1.0, "连接超时，未收到服务器响应")
-                showinfo("发送结果", "发送成功")
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+                s.send(bytes().fromhex(t))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                self.result_data_Text5.insert(1.0, tip_content)
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text5.delete(1.0, END)
+                self.result_data_Text5.insert(END, str(e))
         return ""
 
     def str_trans_to_md6(self):
@@ -2393,18 +2530,26 @@ class MY_GUI(tk.Tk):
             time.sleep(float(self.times()))
             if self.ip_on2() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip2()}', int(self.port2())))
-                s.settimeout(5)
                 try:
+                    s.connect((f'{self.ip2()}', int(self.port2())))
                     s.send(bytes().fromhex(data))
                     send = s.recv(1024).hex()
                     print(send.upper())
                     print('\n' * 1)
                     tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
                     self.result_data_Text2.insert(1.0, tip_content)
-                except:
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
                     self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(1.0, "连接超时，未收到服务器响应")
+                    self.result_data_Text2.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text2.delete(1.0, END)
+                    self.result_data_Text2.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text2.delete(1.0, END)
+                    self.result_data_Text2.insert(END, str(e))
 
     def qo_login批量905(self, su, plsu):
         wd1 = float(self.wd()) * 60 / 0.0001
@@ -2444,18 +2589,26 @@ class MY_GUI(tk.Tk):
             time.sleep(float(self.times()))
             if self.ip_on() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip()}', int(self.port())))
-                s.settimeout(5)
                 try:
+                    s.connect((f'{self.ip()}', int(self.port())))
                     s.send(bytes().fromhex(data))
                     send = s.recv(1024).hex()
                     print(send.upper())
                     print('\n' * 1)
                     tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
                     self.result_data_Text1.insert(1.0, tip_content)
-                except:
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
                     self.result_data_Text1.delete(1.0, END)
-                    self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
+                    self.result_data_Text1.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, str(e))
 
     def qo_login批量905签到(self, su, plsu):
         hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
@@ -2502,18 +2655,26 @@ class MY_GUI(tk.Tk):
             time.sleep(float(self.times()))
             if self.ip_on() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip()}', int(self.port())))
-                s.settimeout(5)
                 try:
+                    s.connect((f'{self.ip()}', int(self.port())))
                     s.send(bytes().fromhex(data))
                     send = s.recv(1024).hex()
                     print(send.upper())
                     print('\n' * 1)
                     tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
                     self.result_data_Text1.insert(1.0, tip_content)
-                except:
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
                     self.result_data_Text1.delete(1.0, END)
-                    self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
+                    self.result_data_Text1.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, str(e))
 
     def qo_login批量905签退(self, su, plsu):
         hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
@@ -2578,18 +2739,26 @@ class MY_GUI(tk.Tk):
             time.sleep(float(self.times()))
             if self.ip_on() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip()}', int(self.port())))
-                s.settimeout(5)
                 try:
+                    s.connect((f'{self.ip()}', int(self.port())))
                     s.send(bytes().fromhex(data))
                     send = s.recv(1024).hex()
                     print(send.upper())
                     print('\n' * 1)
                     tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
                     self.result_data_Text1.insert(1.0, tip_content)
-                except:
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
                     self.result_data_Text1.delete(1.0, END)
-                    self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
+                    self.result_data_Text1.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, str(e))
 
     def qo_login批量905营运(self, su, plsu):
         hex_list = [hex(ord(char))[2:].upper() for char in self.driver()]
@@ -2662,19 +2831,26 @@ class MY_GUI(tk.Tk):
             time.sleep(float(self.times()))
             if self.ip_on() == '是':
                 s = socket(AF_INET, SOCK_STREAM)
-                s.connect((f'{self.ip()}', int(self.port())))
-                s.settimeout(5)
                 try:
+                    s.connect((f'{self.ip()}', int(self.port())))
                     s.send(bytes().fromhex(data))
                     send = s.recv(1024).hex()
                     print(send.upper())
                     print('\n' * 1)
                     tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
                     self.result_data_Text1.insert(1.0, tip_content)
-                except:
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
                     self.result_data_Text1.delete(1.0, END)
-                    self.result_data_Text1.insert(1.0, "连接超时，未收到服务器响应")
-        # self.result_data_Text1.insert(1.0, "总计发送成功营运数据条数:{}\n\n".format(str(count)))
+                    self.result_data_Text1.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text1.delete(1.0, END)
+                    self.result_data_Text1.insert(END, str(e))
 
     def qo_login2929(self):
         src = self.init_data_Text4.get().strip()
@@ -2837,15 +3013,27 @@ class MY_GUI(tk.Tk):
             self.result_data_Text1.insert(1.0, "请输入自定义数据")
         else:
             s = socket(AF_INET, SOCK_STREAM)
-            s.connect((f'{self.ip()}', int(self.port())))
-            s.send(bytes().fromhex(t))
-            send = s.recv(1024).hex()
-            print(send.upper())
-            print('\n' * 1)
-            self.result_data_Text1.delete(1.0, END)
-            self.result_data_Text1.insert(1.0, f"{t}\n\n")
-            self.result_data_Text1.insert(END, f"服务器应答：{send.upper()}\n")
-            showinfo("发送结果", "发送成功")
+            try:
+                s.connect((f'{self.ip()}', int(self.port())))
+                s.send(bytes().fromhex(t))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                self.result_data_Text1.delete(1.0, END)
+                self.result_data_Text1.insert(1.0, f"{t}\n\n")
+                self.result_data_Text1.insert(END, f"服务器应答：{send.upper()}\n")
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text1.delete(1.0, END)
+                self.result_data_Text1.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text1.delete(1.0, END)
+                self.result_data_Text1.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text1.delete(1.0, END)
+                self.result_data_Text1.insert(END, str(e))
 
     def qo_send2(self):
         src = self.data_Text2.get()
@@ -2866,18 +3054,30 @@ class MY_GUI(tk.Tk):
             self.result_data_Text2.insert(1.0, "请输入自定义数据")
         else:
             s = socket(AF_INET, SOCK_STREAM)
-            s.connect((f'{self.ip2()}', int(self.port2())))
-            s.send(bytes().fromhex(t))
-            send = s.recv(1024).hex()
-            print(send.upper())
-            print('\n' * 1)
-            self.result_data_Text2.delete(1.0, END)
-            self.result_data_Text2.insert(1.0, f"{t}\n\n")
-            self.result_data_Text2.insert(END, f"服务器应答：{send.upper()}\n\n")
-            showinfo("发送结果", "发送成功")
+            try:
+                s.connect((f'{self.ip2()}', int(self.port2())))
+                s.send(bytes().fromhex(t))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(1.0, f"{t}\n\n")
+                self.result_data_Text2.insert(END, f"服务器应答：{send.upper()}\n\n")
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, str(e))
 
     def qo_send3(self):
-        src = self.data_Text3.get(1.0, END).strip()
+        src = self.data_Text3.get().strip()
         if src[2:3] == " ":
             d = src[:-6]
             s = d.replace("7E ", "")
@@ -2895,44 +3095,79 @@ class MY_GUI(tk.Tk):
             self.result_data_Text3.insert(1.0, "请输入自定义数据")
         else:
             s = socket(AF_INET, SOCK_STREAM)
-            s.connect((f'{self.ip3()}', int(self.port3())))
-            s.send(bytes().fromhex(t))
-            send = s.recv(1024).hex()
-            print(send.upper())
-            print('\n' * 1)
-            self.result_data_Text3.delete(1.0, END)
-            self.result_data_Text3.insert(1.0, f"{t}\n\n")
-            self.result_data_Text3.insert(END, f"服务器应答：{send.upper()}\n\n")
-            showinfo("发送结果", "发送成功")
+            try:
+                s.connect((f'{self.ip3()}', int(self.port3())))
+                s.send(bytes().fromhex(t))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                self.result_data_Text3.delete(1.0, END)
+                self.result_data_Text3.insert(1.0, f"{t}\n\n")
+                self.result_data_Text3.insert(END, f"服务器应答：{send.upper()}\n\n")
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, str(e))
 
     def qo_send4(self):
-        src = self.data_Text4.get(1.0, END).strip()
+        src = self.data_Text4.get().strip()
         if src[2:3] == " ":
-            d = src[:-6]
-            s = d.replace("7E ", "")
-            b = get_bcc(s).zfill(2)
-            E = " " + s + ' ' + b.upper() + " "
-            t = "7E" + E.replace("7E", "00") + "7E"
-        elif src[2:3] != " ":
-            d = get_xor(src[2:-4].upper())
-            b = get_bcc(d).zfill(2)
-            E = " " + d + ' ' + b.upper() + " "
-            t = "7E" + E.replace("7E", "00") + "7E"
-        print(t)
-        if not src:
-            self.result_data_Text4.delete(1.0, END)
-            self.result_data_Text4.insert(1.0, "请输入自定义数据")
-        else:
             s = socket(AF_INET, SOCK_DGRAM)
-            s.connect((f'{self.ip4()}', int(self.port4())))
-            s.send(bytes().fromhex(t))
-            send = s.recv(1024).hex()
-            print(send.upper())
-            print('\n' * 1)
-            self.result_data_Text4.delete(1.0, END)
-            self.result_data_Text4.insert(1.0, f"{t}\n\n")
-            self.result_data_Text4.insert(END, f"服务器应答：{send.upper()}\n\n")
-            showinfo("发送结果", "发送成功")
+            try:
+                s.connect((f'{self.ip4()}', int(self.port4())))
+                s.send(bytes().fromhex(src))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                self.result_data_Text4.delete(1.0, END)
+                self.result_data_Text4.insert(1.0, f'\n位置数据：\n{src}')
+                self.result_data_Text4.insert(1.0, tip_content)
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text4.delete(1.0, END)
+                self.result_data_Text4.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text4.delete(1.0, END)
+                self.result_data_Text4.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text4.delete(1.0, END)
+                self.result_data_Text4.insert(END, str(e))
+        elif src[2:3] != " ":
+            data = get_xor(src)
+            s = socket(AF_INET, SOCK_DGRAM)
+            try:
+                s.connect((f'{self.ip4()}', int(self.port4())))
+                s.send(bytes().fromhex(data))
+                send = s.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                self.result_data_Text4.delete(1.0, END)
+                self.result_data_Text4.insert(1.0, f'\n位置数据：\n{data}')
+                self.result_data_Text4.insert(1.0, tip_content)
+            except ConnectionRefusedError:
+                showinfo('提示', message="连接被拒绝")
+                self.result_data_Text4.delete(1.0, END)
+                self.result_data_Text4.insert(END, '连接被拒绝')
+            except TimeoutError:
+                showinfo('提示', message="连接超时")
+                self.result_data_Text4.delete(1.0, END)
+                self.result_data_Text4.insert(END, '连接超时')
+            except Exception as e:
+                showinfo('提示', message=str(e))
+                self.result_data_Text4.delete(1.0, END)
+                self.result_data_Text4.insert(END, str(e))
 
     def qdo_808jiexq(self):
         print("正在打开网站!")
@@ -2963,7 +3198,6 @@ class MY_GUI(tk.Tk):
 
     def button_mode11(self):
         global is_on
-
         wd1 = get_latitude(base_lat=float(self.wd11()), radius=150)
         jd1 = get_longitude(base_log=float(self.jd11()), radius=150)
         wd2 = float(wd1)
@@ -2974,25 +3208,24 @@ class MY_GUI(tk.Tk):
         self.jd_Text11.insert(0, str(jd2))
 
     def 定位数据(self):
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        消息头起始符 = '['
+        设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+        分隔符 = ','
+        ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+        交易流水号 = f'{now_time}0000'
+        接口标识 = 'REPORT_LOCATION_INFO'
+        报文类型 = '3'  # 平台下发请求标示 1，则终 端响应标示为 2，终端上报接口标 示为 3，平台响应标示为 4
+        时间 = f'{now_time}'
+        报文长度 = '79'
+        报文体 = f'0E{self.jd11()}N{self.wd11()}T{now_time}@0!0!0!0!0'
+        结束标识符 = ']'
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 接口标识 + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + 报文长度 + 分隔符 + 报文体 + 结束标识符
+        res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+        res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+        res1 = res0.encode('raw_unicode_escape')
+        s = socket(AF_INET, SOCK_STREAM)
         try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            # 消息头
-            消息头起始符 = '['
-            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
-            分隔符 = ','
-            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
-            交易流水号 = f'{now_time}0000'
-            接口标识 = 'REPORT_LOCATION_INFO'
-            报文类型 = '3'  # 平台下发请求标示 1，则终 端响应标示为 2，终端上报接口标 示为 3，平台响应标示为 4
-            时间 = f'{now_time}'
-            报文长度 = '79'
-            报文体 = f'0E{self.jd11()}N{self.wd11()}T{now_time}@0!0!0!0!0'
-            结束标识符 = ']'
-            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 接口标识 + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + 报文长度 + 分隔符 + 报文体 + 结束标识符
-            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
-            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
-            res1 = res0.encode('raw_unicode_escape')
-            s = socket(AF_INET, SOCK_STREAM)
             s.connect((f'{self.ip11()}', int(self.port11())))
             s.send(res1)
             recv_msg = s.recv(1024).decode("utf8")
@@ -3006,32 +3239,45 @@ class MY_GUI(tk.Tk):
                 # 提取匹配到的内容（不包括中括号）
                 content_inside_brackets = match.group(1)
                 tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
+                content = f'内容：设备号：{设备号}，'
                 self.result_data_Text11.insert(END, tip_content)
+
+
             else:
                 self.result_data_Text11.delete(1.0, END)
                 self.result_data_Text11.insert(END, 'No match found.')
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        except ConnectionRefusedError:
+            showinfo('提示', message="连接被拒绝")
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, '连接被拒绝')
+        except TimeoutError:
+            showinfo('提示', message="连接超时")
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, '连接超时')
+        except Exception as e:
+            showinfo('提示', message=str(e))
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, str(e))
         return ""
 
     def 心跳数据(self):
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        消息头起始符 = '['
+        设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+        分隔符 = ','
+        ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+        交易流水号 = f'{now_time}0000'
+        报文类型 = '3'
+        时间 = f'{now_time}'
+        结束标识符 = ']'
+        当前电量 = f'{self.power_data_Text11.get()}'
+        当前步数 = f'{self.busu_data_Text11.get()}'
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{当前电量}%@{当前步数}' + 结束标识符
+        res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+        res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+        res1 = res0.encode('raw_unicode_escape')
+        s = socket(AF_INET, SOCK_STREAM)
         try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            消息头起始符 = '['
-            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
-            分隔符 = ','
-            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
-            交易流水号 = f'{now_time}0000'
-            报文类型 = '3'
-            时间 = f'{now_time}'
-            结束标识符 = ']'
-            当前电量 = f'{self.power_data_Text11.get()}'
-            当前步数 = f'{self.busu_data_Text11.get()}'
-            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEARTBEAT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'{当前电量}%@{当前步数}' + 结束标识符
-            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
-            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
-            res1 = res0.encode('raw_unicode_escape')
-            s = socket(AF_INET, SOCK_STREAM)
             s.connect((f'{self.ip11()}', int(self.port11())))
             s.send(res1)
             recv_msg = s.recv(1024).decode("utf8")
@@ -3049,42 +3295,52 @@ class MY_GUI(tk.Tk):
             else:
                 self.result_data_Text11.delete(1.0, END)
                 self.result_data_Text11.insert(END, 'No match found.')
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        except ConnectionRefusedError:
+            showinfo('提示', message="连接被拒绝")
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, '连接被拒绝')
+        except TimeoutError:
+            showinfo('提示', message="连接超时")
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, '连接超时')
+        except Exception as e:
+            showinfo('提示', message=str(e))
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, str(e))
         return ""
 
     def 报警数据(self, value):
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        消息头起始符 = '['
+        设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+        分隔符 = ','
+        ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+        交易流水号 = f'{now_time}0000'
+        报文类型 = '3'
+        时间 = f'{now_time}'
+        结束标识符 = ']'
+        剩余电量 = f'{self.repower_data_Text11.get()}'
+        if value == "SOS报警":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SOS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + '1' + 结束标识符
+        elif value == "关机报警":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'2@{剩余电量}%' + 结束标识符
+        elif value == "缺电报警":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'1@{剩余电量}%' + 结束标识符
+        elif value == "自动关机报警":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'3@{剩余电量}%' + 结束标识符
+        elif value == "开机报警":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'4@{剩余电量}%' + 结束标识符
+        elif value == "设备充电":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'5@{剩余电量}%' + 结束标识符
+        elif value == "电源已断开":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'6@{剩余电量}%' + 结束标识符
+        elif value == "设备电量已充满":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'7@{剩余电量}%' + 结束标识符
+        res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+        res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+        res1 = res0.encode('raw_unicode_escape')
+        s = socket(AF_INET, SOCK_STREAM)
         try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            消息头起始符 = '['
-            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
-            分隔符 = ','
-            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
-            交易流水号 = f'{now_time}0000'
-            报文类型 = '3'
-            时间 = f'{now_time}'
-            结束标识符 = ']'
-            剩余电量 = f'{self.repower_data_Text11.get()}'
-            if value == "SOS报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SOS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + '1' + 结束标识符
-            elif value == "关机报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'2@{剩余电量}%' + 结束标识符
-            elif value == "缺电报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'1@{剩余电量}%' + 结束标识符
-            elif value == "自动关机报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'3@{剩余电量}%' + 结束标识符
-            elif value == "开机报警":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'4@{剩余电量}%' + 结束标识符
-            elif value == "设备充电":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'5@{剩余电量}%' + 结束标识符
-            elif value == "电源已断开":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'6@{剩余电量}%' + 结束标识符
-            elif value == "设备电量已充满":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ALARM_POWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '5' + 分隔符 + f'7@{剩余电量}%' + 结束标识符
-            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
-            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
-            res1 = res0.encode('raw_unicode_escape')
-            s = socket(AF_INET, SOCK_STREAM)
             s.connect((f'{self.ip11()}', int(self.port11())))
             s.send(res1)
             recv_msg = s.recv(1024).decode("utf8")
@@ -3092,90 +3348,100 @@ class MY_GUI(tk.Tk):
             res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
             match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
             tip_content = '报警数据请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.delete(1.0, END)
             self.result_data_Text11.insert(1.0, tip_content)
             if match:
                 # 提取匹配到的内容（不包括中括号）
                 content_inside_brackets = match.group(1)
-                tip_content = '接收到的信息为：{}\n{}\n\n解密数据：\n[{}]\n\n'.format(value, recv_msg,
-                                                                                    content_inside_brackets)
+                tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
                 self.result_data_Text11.insert(END, tip_content)
             else:
                 self.result_data_Text11.delete(1.0, END)
                 self.result_data_Text11.insert(END, 'No match found.')
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        except ConnectionRefusedError:
+            showinfo('提示', message="连接被拒绝")
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, '连接被拒绝')
+        except TimeoutError:
+            showinfo('提示', message="连接超时")
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, '连接超时')
+        except Exception as e:
+            showinfo('提示', message=str(e))
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, str(e))
         return ""
 
     def 终端上报(self, value):
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        消息头起始符 = '['
+        设备号 = f'{self.imei_Text11.get()}'.zfill(15)
+        分隔符 = ','
+        ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
+        交易流水号 = f'{now_time}0000'
+        报文类型 = '3'
+        时间 = f'{now_time}'
+        结束标识符 = ']'
+        开始时间 = now_time[:12] + '00'
+        结束时间 = now_time
+        时长 = int(结束时间) - int(开始时间)
+        手机号码 = f'{self.phone_data_Text11.get()}'.zfill(11)
+        拨通方 = f'{self.dial_data_Text11.get()}'
+        设备模式 = f'{self.mode_data_Text11.get()}'
+        温度 = f'{float(self.wendu_data_Text11.get())}'
+        血氧 = f'{self.xue_data_Text11.get()}'
+        心率 = f'{self.xinlv_data_Text11.get()}'
+        温度1 = f'{float(self.wendu1_data_Text11.get())}'
+        佩戴状态 = f'{self.pdai_data_Text11.get()}'
+        上报状态 = f'{self.sb_data_Text11.get()}'
+        跳绳模式 = f'{self.skip_data_Text11.get()}'
+        跳绳时长 = f'{self.sktime_data_Text11.get()}'
+        跳绳次数 = f'{self.skci_data_Text11.get()}'
+        if value == "设备模式上报":
+            if 设备模式 == "待机模式":
+                mode = 0
+            elif 设备模式 == "省电模式":
+                mode = 1
+            elif 设备模式 == "平衡模式":
+                mode = 2
+            elif 设备模式 == "实时模式":
+                mode = 3
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{mode}@{int(time.time() * 1000)}@20' + 结束标识符
+        elif value == "设备登录":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_LOGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '22' + 分隔符 + f'5@1@111@1@1@100@0' + 结束标识符
+        elif value == "蓝牙跳绳数据上报(SC13专用)":  #
+            if 跳绳模式 == "自由跳模式":
+                skip = 0
+            elif 跳绳模式 == "到计时跳模式":
+                skip = 1
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SKIP_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '9' + 分隔符 + f'{skip}@{跳绳时长}@{跳绳次数}' + 结束标识符
+        elif value == "获取学生信息(FA67专用)":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_STUDENT_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1' + 结束标识符
+        elif value == "获取天气信息":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{self.jd11()}N{self.wd11()}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
+        elif value == "健康参数上报":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'0000-0000@000!000!000!000!@{温度}@0000' + 结束标识符
+        elif value == "通话记录上报":
+            if 拨通方 == "呼入":
+                dial = '0'
+            elif 拨通方 == "呼出":
+                dial = '1'
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CALL_LOG' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '26' + 分隔符 + f'{手机号码}@{开始时间}!{结束时间}@{时长}@{dial}' + 结束标识符
+        elif value == "健康心率血氧参数上报":
+            if 佩戴状态 == "未佩戴":
+                pdai = 0
+            elif 佩戴状态 == "已佩戴":
+                pdai = 1
+            if 上报状态 == "定时上报":
+                sb = 0
+            elif 上报状态 == "主动上报":
+                sb = 1
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEART_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'{血氧}@{心率}@{温度1}@{pdai}@{sb}' + 结束标识符
+        res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
+        res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
+        res1 = res0.encode('raw_unicode_escape')
+        s = socket(AF_INET, SOCK_STREAM)
         try:
-            now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
-            消息头起始符 = '['
-            设备号 = f'{self.imei_Text11.get()}'.zfill(15)
-            分隔符 = ','
-            ICCID = f'{self.iccid_Text11.get()}'.zfill(20)
-            交易流水号 = f'{now_time}0000'
-            报文类型 = '3'
-            时间 = f'{now_time}'
-            结束标识符 = ']'
-            开始时间 = now_time[:12] + '00'
-            结束时间 = now_time
-            时长 = int(结束时间) - int(开始时间)
-            手机号码 = f'{self.phone_data_Text11.get()}'.zfill(11)
-            拨通方 = f'{self.dial_data_Text11.get()}'
-            设备模式 = f'{self.mode_data_Text11.get()}'
-            温度 = f'{float(self.wendu_data_Text11.get())}'
-            血氧 = f'{self.xue_data_Text11.get()}'
-            心率 = f'{self.xinlv_data_Text11.get()}'
-            温度1 = f'{float(self.wendu1_data_Text11.get())}'
-            佩戴状态 = f'{self.pdai_data_Text11.get()}'
-            上报状态 = f'{self.sb_data_Text11.get()}'
-            跳绳模式 = f'{self.skip_data_Text11.get()}'
-            跳绳时长 = f'{self.sktime_data_Text11.get()}'
-            跳绳次数 = f'{self.skci_data_Text11.get()}'
-            if value == "设备模式上报":
-                if 设备模式 == "待机模式":
-                    mode = 0
-                elif 设备模式 == "省电模式":
-                    mode = 1
-                elif 设备模式 == "平衡模式":
-                    mode = 2
-                elif 设备模式 == "实时模式":
-                    mode = 3
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{mode}@{int(time.time() * 1000)}@20' + 结束标识符
-            elif value == "设备登录":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_LOGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '22' + 分隔符 + f'5@1@111@1@1@100@0' + 结束标识符
-            elif value == "蓝牙跳绳数据上报(SC13专用)":  #
-                if 跳绳模式 == "自由跳模式":
-                    skip = 0
-                elif 跳绳模式 == "到计时跳模式":
-                    skip = 1
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SKIP_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '9' + 分隔符 + f'{skip}@{跳绳时长}@{跳绳次数}' + 结束标识符
-            elif value == "获取学生信息(FA67专用)":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_STUDENT_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1' + 结束标识符
-            elif value == "获取天气信息":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{self.jd11()}N{self.wd11()}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
-            elif value == "健康参数上报":
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'0000-0000@000!000!000!000!@{温度}@0000' + 结束标识符
-            elif value == "通话记录上报":
-                if 拨通方 == "呼入":
-                    dial = '0'
-                elif 拨通方 == "呼出":
-                    dial = '1'
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CALL_LOG' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '26' + 分隔符 + f'{手机号码}@{开始时间}!{结束时间}@{时长}@{dial}' + 结束标识符
-            elif value == "健康心率血氧参数上报":
-                if 佩戴状态 == "未佩戴":
-                    pdai = 0
-                elif 佩戴状态 == "已佩戴":
-                    pdai = 1
-                if 上报状态 == "定时上报":
-                    sb = 0
-                elif 上报状态 == "主动上报":
-                    sb = 1
-                data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HEART_HEALTH' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '36' + 分隔符 + f'{血氧}@{心率}@{温度1}@{pdai}@{sb}' + 结束标识符
-            res = AES_CBC_encrypt(data, f'{self.key}', f'{self.iv}')
-            res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
-            res1 = res0.encode('raw_unicode_escape')
-            s = socket(AF_INET, SOCK_STREAM)
             s.connect((f'{self.ip11()}', int(self.port11())))
             s.send(res1)
             recv_msg = s.recv(1024).decode("utf8")
@@ -3183,18 +3449,28 @@ class MY_GUI(tk.Tk):
             res2 = AES_CBC_decrypt(f"{aa}", f'{self.key}', f'{self.iv}')
             match = re.search(r'\[(.*?)\]', res2.decode('utf-8'))
             tip_content = '终端上报请求：\n{}\n\n加密数据：\n{}\n\n'.format(data, res1)
+            self.result_data_Text11.delete(1.0, END)
             self.result_data_Text11.insert(1.0, tip_content)
             if match:
                 # 提取匹配到的内容（不包括中括号）
                 content_inside_brackets = match.group(1)
-                tip_content = '接收到的信息为：{}\n{}\n\n解密数据：\n[{}]\n\n'.format(value, recv_msg,
-                                                                                    content_inside_brackets)
+                tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
                 self.result_data_Text11.insert(END, tip_content)
             else:
                 self.result_data_Text11.delete(1.0, END)
                 self.result_data_Text11.insert(END, 'No match found.')
-        except:
-            return "数据解析有误，查看是否数据填写错误，修改无误后，请重新点击生成数据"
+        except ConnectionRefusedError:
+            showinfo('提示', message="连接被拒绝")
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, '连接被拒绝')
+        except TimeoutError:
+            showinfo('提示', message="连接超时")
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, '连接超时')
+        except Exception as e:
+            showinfo('提示', message=str(e))
+            self.result_data_Text11.delete(1.0, END)
+            self.result_data_Text11.insert(END, str(e))
         return ""
 
     def xsz_login(self):
@@ -3234,6 +3510,14 @@ class MY_GUI(tk.Tk):
                 self.result_data_Text11.insert(1.0, "请选择终端类型")
             else:
                 self.result_data_Text11.insert(END, self.终端上报(lx))
+        elif src == "穿戴轨迹":
+            sbb1 = self.imei_Text11.get()
+            print(sbb1)
+            if not sbb1:
+                self.result_data_Text11.delete(1.0, END)
+                self.result_data_Text11.insert(1.0, "请输入设备号")
+            else:
+                self.result_data_Text11.insert(END, self.穿戴轨迹())
 
     # 设置窗口
     def set_init_window(self):
@@ -3599,7 +3883,7 @@ class MY_GUI(tk.Tk):
 
         self.data_label3 = Label(pane3, text="自定义发送(选择服务器ip和port端口)")
         self.data_label3.grid(row=12, column=0, sticky=N)
-        self.data_Text3 = Text(pane3, width=52, height=2, relief='solid')
+        self.data_Text3 = Combobox(pane3, width=52, height=2)
         self.data_Text3.grid(row=13, column=0, sticky=N)
 
         self.result_Text3 = Button(pane3, text="自定义发送", command=lambda: self.thread_it(self.qo_send3))
@@ -3608,8 +3892,8 @@ class MY_GUI(tk.Tk):
         self.result_data_label3 = Label(pane3, text="输出结果")
         self.result_data_label3.grid(row=0, column=11)
 
-        self.result_data_Text3 = Text(pane3, width=85, height=22, relief='solid')
-        self.result_data_Text3.grid(row=1, column=11, rowspan=30, columnspan=15)
+        self.result_data_Text3 = Text(pane3, width=85, height=21, relief='solid')
+        self.result_data_Text3.grid(row=1, column=11, rowspan=13, columnspan=15)
 
         # 按钮
         self.str_trans_to_md5_button3 = Button(pane3, text="订单905发送", width=10,
@@ -3702,7 +3986,7 @@ class MY_GUI(tk.Tk):
 
         self.data_label = Label(pane4, text="UDP自定义发送(选择服务器ip和port端口)")
         self.data_label.grid(row=23, column=0, sticky=N)
-        self.data_Text4 = Text(pane4, width=50, height=2, relief='solid')
+        self.data_Text4 = Combobox(pane4, width=50, height=2)
         self.data_Text4.grid(row=24, column=0, sticky=N)
 
         self.result_Text4 = Button(pane4, text="自定义发送", command=lambda: self.thread_it(self.qo_send4))
@@ -3868,7 +4152,7 @@ class MY_GUI(tk.Tk):
 
         self.count_label8 = Label(pane8, text="conf文件夹内csv条数")
         self.count_label8.grid(row=6, column=0, columnspan=1, sticky=N)
-        items = ('205')
+        items = ('206')
         self.count_Text8 = Combobox(pane8, width=50, height=2, values=items)
         self.count_Text8.current(0)
         self.count_Text8.grid(row=7, column=0, sticky=N, columnspan=1)
@@ -3897,7 +4181,7 @@ class MY_GUI(tk.Tk):
 
         self.count905_label8 = Label(pane8, text="conf文件夹内csv条数")
         self.count905_label8.grid(row=13, column=0, columnspan=1, sticky=N)
-        items = ('205')
+        items = ('206')
         self.count905_Text8 = Combobox(pane8, width=50, height=2, values=items)
         self.count905_Text8.current(0)
         self.count905_Text8.grid(row=14, column=0, sticky=N, columnspan=1)
@@ -3912,36 +4196,36 @@ class MY_GUI(tk.Tk):
         pane9 = Frame()
         self.str_905_button9 = Button(pane9, text="808普通报警", width=35,
                                       command=lambda: self.thread_it(self.baoget))
-        self.str_905_button9.grid(row=2, column=1, sticky=N)
+        self.str_905_button9.grid(row=2, column=1, columnspan=2, sticky=E)
         self.str_905_button9 = Button(pane9, text="808粤标报警", width=35,
                                       command=lambda: self.thread_it(self.baoget1))
-        self.str_905_button9.grid(row=3, column=1, sticky=N)
+        self.str_905_button9.grid(row=3, column=1, columnspan=2, sticky=E)
         self.str_905_button9 = Button(pane9, text="808苏标报警", width=35,
                                       command=lambda: self.thread_it(self.baoget2))
-        self.str_905_button9.grid(row=4, column=1, sticky=N)
+        self.str_905_button9.grid(row=4, column=1, columnspan=2, sticky=E)
         self.str_905_button9 = Button(pane9, text="905人证不匹配报警", width=35,
                                       command=lambda: self.thread_it(self.baoget3))
-        self.str_905_button9.grid(row=5, column=1, sticky=N)
+        self.str_905_button9.grid(row=5, column=1, columnspan=2, sticky=E)
         self.str_905_button9 = Button(pane9, text="905绕路报警", width=35,
                                       command=lambda: self.thread_it(self.baoget4))
-        self.str_905_button9.grid(row=6, column=1, sticky=N)
+        self.str_905_button9.grid(row=6, column=1, columnspan=2, sticky=E)
         self.str_905_button9 = Button(pane9, text="905驾驶员没有从业资格证", width=35,
                                       command=lambda: self.thread_it(self.baoget5))
-        self.str_905_button9.grid(row=7, column=1, sticky=N)
+        self.str_905_button9.grid(row=7, column=1, columnspan=2, sticky=E)
         self.str_905_button9 = Button(pane9, text="905跨区域营运预警", width=35,
                                       command=lambda: self.thread_it(self.baoget6))
-        self.str_905_button9.grid(row=8, column=1, sticky=N)
+        self.str_905_button9.grid(row=8, column=1, columnspan=2, sticky=E)
         self.str_905_button9 = Button(pane9, text="905车辆未办理网络预约出租车营运证预警", width=35,
                                       command=lambda: self.thread_it(self.baoget7))
-        self.str_905_button9.grid(row=8, column=1, sticky=N)
+        self.str_905_button9.grid(row=9, column=1, columnspan=2, sticky=E)
 
         self.str_905_button9 = Button(pane9, text="循环报警", width=35,
                                       command=lambda: self.thread_it(self.baojhe))
-        self.str_905_button9.grid(row=9, column=1, sticky=N)
+        self.str_905_button9.grid(row=10, column=1, columnspan=2, sticky=E)
         self.result905_label9 = Label(pane9, text="输出结果：有返回，即发送成功")
-        self.result905_label9.grid(row=1, column=2, sticky=N)
-        self.result905_Text9 = Text(pane9, width=85, height=14, relief='solid')
-        self.result905_Text9.grid(row=2, column=2, rowspan=30, sticky=N)
+        self.result905_label9.grid(row=1, column=3, sticky=E)
+        self.result905_Text9 = Text(pane9, width=85, height=19, relief='solid')
+        self.result905_Text9.grid(row=2, column=3, rowspan=9, sticky=E)
 
         pane10 = Frame()
         items = (
@@ -3976,14 +4260,14 @@ class MY_GUI(tk.Tk):
         # 905组成数据
         self.imei_Text_label11 = Label(pane11, text="IMEI号")
         self.imei_Text_label11.grid(row=4, column=0, columnspan=1, sticky=N)
-        items = ("867082058798585", "867082058798522")
+        items = ("863071064862524", "867082058798522")
         self.imei_Text11 = Combobox(pane11, width=50, height=2, values=items)
         self.imei_Text11.current(0)
         self.imei_Text11.grid(row=5, column=0, sticky=N)
 
         self.iccid_Text_label11 = Label(pane11, text="ICCID")
         self.iccid_Text_label11.grid(row=6, column=0, columnspan=1, sticky=N)
-        items = ("867082058798585", "867082058798522")
+        items = ("863071064862524", "867082058798522")
         self.iccid_Text11 = Combobox(pane11, width=50, height=2, values=items)
         self.iccid_Text11.current(0)
         self.iccid_Text11.grid(row=7, column=0, sticky=N)
@@ -3991,15 +4275,11 @@ class MY_GUI(tk.Tk):
         self.init_data_label11 = Label(pane11,
                                        text="数据类型")
         self.init_data_label11.grid(row=8, column=0, sticky=N)
-        items = ("定位数据", "心跳数据", "报警数据", "终端上报")
+        items = ("定位数据", "穿戴轨迹", "心跳数据", "报警数据", "终端上报")
         self.init_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
         self.init_data_Text11.current(0)
         self.init_data_Text11.grid(row=9, column=0, columnspan=10, sticky=N)
         self.init_data_Text11.bind("<<ComboboxSelected>>", self.getMon2)
-
-        # 经纬度随机
-        self.on_ = Button(pane11, text="随机经纬度", width=10, command=self.button_mode11)
-        self.on_.grid(row=9, column=10)
 
         self.wd_Text_label11 = Label(pane11, text="纬度")
         self.wd_Text_label11.grid(row=10, column=0)
@@ -4095,15 +4375,23 @@ class MY_GUI(tk.Tk):
         self.skci_data_Text11 = Combobox(pane11, width=22, height=2, values=items)
         self.skci_data_Text11.current(0)
 
+        self.gji_data_label11 = Label(pane11, text="穿戴轨迹条数")
+        items = ("206")
+        self.gji_data_Text11 = Combobox(pane11, width=50, height=12, values=items)
+        self.gji_data_Text11.current(0)
+
         self.str_trans_to_md11_button = Button(pane11, text="穿戴通讯发送", width=10,
                                                command=lambda: self.thread_it(self.xsz_login))
-        self.str_trans_to_md11_button.grid(row=5, column=10)
+        self.str_trans_to_md11_button.grid(row=9, column=10)
+        # 经纬度随机
+        self.on_ = Button(pane11, text="随机经纬度", width=10, command=self.button_mode11)
+        self.on_.grid(row=13, column=10)
 
         self.result_data_label11 = Label(pane11, text="输出结果")
         self.result_data_label11.grid(row=0, column=11)
 
         self.result_data_Text11 = Text(pane11, width=85, height=20, relief='solid')
-        self.result_data_Text11.grid(row=1, column=11, rowspan=15, columnspan=15)
+        self.result_data_Text11.grid(row=1, column=11, rowspan=13, columnspan=17)
 
         note.add(pane2, text='部标808TCP发送')
         note.add(pane1, text='出租车905TCP发送')
