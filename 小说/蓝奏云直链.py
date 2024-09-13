@@ -103,6 +103,18 @@ def run(url):
     return result
 
 
+import zipfile
+import os
+
+
+def down(url):
+    response = requests.get(url)
+    with open('123.zip', 'wb') as f:
+        f.write(response.content)
+
+
 if __name__ == '__main__':
-    url = "https://2fzb.lanzn.com/iQiwp27fjdmj"
+    # url = "https://2fzb.lanzn.com/iQiwp27fjdmj"
+    url = "https://www.lanzoux.com/i42e0ch"
     run(url)
+    down(run(url))

@@ -126,19 +126,41 @@ def 终端上报(value):
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{JD}N{WD}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
     elif value == "获取学生信息(FA67专用)":
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_STUDENT_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1' + 结束标识符
+    elif value == "获取学生信息(S8专用)":
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_STUDENT_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1' + 结束标识符
+    elif value == "越界上报(L2000)":
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CROSS_BORDER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1@{random.randint(0, 1)}@0E{JD}N{WD}T{now_time}@441302' + 结束标识符
+    elif value == "短消息已阅上报":
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SMS_READ' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'{random.randint(1, 9)}@{random.randint(1, 4)}' + 结束标识符
+    elif value == "设备参数上报":
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_DEVICE_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'{random.randint(1, 4)}!AC:BC:32:78:A2:5F!-97@{random.randint(0, 1)}@' + 结束标识符
+    elif value == "上报答题结果(ZF705专用)":
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_TEST_ANSWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '9' + 分隔符 + f'{random.randint(1, 4)}@{random.randint(1, 2)}@{random.randint(1, 2)}' + 结束标识符
     elif value == "蓝牙跳绳数据上报(SC13专用)":  #
         跳绳模式 = '0'
         跳绳时长 = '120'
         跳绳次数 = '124'
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SKIP_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '9' + 分隔符 + f'{跳绳模式}@{跳绳时长}@{跳绳次数}' + 结束标识符
     elif value == "录音开始":  #
-        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_RECORD_SOUND_BEGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '18' + 分隔符 + f'{文件总大小}@{总包数}@{文件总校验(CRC)}@10' + 结束标识符
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_RECORD_SOUND_BEGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '18' + 分隔符 + f'9134@12@9134@10' + 结束标识符
     elif value == "录音结束":  #
         data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_RECORD_SOUND_DATA' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '18' + 分隔符 + f'0@10@17dc8d8f78@10' + 结束标识符
     elif value == "蓝牙连接状态":  #
-        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_BLUETOOTH_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '18' + 分隔符 + f'0@BA:1E:AD:41:D1@123' + 结束标识符
-
-
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_BLUETOOTH_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '18' + 分隔符 + f'{random.randint(0, 1)}@BA:1E:AD:41:D1@123' + 结束标识符
+    elif value == "音频已阅上报":  #
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_AUDIO_READ' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '4' + 分隔符 + f'1021' + 结束标识符
+    elif value == "盲区位置上报":  #
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HIS_LOCATION_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '191' + 分隔符 + f'2E{JD}N{WD}T{now_time}@wifi!58:41:20:FD:1C:CD!-73#wifi!E2:ED:90:6F:FE:22!-74#wifi!A8:3B:5C:5B:39:BC!-80#wifi!C0:E3:FB:8B:19:73!-87#wifi!C0:E3:FB:8B:19:70!-87' + 结束标识符
+    elif value == "蓝牙信标数据上传(MZ309、S8)":  #
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_BEACON_DATA' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '82' + 分隔符 + f'3!EC26CA8464B0@-43@7126@7353#EC26CA8464B0@-43@7126@7353#EC26CA8464B0@-43@7126@7353' + 结束标识符
+    # elif value == "SOS触发按键位置上报(ZF1030)":  #
+    #     data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'SOS_LOCATION_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '191' + 分隔符 + f'2E{JD}N{WD}T{now_time}@460!0!30589!218936329@wifi!58:41:20:FD:1C:CD!-7 3#wifi!E2:ED:90:6F:FE:22!-74#wifi!A8:3B:5C:5B:39:BC!-80#wifi!C0:E3:FB:8B:19:73!-87#wifi!C0:E3:FB:8B:19:70!-87' + 结束标识符
+    # elif value == "上班打卡(ZF1123B上班打卡)":  #
+    #     data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ATTENDANCE_CLOCK_IN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '191' + 分隔符 + f'2E{JD}N{WD}T{now_time}@460!0!30589!218936329@wifi!58:41:20:FD:1C:CD!-7 3#wifi!E2:ED:90:6F:FE:22!-74#wifi!A8:3B:5C:5B:39:BC!-80#wifi!C0:E3:FB:8B:19:73!-87#wifi!C0:E3:FB:8B:19:70!-87' + 结束标识符
+    # elif value == "下班打卡(ZF1123B下班打卡)":  #
+    #     data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'ATTENDANCE_CLOCK_OUT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '191' + 分隔符 + f'2E{JD}N{WD}T{now_time}@460!0!30589!218936329@wifi!58:41:20:FD:1C:CD!-7 3#wifi!E2:ED:90:6F:FE:22!-74#wifi!A8:3B:5C:5B:39:BC!-80#wifi!C0:E3:FB:8B:19:73!-87#wifi!C0:E3:FB:8B:19:70!-87' + 结束标识符
+    elif value == "上报文本指令(专用)":  #
+        data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'TXT_REPORT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '14' + 分隔符 + f'{random.randint(0, 1)}@STEPSET,600#' + 结束标识符
 
     elif value == "健康心率血氧参数上报":
         if 佩戴状态 == "未佩戴":

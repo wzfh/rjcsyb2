@@ -55,14 +55,14 @@ def countdown(t):
 class login:
 
     def __init__(self):
-        conf_ini = os.path.dirname(os.path.dirname(__file__)) + "\\conf\\config.ini"
-        config = ConfigObj(conf_ini, encoding='UTF-8')
-        self.wg = config['ces']['出租车_cswg']
-        self.wg_port = config['ces']['出租车_cs905wg_port']
-        self.wd = config['address']['茂名市WD']
-        self.jd = config['address']['茂名市JD']
-        self.baojing = config['905baojing']
-        self.ztai = config['905ztai']
+        # conf_ini = os.path.dirname(os.path.dirname(__file__)) + "\\conf\\config.ini"
+        # config = ConfigObj(conf_ini, encoding='UTF-8')
+        self.wg = '120.241.74.130'
+        self.wg_port = '17201'
+        self.wd = '21.677431'
+        self.jd = '110.919843'
+        # self.baojing = config['905baojing']
+        # self.ztai = config['905ztai']
         # self.sbei = config['sbei']['905sbei']
 
     def ww1(self):
@@ -78,7 +78,7 @@ class login:
         #     t = data1[nob1]
         #     o += 1
         #     print('发送第%d条' % o)
-        sbeis = ['015685966856', '015685966857', '015685966858', '015685966859', '015685966860', '015685966861']
+        sbeis = ['015874584455']
         sudus = ['00', 'D2', '00', 'E3', '00', 'F4']
         cycle_sbeis = itertools.cycle(sbeis)
         cycle_sudus = itertools.cycle(sudus)
@@ -98,40 +98,7 @@ class login:
             # ISU标识 = self.sbei  # 10位
             ISU标识 = next(cycle_sbeis)  # 10位
             流水号 = f'{1}'.zfill(4)
-            baojing = [
-                # self.baojing['紧急报警'],
-                # self.baojing['危险预警'],
-                # self.baojing['定位模块故障'],
-                # self.baojing['定位天线开路'],
-                # self.baojing['定位天线短路'],
-                # self.baojing['终端主电源欠压'],
-                # self.baojing['终端主电源掉电'],
-                # self.baojing['液晶LCD显示故障'],
-                # self.baojing['语音模块TTS故障'],
-                # self.baojing['摄像头故障'],
-                # self.baojing['超速报警'],
-                # self.baojing['疲劳驾驶'],
-                # self.baojing['当天累计驾驶超时'],
-                # self.baojing['超时停车'],
-                # self.baojing['车速传感器故障'],
-                # self.baojing['录音设备故障'],
-                # self.baojing['计价器故障'],
-                # self.baojing['服务评价器故障'],
-                # self.baojing['LED广告屏故障'],
-                # self.baojing['液晶LED显示屏故障'],
-                # self.baojing['安全访问模块故障'],
-                # self.baojing['LED顶灯故障'],
-                # self.baojing['计价器实时时钟'],
-                # self.baojing['进出区域路线报警'],
-                # self.baojing['路段行驶时间不足'],
-                # self.baojing['禁行路段行驶'],
-                # self.baojing['车辆非法点火'],
-                # self.baojing['车辆非法位移'],
-                # self.baojing['所有清零报警'],
-                self.baojing['紧急报警和超速报警'],
-                self.baojing['正常']
-            ]
-            报警 = random.choice(baojing)
+            报警 = '00000001'
             # ztai = [self.ztai['未卫星定位'],
             #         self.ztai['南纬'],
             #         self.ztai['西经'],
@@ -147,7 +114,7 @@ class login:
             #         self.ztai['车辆锁定'],
             #         self.ztai['已达到限制营运次数时间'],
             #         self.ztai['ACC开和载客']]
-            状态 = self.ztai['ACC开和载客']
+            状态 = '00000100'
             纬度 = wd3[2:].zfill(8).upper()
             经度 = jd3[2:].zfill(8).upper()
             速度 = f'00{next(cycle_sudus)}'
@@ -178,7 +145,7 @@ class login:
             send = s.recv(1024).hex()
             print('服务器应答：' + send.upper())
             print('\n' * 1)
-            countdown(1 * 50)
+            countdown(3 * 50)
 
 
 if __name__ == '__main__':

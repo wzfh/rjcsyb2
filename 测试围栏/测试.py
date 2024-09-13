@@ -122,7 +122,7 @@ def email():
     os.system('adb shell svc bluetooth disable')
     print('关闭定位')
     os.system('adb shell settings put secure location_mode 0')
-    os.system('adb shell settings put secure location_mode 0')
+    # os.system('adb shell settings put secure location_mode 0')
     print('息屏')
     msg['Subject'] = f"{识别图片2('img/bei.jpg')}"
     with open('img/bei.jpg', "rb") as attachment:

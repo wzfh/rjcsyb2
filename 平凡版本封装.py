@@ -1,121 +1,20 @@
-import binascii
-import csv
-import os
-import time
+# import cv2
+# import numpy as np
+#
+# img = cv2.imread(r"C:\Users\rjcsyb2\Desktop\4.jpg")
+# new = np.clip(2.0 * img - 160, 0, 255).astype(np.uint8)
+# cv2.imwrite(r"C:\Users\rjcsyb2\Desktop\5.jpg", new)
+
+
 import requests
-import zipfile
-import threading
-import tkinter as tk
-from tkinter import *
-from tkinter.colorchooser import askcolor
-from tkinter.ttk import *
-import ttkbootstrap as ttk
-import win32com.client  # TTS
-from tkwebview2.tkwebview2 import WebView2
-import webview
-from tkinter import messagebox
-import sys
-import subprocess
-import signal
-from Crypto.Cipher import AES
-from binascii import b2a_hex, a2b_hex
-import base64
-from concurrent.futures import ThreadPoolExecutor
-from tkinter.messagebox import *
-import fnmatch
+import os
 
+url = 'http://v3-web.douyinvod.com/ccf9c167c751910568734c8db51c733e/66e292fd/video/tos/cn/tos-cn-ve-15/o07ApXBPiRc1cthm3eCYABnAP8RIENQfgzNcvi/?a=6383&ch=26&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1755&bt=1755&cs=0&ds=3&ft=pEaFx4hZffPdh6~kv1zNvAq-antLjrKVvsZ.RkaHxmBEljVhWL6&mime_type=video_mp4&qs=0&rc=N2doNTc6NzhoZGhoOztkZEBpM3Y5cXY5cnR1dTMzNGkzM0BjNi0vXjZjXy8xYDE2LjNgYSNgYi80MmRzNmRgLS1kLWFzcw%3D%3D&btag=c0000e00028000&cquery=100x_100z_100o_100w_100B&dy_q=1726113914&feature_id=aa7df520beeae8e397df15f38df0454c&l=20240912120513A45FF7A885E8A0676463'
+file_name = 'video.mp3'
+save_path = r'E:\迅雷下载\批量视频去重\视频批量去重剪辑+解析下载\输入视频文件夹\\' + file_name
 
-def char_to_hex(char):
-    return hex(ord(char))[2:]
+response = requests.get(url)
+with open(save_path, 'wb') as f:
+    f.write(response.content)
 
-
-def copy(editor, event=None):
-    editor.event_generate("<<Copy>>")
-
-
-def paste(editor, event=None):
-    editor.event_generate('<<Paste>>')
-
-
-def selectAll(editor, event=None):
-    editor.tag_add('sel', '1.0', END)
-
-
-def AES_CBC_encrypt(text, key, iv):
-    bs = 16
-    PADDING = lambda s: s + (bs - len(s) % bs) * chr(bs - len(s) % bs)
-    mode = AES.MODE_CBC
-    key = bytes.fromhex(key)
-    iv = bytes.fromhex(iv)
-    cryptos = AES.new(key, mode, iv)
-    crypt = cryptos.encrypt(PADDING(text).encode('utf-8'))
-    crypted_str = base64.b64encode(crypt)
-    return crypted_str
-
-
-# AES-CBC解密
-def AES_CBC_decrypt(text, key, iv):
-    key = bytes.fromhex(key)
-    iv = bytes.fromhex(iv)
-    text = base64.b64decode(text)
-    mode = AES.MODE_CBC
-    cryptos = AES.new(key, mode, iv)
-    plain_text = cryptos.decrypt(text)
-    return plain_text
-
-
-def str_split(str, key):
-    aa = str.split("#")
-    return aa[key]
-
-
-# V3校验位
-def crc1(data):
-    crc = 0xFFFF
-    data = binascii.unhexlify(data)
-
-    for pos in data:
-        crc ^= pos
-        for i in range(8):
-            lsb = crc & 0x0001
-            crc >>= 1
-            if lsb == 1:
-                crc ^= 0x8408
-    crc ^= 0xffff
-    test = hex(crc).upper()
-    return test
-
-
-def get_xor(data):
-    result = re.sub(r"(?<=\w)(?=(?:\w\w)+$)", " ", data)
-    return result
-
-
-def get_bcc(inputStr: str) -> str:
-    bcc = 0
-    for i in inputStr.split(' '):
-        bcc = bcc ^ int(i, 16)
-
-    return f'{bcc:x}'
-
-
-def get_longitude(base_log=None, radius=None):
-    radius_in_degrees = radius / 111300
-    u = float(random.uniform(0.0, 1.0))
-    v = float(random.uniform(0.0, 1.0))
-    w = radius_in_degrees * math.sqrt(u)
-    t = 2 * math.pi * v
-    y = w * math.sin(t)
-    longitude = y + base_log
-    return str(longitude)[:10]
-
-
-def get_latitude(base_lat=None, radius=None):
-    radius_in_degrees = radius / 111300
-    u = float(random.uniform(0.0, 1.0))
-    v = float(random.uniform(0.0, 1.0))
-    w = radius_in_degrees * math.sqrt(u)
-    t = 2 * math.pi * v
-    x = w * math.cos(t)
-    latitude = x + base_lat
-    return str(latitude)[:9]
+print(f'视频已成功下载到 {save_path}')

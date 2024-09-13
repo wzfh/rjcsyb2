@@ -199,13 +199,20 @@ if __name__ == '__main__':
     # 车辆(1000)
     # 部门(129)
     # login()
-    import os
-    import fnmatch
+    def time16():
+        import time
+        ti = time.strftime("%Y%m%d%H%M%S")
+        ti2 = str(ti)
+        ti3 = 2 * '' + ti2[2:]
+        ti4 = (hex(int(ti3[0:2]))[2:4]).zfill(2)
+        ti5 = (hex(int(ti3[2:4]))[2:4]).zfill(2)
+        ti6 = (hex(int(ti3[4:6]))[2:4]).zfill(2)
+        ti7 = (hex(int(ti3[6:8]))[2:4]).zfill(2)
+        ti8 = (hex(int(ti3[8:10]))[2:4]).zfill(2)
+        ti9 = (hex(int(ti3[10:12]))[2:4]).zfill(2)
+        ti10 = ti4 + ti5 + ti6 + ti7 + ti8 + ti9
+        print(ti10[:4])
+        return ti10
 
-    csv_pattern = '*.csv'
-    files = []
-    for filename in os.listdir(os.getcwd() + '/conf/'):
-        if fnmatch.fnmatch(filename, csv_pattern):
-            file_path = os.getcwd() + f'/conf/{filename}'
-            files.append(file_path)
-    print(files[0])
+
+    print(time16()[8:])

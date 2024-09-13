@@ -52,19 +52,21 @@ import connect
 if __name__ == '__main__':
     from tkinter import messagebox
 
-    # ip = "81.71.67.36"
-    ip = "47.113.121.87"
+    ip = "81.71.67.36"
+    # ip = "119.91.139.137"  # 老人
+    # ip = "47.113.121.87"
     port = 7999
     key = "96 B6 71 5E F5 0F A4 55 7F 6C F9 77 17 8E 86 C9"
     iv = "11 C5 00 74 0B E4 4D 4E E5 BD AE D0 3C E7 6F FF"
     res = AES_CBC_encrypt(
-        f"{connect.终端上报('蓝牙跳绳数据上报(SC13专用)')}",
+        f"{connect.终端上报('上报文本指令(专用)')}",
         key, iv)
     res0 = str(res, 'utf-8') + "" + "#kdsjafjalsdjg#170"
-
-    print("res加密:%s" % res0.encode('raw_unicode_escape'))
+    res1 = res0.encode('raw_unicode_escape')
     s = socket(AF_INET, SOCK_STREAM)
 
+    print("res加密:%s" % res0.encode('raw_unicode_escape'))
+    s.connect((ip, int(port)))
     s.send(res1)
     print(("消息发送成功:%s" % (str(res1))))
     recv_msg = s.recv(1024).decode("utf8")
