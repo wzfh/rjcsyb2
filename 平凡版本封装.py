@@ -1,20 +1,35 @@
-# import cv2
-# import numpy as np
-#
-# img = cv2.imread(r"C:\Users\rjcsyb2\Desktop\4.jpg")
-# new = np.clip(2.0 * img - 160, 0, 255).astype(np.uint8)
-# cv2.imwrite(r"C:\Users\rjcsyb2\Desktop\5.jpg", new)
+import tkinter as tk
+from tkinter import messagebox
 
 
-import requests
-import os
+def show_custom_warning():
+    root = tk.Tk()
+    root.withdraw()  # 隐藏主窗口
 
-url = 'http://v3-web.douyinvod.com/ccf9c167c751910568734c8db51c733e/66e292fd/video/tos/cn/tos-cn-ve-15/o07ApXBPiRc1cthm3eCYABnAP8RIENQfgzNcvi/?a=6383&ch=26&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=1755&bt=1755&cs=0&ds=3&ft=pEaFx4hZffPdh6~kv1zNvAq-antLjrKVvsZ.RkaHxmBEljVhWL6&mime_type=video_mp4&qs=0&rc=N2doNTc6NzhoZGhoOztkZEBpM3Y5cXY5cnR1dTMzNGkzM0BjNi0vXjZjXy8xYDE2LjNgYSNgYi80MmRzNmRgLS1kLWFzcw%3D%3D&btag=c0000e00028000&cquery=100x_100z_100o_100w_100B&dy_q=1726113914&feature_id=aa7df520beeae8e397df15f38df0454c&l=20240912120513A45FF7A885E8A0676463'
-file_name = 'video.mp3'
-save_path = r'E:\迅雷下载\批量视频去重\视频批量去重剪辑+解析下载\输入视频文件夹\\' + file_name
+    # 创建一个新的顶级窗口
+    top = tk.Toplevel(root)
+    top.title("欢迎")
 
-response = requests.get(url)
-with open(save_path, 'wb') as f:
-    f.write(response.content)
+    # 创建一个标签显示消息
+    label = tk.Label(top, text="我是僵尸宝宝一号，欢迎使用本软件程序", wraplength=200)
+    label.pack(padx=20, pady=20)
 
-print(f'视频已成功下载到 {save_path}')
+    # 创建一个自定义按钮1
+    def on_button1_click():
+        top.destroy()  # 关闭窗口
+
+    button1 = tk.Button(top, text="快快退下", command=on_button1_click)
+    button1.pack(side=tk.LEFT, padx=10)
+
+    # 创建一个自定义按钮2
+    def on_button2_click():
+        # 在这里添加你想要执行的操作，例如继续游戏等
+        pass
+
+    button2 = tk.Button(top, text="留下我再玩一会", command=on_button2_click)
+    button2.pack(side=tk.RIGHT, padx=10)
+
+    top.mainloop()
+
+
+show_custom_warning()

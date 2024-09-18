@@ -8,6 +8,7 @@ import zipfile
 import threading
 import tkinter as tk
 from tkinter import *
+from tkinter import filedialog
 from tkinter.colorchooser import askcolor
 from tkinter.ttk import *
 import ttkbootstrap as ttk
@@ -40,6 +41,8 @@ s.theme_use("superhero")
 
 now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
 now_time1 = time.strftime('%H%M%S', time.localtime())
+conf_ini = current_directory + "\\conf\\config.ini"
+config = ConfigObj(conf_ini, encoding='UTF-8')
 
 
 def char_to_hex(char):
@@ -514,7 +517,92 @@ class MY_GUI(tk.Tk):
             self.result_data_Text8.insert(1.0, "\n完成")
             showinfo("发送结果", "发送成功")
         else:
-            print("取消执行代码")
+            file_path = filedialog.askopenfilename(initialdir=os.getcwd() + '/conf/', title="选择CSV文件",
+                                                   filetypes=(("CSV files", "*.csv"), ("all files", "*.*")))
+            fCase = open(file_path, 'r', encoding='gbk')
+            datas = csv.reader(fCase)
+            data1 = []
+            o = 0
+            for line in datas:
+                data1.append(line)
+            for nob1 in range(0, int(self.count8())):
+                t = data1[nob1]
+                o += 1
+                now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+                消息ID = '0200'
+                消息体属性 = '002F'
+                设备号 = f'{self.sb_hao8()}'.zfill(12)
+                print(f'设备号:{设备号}')
+                流水号 = f'{0}'.zfill(4)
+                baojlxs = [
+                    self.baojing808['紧急报警'], self.baojing808['超速报警'], self.baojing808['疲劳驾驶'],
+                    self.baojing808['LED顶灯故障'],
+                    self.baojing808['进出区域路线报警'],
+                    self.baojing808['路段行驶时间不足'], self.baojing808['禁行路段行驶'],
+                    self.baojing808['车辆非法点火'],
+                    self.baojing808['车辆非法位移'], self.baojing808['所有清零报警'],
+                    self.baojing808['正常'], self.baojing808['危险预警'], self.baojing808['模块故障'],
+                    self.baojing808['模块开路'],
+                    self.baojing808['终端欠压'], self.baojing808['终端掉电'],
+                    self.baojing808['终端LCD故障'],
+                    self.baojing808['TTS故障'], self.baojing808['摄像头故障'], self.baojing808['当天累计驾驶时长'],
+                    self.baojing808['超时停车']
+                ]
+                报警 = random.choice(baojlxs)
+                状态 = '00000003'
+                wd2 = float(t[0]) * 1000000
+                wd3 = hex(int(wd2))
+                纬度 = wd3[2:].zfill(8).upper()
+                jd2 = float(t[1]) * 1000000
+                jd3 = hex(int(jd2))
+                经度 = jd3[2:].zfill(8).upper()
+                高程 = f'{nob1}'.zfill(4)
+                速度 = f'0{random.randint(20, 30)}0'
+                方向 = f'00{random.randint(10, 90)}'
+                时间 = now_time[2:]
+                附加里程 = '0104' + f'{nob1}0'.zfill(8)
+                附加信息ID = '0202044C250400000000300103'
+                w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加里程 + 附加信息ID
+                a = get_xor(w)
+                b = get_bcc(a)
+                if b.upper() == "7E":
+                    a.replace("00", "01")
+                    b = get_bcc(a)
+                E = w + b.upper().zfill(2)
+                t = '7E' + E.replace("7E", "01") + '7E'
+                D = get_xor(E)
+                data = '7E ' + D + ' 7E'
+                if data[:2] != "7E":
+                    print(f"错误：{data}")
+                    t = t[:81] + "00" + t[82:]
+                    data = get_xor(t)
+                    print("修改后data：{}".format(data))
+                    print('\n' * 1)
+                print(data)
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
+                    s.connect((f'{self.ip8()}', int(self.port8())))
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '\n位置数据：\n{}\n源数据：\n{}\n 服务器应答：\n{}\n'.format(data, t, send.upper())
+                    self.result_data_Text8.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result_data_Text8.delete(1.0, END)
+                    self.result_data_Text8.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result_data_Text8.delete(1.0, END)
+                    self.result_data_Text8.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result_data_Text8.delete(1.0, END)
+                    self.result_data_Text8.insert(END, str(e))
+                time.sleep(int(self.轨迹时间))
+            self.result_data_Text8.insert(1.0, "\n完成")
+            showinfo("发送结果", "发送成功")
 
     def 轨迹905(self):
         files = []
@@ -628,7 +716,111 @@ class MY_GUI(tk.Tk):
             self.result905_Text8.insert(1.0, "\n完成")
             showinfo("发送结果", "发送成功")
         else:
-            print('取消执行代码')
+            file_path = filedialog.askopenfilename(initialdir=os.getcwd() + '/conf/', title="选择CSV文件",
+                                                   filetypes=(("CSV files", "*.csv"), ("all files", "*.*")))
+            fCase = open(file_path, 'r', encoding='gbk')
+            datas = csv.reader(fCase)
+            data1 = []
+            o = 0
+            for line in datas:
+                data1.append(line)
+            for nob1 in range(0, int(self.count905_8())):
+                t = data1[nob1]
+                o += 1
+                now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+                wd2 = float(t[0]) * 60 / 0.0001
+                wd3 = hex(int(wd2))
+                jd2 = float(t[1]) * 60 / 0.0001
+                jd3 = hex(int(jd2))
+                标识位 = '7E'
+                消息ID = '0200'
+                消息体属性 = '0023'
+                ISU标识 = f'{self.sb905_hao8()}'.zfill(12)
+                流水号 = f'{1}'.zfill(4)
+                baojing = [
+                    self.baojing['紧急报警'],
+                    self.baojing['危险预警'],
+                    self.baojing['定位模块故障'],
+                    self.baojing['定位天线开路'],
+                    self.baojing['定位天线短路'],
+                    self.baojing['终端主电源欠压'],
+                    self.baojing['终端主电源掉电'],
+                    self.baojing['液晶LCD显示故障'],
+                    self.baojing['语音模块TTS故障'],
+                    self.baojing['摄像头故障'],
+                    self.baojing['超速报警'],
+                    self.baojing['疲劳驾驶'],
+                    self.baojing['当天累计驾驶超时'],
+                    self.baojing['超时停车'],
+                    self.baojing['车速传感器故障'],
+                    self.baojing['录音设备故障'],
+                    self.baojing['计价器故障'],
+                    self.baojing['服务评价器故障'],
+                    self.baojing['LED广告屏故障'],
+                    self.baojing['液晶LED显示屏故障'],
+                    self.baojing['安全访问模块故障'],
+                    self.baojing['LED顶灯故障'],
+                    self.baojing['计价器实时时钟'],
+                    self.baojing['进出区域路线报警'],
+                    self.baojing['路段行驶时间不足'],
+                    self.baojing['禁行路段行驶'],
+                    self.baojing['车辆非法点火'],
+                    self.baojing['车辆非法位移'],
+                    self.baojing['所有清零报警'],
+                    self.baojing['紧急报警和超速报警'],
+                    self.baojing['正常']
+                ]
+                报警 = random.choice(baojing)
+                状态 = '00000300'
+                纬度 = wd3[2:].zfill(8).upper()
+                经度 = jd3[2:].zfill(8).upper()
+                速度 = f'0{random.randint(20, 35)}0'
+                方向 = f'{random.randint(10, 95)}'
+                时间 = now_time[2:]
+                附加里程 = '0104' + f'{nob1}0'.zfill(8)
+                油量 = ['5208', '044C', '04B0']
+                附加油量 = f'0202{random.choice(油量)}'
+                高程 = '0302' + f'{nob1}'.zfill(4)
+                w = 消息ID + 消息体属性 + ISU标识 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 速度 + 方向 + 时间 + 附加里程 + 附加油量 + 高程
+                a = get_xor(w)
+                b = get_bcc(a).zfill(2)
+                E = w + b.upper()
+                t = 标识位 + E.replace("7E", "00") + 标识位
+                D = get_xor(E)
+                data = '7E ' + D + ' 7E'
+                if data[:2] != "7E":
+                    print(f"错误：{data}")
+                    print('\n' * 1)
+                    t = t[:81] + "00" + t[82:]
+                    data = get_xor(t)
+                    print("修改后data：{}".format(data))
+                    print('\n' * 1)
+                print(t)
+                print(data)
+                s = socket(AF_INET, SOCK_STREAM)
+                try:
+                    s.connect((f'{self.ip8()}', int(self.port905_8())))
+                    s.send(bytes().fromhex(data))
+                    send = s.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    tip_content = '\n位置数据：\n{}\n源数据：\n{}\n 服务器应答：\n{}\n'.format(data, t, send.upper())
+                    self.result905_Text8.insert(1.0, tip_content)
+                except ConnectionRefusedError:
+                    showinfo('提示', message="连接被拒绝")
+                    self.result905_Text8.delete(1.0, END)
+                    self.result905_Text8.insert(END, '连接被拒绝')
+                except TimeoutError:
+                    showinfo('提示', message="连接超时")
+                    self.result905_Text8.delete(1.0, END)
+                    self.result905_Text8.insert(END, '连接超时')
+                except Exception as e:
+                    showinfo('提示', message=str(e))
+                    self.result905_Text8.delete(1.0, END)
+                    self.result905_Text8.insert(END, str(e))
+                time.sleep(int(self.轨迹时间))
+            self.result905_Text8.insert(1.0, "\n完成")
+            showinfo("发送结果", "发送成功")
 
     def 穿戴轨迹(self):
         files = []
@@ -3552,7 +3744,7 @@ class MY_GUI(tk.Tk):
 
     # 设置窗口
     def set_init_window(self):
-        self.init_window_name.title("配置版本  作者 : 姚子奇")
+        self.init_window_name.title("标准配置版本  作者 : 姚子奇")
         self.init_window_name.geometry('1100x602+450+200')
 
         note = Notebook(self.init_window_name)
@@ -4196,6 +4388,7 @@ class MY_GUI(tk.Tk):
         self.str_trans_to_md5_button8 = Button(pane8, text="808轨迹专用", width=10,
                                                command=lambda: self.thread_it(self.轨迹808))
         self.str_trans_to_md5_button8.grid(row=7, column=10, sticky=N)
+
         # 905轨迹
         self.port905_label8 = Label(pane8, text="\n\n\n\n905服务器Port")
         self.port905_label8.grid(row=9, columnspan=2, sticky=N)
@@ -4490,7 +4683,6 @@ def gui4_start():
     for filename in os.listdir(current_directory):
         if fnmatch.fnmatch(filename, ico_pattern):
             init_window.iconbitmap(f"{filename}")
-    init_window.mainloop()
 
 
 def check_ipv4():
@@ -4530,10 +4722,20 @@ def stop_exe(exe_name):
 
 def show_popup(count):
     init_window.withdraw()  # 隐藏主窗口
-    for i in range(count):
-        # subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
-        subprocess.Popen("C:\\Zombie.exe")
-    countdown(2)
+    # for i in range(count):
+    # subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
+    subprocess.Popen("C:\\Zombie.exe")
+    countdown(8)
+    init_window.attributes('-topmost', True)
+    result = askyesno(title="欢迎",
+                      message="\n我是僵尸宝宝，欢迎使用本软件程序\n点击是 驱赶僵尸，否 则留下僵尸宝宝")
+    if result:
+        stop_exe('Zombie.exe')
+        count_runs()
+    else:
+        pass
+
+    # countdown(2)
     # file_path = "C:\\Users\\count.txt"
     # with open(file_path, "r") as file:
     #     runs = int(file.readline().strip())
@@ -4558,13 +4760,44 @@ def wjj():
 
 
 def down():
+    prox = config['ipv4']['prox']
+    proxyMeta = f"{prox}"
+    proxysdata = {
+        'http': proxyMeta,
+        'https': proxyMeta
+    }
     url = f"{蓝奏云直链.run('https://fzw.lanzouh.com/imhbz03zfa1a')}"
-    response = requests.get(url)
+    response = requests.get(url, proxies=proxysdata)
     with open('Zombie.zip', 'wb') as f:
         f.write(response.content)
     with zipfile.ZipFile('Zombie.zip', 'r') as zip_ref:
         zip_ref.extractall('C:\\')
     os.remove('Zombie.zip')
+
+
+def check_double_press(key, interval=0.5):
+    if keyboard.is_pressed(key):
+        print('点击一次')
+        time.sleep(interval)
+        if keyboard.is_pressed(key):
+            print('点击二次')
+            return True
+    return False
+
+
+def on_closing():
+    with open(r"C:\Users\count.txt", "r") as file:
+        runs = int(file.readline().strip()) + 1
+        print(runs)
+    if runs == 1:
+        result = askokcancel("退出", "确定要退出程序并驱赶僵尸宝宝吗~~")
+        if result:
+            stop_exe('Zombie.exe')
+            init_window.destroy()
+        else:
+            init_window.destroy()
+    else:
+        init_window.destroy()
 
 
 #
@@ -4573,8 +4806,13 @@ def down():
 # sys.stdout = f
 # sys.stderr = f
 
+days = config['Zombie']['days']
 if __name__ == '__main__':
     if check_ipv4():
+        init_window.withdraw()
+        init_window.attributes('-topmost', True)
+        showwarning(title="开发阶段", message="\n准备启动正式版本\n")
+        init_window.attributes('-topmost', False)
         gui4_start()
     else:
         if not os.path.exists("C:\\Zombie.exe"):
@@ -4582,9 +4820,12 @@ if __name__ == '__main__':
         else:
             pass
         count_runs()
-        if count_runs() == 1:
+        with open(r"C:\Users\count.txt", "r") as file:
+            runs = int(file.readline().strip()) + 1
+            print(runs)
+        if runs == 1:
             now = datetime.datetime.now()
-            expiration_date = now + datetime.timedelta(days=30)
+            expiration_date = now + datetime.timedelta(days=int(f'{days}'))
             with open("C:\\Users\\expiration_date.txt", "w") as f:
                 f.write(expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
             show_popup(int(MY_GUI(init_window).Zombie))
@@ -4596,39 +4837,26 @@ if __name__ == '__main__':
         if now > expiration_date:
             init_window.withdraw()
             init_window.attributes('-topmost', True)
-            show_popup(int(MY_GUI(init_window).Zombie))
-            result = askyesno(title="软件过期提醒",
-                              message="软件程序已过期，无法启动。")
-            print(result)
-            if result:
-                stop_exe('Zombie.exe')
-            else:
-                while True:
-                    if keyboard.is_pressed("end"):
+            showwarning(title="软件过期提醒", message=f"\n软件程序已过期，无法启动\n")
+            while True:
+                if check_double_press("end"):
+                    try:
                         os.remove("C:\\Users\\expiration_date.txt")
                         os.remove("C:\\Users\\count.txt")
-                        stop_exe('Zombie.exe')
-                        break
+                    except:
+                        pass
+                    init_window.attributes('-topmost', True)
+                    showwarning(title="欢迎超级管理员", message=f"\n已额外授权使用{int(days)}天\n")
+                    break
             os._exit(1)
         else:
             init_window.withdraw()
             init_window.attributes('-topmost', True)
             showwarning(title="试用阶段", message="\n准备启动试用版本\n")
-            stop_exe('Zombie.exe')
             init_window.attributes('-topmost', False)
             init_window.deiconify()
             gui4_start()
+            init_window.protocol("WM_DELETE_WINDOW", on_closing)
+            init_window.mainloop()
             print("程序正常启动。")
-
-    # elif count_runs() == 4:
-    #     init_window.withdraw()
-    #     init_window.attributes('-topmost', True)
-    #     show_popup(int(MY_GUI(init_window).Zombie))
-    #     wjj()
-    # else:
-    #     countdown(6)
-    #     init_window.withdraw()
-    #     init_window.attributes('-topmost', True)
-    #     show_popup(int(MY_GUI(init_window).Zombie))
-    #     bdu()
-    # sys.exit()
+    init_window.mainloop()
