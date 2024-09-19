@@ -1,6 +1,18 @@
 import requests
 import re
 import json
+import os
+from configobj import ConfigObj
+
+current_directory = os.getcwd()
+conf_ini = current_directory + "\\conf\\config.ini"
+config = ConfigObj(conf_ini, encoding='UTF-8')
+prox = config['ipv4']['prox']
+proxyMeta = f"{prox}"
+proxysdata = {
+    'http': proxyMeta,
+    'https': proxyMeta
+}
 
 
 def re_domain(url):
@@ -31,7 +43,7 @@ def getwithp(url, password):
         "Referer": url,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0"
     }
-    response2 = requests.post(f"https://{domain}{url_match}", headers=headers, data=data)
+    response2 = requests.post(f"https://{domain}{url_match}", headers=headers, data=data, proxies=proxysdata)
     data = json.loads(response2.text)
     full_url = data['dom'] + "/file/" + data['url']
     headers = {
@@ -47,7 +59,7 @@ def getwithp(url, password):
         "upgrade-insecure-requests": "1",
         "cookie": "down_ip=1"
     }
-    response3 = requests.get(full_url, headers=headers, allow_redirects=False)
+    response3 = requests.get(full_url, headers=headers, allow_redirects=False, proxies=proxysdata)
     return response3.headers['Location']
 
 
@@ -56,11 +68,11 @@ def getwithoutp(url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0"
     }
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, proxies=proxysdata)
     iframe_pattern = re.compile(
         r'<iframe\s+class="ifr2"\s+name="\d+"\s+src="([^"]+)"\s+frameborder="0"\s+scrolling="no"></iframe>')
     matches = iframe_pattern.findall(response.text)
-    response2 = requests.get(f"https://{domain}{matches[0]}", headers=headers)
+    response2 = requests.get(f"https://{domain}{matches[0]}", headers=headers, proxies=proxysdata)
     pattern = r"'sign'\s*:\s*'([^']+)'"
     sign = re.search(pattern, response2.text).group(1)
     pattern2 = r"url\s*:\s*'([^']+)'"
@@ -77,7 +89,7 @@ def getwithoutp(url):
         "Referer": matches[0],
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0"
     }
-    response3 = requests.post(f"https://{domain}{url2}", headers=headers, data=data)
+    response3 = requests.post(f"https://{domain}{url2}", headers=headers, data=data, proxies=proxysdata)
     data = json.loads(response3.text)
     full_url = data['dom'] + "/file/" + data['url']
     headers = {
@@ -93,7 +105,7 @@ def getwithoutp(url):
         "upgrade-insecure-requests": "1",
         "cookie": "down_ip=1"
     }
-    response4 = requests.get(full_url, headers=headers, allow_redirects=False)
+    response4 = requests.get(full_url, headers=headers, allow_redirects=False, proxies=proxysdata)
     print(response4.headers['Location'])
     return response4.headers['Location']
 
@@ -108,7 +120,7 @@ import os
 
 
 def down(url):
-    response = requests.get(url)
+    response = requests.get(url, proxies=proxysdata)
     with open('123.zip', 'wb') as f:
         f.write(response.content)
 
@@ -117,4 +129,4 @@ if __name__ == '__main__':
     # url = "https://2fzb.lanzn.com/iQiwp27fjdmj"
     url = "https://www.lanzoux.com/i42e0ch"
     run(url)
-    down(run(url))
+    # down(run(url))

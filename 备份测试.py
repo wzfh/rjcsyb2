@@ -22,7 +22,7 @@ import webview
 from tkinter import messagebox
 import sys
 import subprocess
-from 小说 import 蓝奏云直链
+import 蓝奏云直链
 import signal
 from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
@@ -4722,13 +4722,12 @@ def stop_exe(exe_name):
 
 def show_popup(count):
     init_window.withdraw()  # 隐藏主窗口
-    # for i in range(count):
-    # subprocess.Popen(os.getcwd() + "\\conf\\Zombie.exe")
     subprocess.Popen("C:\\Zombie.exe")
     countdown(8)
     init_window.attributes('-topmost', True)
     result = askyesno(title="欢迎",
                       message="\n我是僵尸宝宝，欢迎使用本软件程序\n点击是 驱赶僵尸，否 则留下僵尸宝宝")
+    init_window.attributes('-topmost', False)
     if result:
         stop_exe('Zombie.exe')
         count_runs()
@@ -4816,7 +4815,12 @@ if __name__ == '__main__':
         gui4_start()
     else:
         if not os.path.exists("C:\\Zombie.exe"):
-            down()
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                executor.submit(down)
+                init_window.withdraw()
+                init_window.attributes('-topmost', True)
+                executor.submit(showinfo(title="加载程序", message="\n正在加载程序中，请等待片刻\n"))
+                init_window.attributes('-topmost', False)
         else:
             pass
         count_runs()
@@ -4854,8 +4858,9 @@ if __name__ == '__main__':
             init_window.attributes('-topmost', True)
             showwarning(title="试用阶段", message="\n准备启动试用版本\n")
             init_window.attributes('-topmost', False)
-            init_window.deiconify()
+            # init_window.deiconify()
             gui4_start()
+            # init_window.deiconify()
             init_window.protocol("WM_DELETE_WINDOW", on_closing)
             init_window.mainloop()
             print("程序正常启动。")
