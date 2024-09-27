@@ -122,16 +122,22 @@ def email():
     os.system('adb shell svc bluetooth disable')
     print('关闭定位')
     os.system('adb shell settings put secure location_mode 0')
-    # os.system('adb shell settings put secure location_mode 0')
+    os.system('adb shell input keyevent 26')
     print('息屏')
     msg['Subject'] = f"{识别图片2('img/bei.jpg')}"
     with open('img/bei.jpg', "rb") as attachment:
         part = MIMEApplication(attachment.read(), _subtype='png')
-        part.add_header('Content-Disposition', 'attachment', filename='bei.jpg')
+        part.add_header('Content-Disposition', 'attachment', filename='img/bei.jpg')
         msg.attach(part)
-    with smtplib.SMTP_SSL('smtp.qq.com', 465) as smtp:
-        smtp.login(sender_email, sender_password)
-        smtp.sendmail(sender_email, recipient_email, msg.as_string())
+    from smtplib import SMTPResponseException
+    try:
+        with smtplib.SMTP_SSL('smtp.qq.com', 465) as smtp:
+            smtp.login(sender_email, sender_password)
+            smtp.sendmail(sender_email, recipient_email, msg.as_string())
+    except SMTPResponseException as e:
+        print("发生了SMTPResponseException异常")
+        print('跳过异常')
+        pass
     del msg['Subject']
     msg.set_payload([])
 
@@ -150,13 +156,13 @@ def 上班():
                 截图()
                 email()
                 break
+            if is_similar(zhu下班_image, region_image):
+                print('已打上班卡成功')
+                email()
+                break
             if is_similar(上班正常_image, region_image):
                 print('上班正常成功')
                 截图()
-                email()
-                break
-            if is_similar(zhu下班_image, region_image):
-                print('已打上班卡成功')
                 email()
                 break
             if is_similar(上班自动打卡_image, region_image):
@@ -171,8 +177,9 @@ def 上班():
                 continue
             time.sleep(5)
         except:
-            os.system('adb  kill-server')
-            os.system('adb  devices')
+            # os.system('adb  kill-server')
+            # os.system('adb  devices')
+            pass
 
 
 def 下班():
@@ -222,6 +229,21 @@ def run():
         上班()
     if current_time > "17:29":
         下班()
+
+
+def 截图测试():
+    global d
+    device = os.popen("adb devices").readlines()
+    device_id = device[1]
+    d = u2.connect_usb(f'{device_id.split()[0]}')
+    imge = d.screenshot()
+    if os.path.exists('img/bei.jpg'):
+        os.remove('img/bei.jpg')
+        print("文件 bei.jpg 已被成功删除.")
+    region_image = imge.crop((86, 646, 940, 1527))
+    print('重新截取屏幕')
+    region_image.save('img/bei.jpg')
+    识别图片2('img/bei.jpg')
 
 
 if __name__ == "__main__":
