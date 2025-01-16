@@ -25,7 +25,7 @@ import webview
 from tkinter import messagebox
 import sys
 import subprocess
-import 蓝奏云直链
+# import 蓝奏云直链
 import signal
 from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
@@ -5536,17 +5536,16 @@ def create_shortcut():
     shortcut_path = os.path.join(desktop_path, shortcut_name)
     # 检查桌面上是否已经存在快捷方式
     if not os.path.exists(shortcut_path):
-        # 创建快捷方式的命令
-        command = f'powershell "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut(\'{shortcut_path}\'); $s.TargetPath = \'{current_file}\'; $s.WorkingDirectory = \'{os.path.dirname(current_file)}\'; $s.Save()"'
-        # 执行命令
-        os.system(command)
-        init_window.attributes('-topmost', True)
-        showwarning("提示", "快捷方式已创建桌面。")
-        init_window.attributes('-topmost', False)
+        result1 = messagebox.askokcancel('创建快捷方式', '是否要创建快捷方式')
+        if result1:
+            command = f'powershell "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut(\'{shortcut_path}\'); $s.TargetPath = \'{current_file}\'; $s.WorkingDirectory = \'{os.path.dirname(current_file)}\'; $s.Save()"'
+            os.system(command)
+            messagebox.showwarning('提示', '快捷方式已创建桌面。')
+            os._exit(2)
+        else:
+            os._exit(2)
     else:
-        init_window.attributes('-topmost', True)
-        showwarning("提示", "桌面上已存在快捷方式。")
-        init_window.attributes('-topmost', False)
+        os._exit(2)
 
 
 # def show_popup(count):

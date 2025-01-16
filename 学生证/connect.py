@@ -98,7 +98,7 @@ def 终端上报(value):
     JD = '110.919843'
     now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
     消息头起始符 = '['
-    设备号 = '123456123456838'.zfill(15)
+    设备号 = '123456123456992'.zfill(15)
     分隔符 = ','
     ICCID = '89860000192027575850'.zfill(20)
     交易流水号 = f'{now_time}0000'

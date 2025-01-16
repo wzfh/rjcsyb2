@@ -28,7 +28,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='配置版本(锋)',
+    name='配置版本',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -42,5 +42,5 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     uac_admin=True,
-    icon=['favicon.ico']
+    icon=['C:\\Users\\rjcsyb2\\Desktop\\workcard-master\\dist\\cache.ico'],
 )
