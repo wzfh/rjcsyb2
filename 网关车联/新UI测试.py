@@ -311,23 +311,24 @@ class App(customtkinter.CTk):
             self.textbox.insert(1.0,
                                 '暂无查询到报警信息\n\n没触发的原因：\n1，触发设备当天之前已经触发但未结束报警\n2，没发送报警数据（没打开服务器按钮）\n\n解决方案：打开服务器按钮，点击报警发送正常数据，结束报警再去触发即可')
         print(data)
+        res = []
+        res.append(self.Trackjko())
+        print(res[0][-1])
 
         def extract_values(string):
-            enAlarmType = re.compile("'enType':\\s*'([^']+)'")
             startTime = re.compile("'timeBegin':\\s*'([^']+)'")
             type = re.compile("'type':\\s*'([^']+)'")
             speed = re.compile("'speedBegin':\\s*(\\d+)")
             match_startTime = startTime.search(string)
             match_type = type.search(string)
             match_speed = speed.search(string)
-
             if match_startTime:
                 if match_type:
                     if match_speed:
                         return (
                             '报警时间：{}'.format(match_startTime.group(1)),
                             '报警类型：{}'.format(match_type.group(1)),
-                            '速度：{}'.format(match_speed.group(1)))
+                        )
 
         results = []
         for item in data:
@@ -335,8 +336,8 @@ class App(customtkinter.CTk):
             if result:
                 results.append(result)
                 for i in results:
-                    print(i)
-                    self.textbox.insert("end", f"\n\n{i}")
+                    print(i + res[0][-1])
+                    self.textbox.insert("end", f"\n\n{i + res[0][-1]}")
         if 报警 == '9':
             possible_alarm_types = ["报警类型：碰撞报警", "报警类型：声控报警", "报警类型：防拆除报警",
                                     "报警类型：TF卡拔出报警", "报警类型：TF卡异常报警", "报警类型：紧急报警",
@@ -345,7 +346,6 @@ class App(customtkinter.CTk):
                                     "报警类型：终端主电源欠压", "报警类型：位移报警"]
             posss = []
             alarm_types = [result[1] for result in results]
-            print(alarm_types)
             for alarm_type in alarm_types:
                 posss.append(alarm_type)
             set1 = set(possible_alarm_types)
@@ -358,6 +358,74 @@ class App(customtkinter.CTk):
             else:
                 print('所有报警已触发')
                 messagebox.showinfo('提示', message='所有报警已触发')
+
+    def Trackjko(self):
+        proxyMeta = f"{self.prox}"
+        proxysdata = {
+            'http': proxyMeta,
+            'https': proxyMeta
+        }
+        url = "https://v4.car900.com:9998/car/v1/accelerate/track/listVehTrackPoint.json"
+        now_time1 = time.strftime('%Y-%m-%d', time.localtime())
+        querystring = {"plate": f"{int(self.sb_hao())}", "vehicleId": f"{self.车辆id()}",
+                       "beginTime": f"{now_time1} 00:00:00",
+                       "endTime": f"{now_time1} 23:59:59", "filterTime": "0", "converge": "1", "isHeart": "1",
+                       "locationType": "1%2C2%2C3%2C0%2C6"}
+        payload = ""
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "sessionId": f"{self.sessionId}",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "User-Agent": "PostmanRuntime-ApipostRuntime/1.1.0",
+            "Connection": "keep-alive",
+            "Cookie": "satoken=5e43775c-bfe6-455d-b257-a063d95ac8e9"
+        }
+        response = requests.request("GET", url, data=payload, headers=headers, proxies=proxysdata, params=querystring)
+        user_dict = ast.literal_eval(response.text)
+        data = user_dict['obj']['data']['trackList']
+
+        def extract_values(string):
+            pattern_t = re.compile("'t':\\s*'(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})'")
+            ACC状态 = re.compile("'e':\\s*(\\d+)")
+            是否定位 = re.compile("'i':\\s*(\\d+)")
+            speed = re.compile("'s':\\s*(\\d+)")
+            mileage = re.compile("'g':\\s*(\\d+(?:\\.\\d+)?)")
+            行停状态 = re.compile("'x':\\s*(\\d+)")
+            match_t = pattern_t.search(string)
+            match_e = ACC状态.search(string)
+            match_i = 是否定位.search(string)
+            match_s = speed.search(string)
+            match_g = mileage.search(string)
+            match_x = 行停状态.search(string)
+            if match_e and match_i and match_s and match_g and match_x:
+                if match_e.group(1) == '1':
+                    acc = '关'
+                else:
+                    acc = '开'
+                if match_i.group(1) == '1':
+                    isStop = '北斗+GPS'
+                else:
+                    isStop = '卫星信号弱'
+                if match_x.group(1) == '1':
+                    x = '行驶'
+                else:
+                    if match_x.group(1) == '2':
+                        x = '停止'
+                    else:
+                        if match_x.group(1) == '3':
+                            x = '离线'
+            return (
+                'ACC：{}'.format(acc), '状态：{}'.format(isStop), '速度：{}'.format(match_s.group(1)),
+                '里程：{}'.format(match_g.group(1)), '行停：{}'.format(x))
+
+        results = []
+        for item in data:
+            result = extract_values(str(item))
+            if result:
+                results.append(result)
+        # print(results)
+        return results
 
     def Track(self):
         proxyMeta = f"{self.prox}"
@@ -1029,15 +1097,15 @@ class App(customtkinter.CTk):
 
     def sb_ztai(self):
         ztai = self.ztai_Text.get().strip()
-        if ztai == "ACC开":
+        if ztai == "ACC开卫星信号弱":
             return "00000001"
-        elif ztai == "不定位":
+        elif ztai == "ACC关卫星信号弱":
             return '00000000'
-        elif ztai == "定位":
+        elif ztai == "ACC关北斗+GPS":
             return '00000002'
         elif ztai == "南纬":
             return '00000004'
-        elif ztai == "ACC开和定位":
+        elif ztai == "ACC开和北斗+GPS":
             return '00000003'
         elif ztai == "西经":
             return '00000008'
@@ -1308,12 +1376,13 @@ class App(customtkinter.CTk):
                                                  fg_color="transparent")
         self.ztai_label.grid(row=6, column=1, padx=(15, 10), sticky="nsew")
         self.ztai_Text = customtkinter.CTkOptionMenu(self.my_frame, font=customtkinter.CTkFont(size=15, weight="bold"),
-                                                     values=["ACC开", "ACC开和定位", "不定位", "定位", "停运状态",
+                                                     values=["ACC开卫星信号弱", "ACC开和北斗+GPS", "ACC关卫星信号弱",
+                                                             "ACC关北斗+GPS", "停运状态",
                                                              "经纬度已经保密插件保密", "南纬", "西经",
                                                              "车辆油路断开", "车辆电路断开", "单北斗", "单GPS",
                                                              "北斗GPS双模", "ACC开定位开北斗GPS满载",
                                                              "ACC开定位开北斗GPS空车", "车门加锁"])
-        self.ztai_Text.set('ACC开')
+        self.ztai_Text.set('ACC开卫星信号弱')
         self.ztai_Text.grid(row=7, column=1, padx=(15, 10), pady=(0, 15), sticky="nsew")
 
         self.str_button = customtkinter.CTkButton(self.my_frame, text="专用808发送",
