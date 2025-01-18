@@ -432,9 +432,9 @@ class MY_GUI(tk.Tk):
 
     def 轨迹808(self):
         files = []
-        for filename in os.listdir(os.getcwd() + '/conf/'):
+        for filename in os.listdir(os.getcwd()):
             if fnmatch.fnmatch(filename, csv_pattern):
-                file_path = os.getcwd() + f'/conf/{filename}'
+                file_path = os.getcwd() + f'/{filename}'
                 files.append(file_path)
         result = askyesno("提醒", f"是否使用   {files[0]}       跑轨迹文件？")
         if result:
@@ -523,7 +523,7 @@ class MY_GUI(tk.Tk):
             self.result_data_Text8.insert(1.0, "\n完成")
             showinfo("发送结果", "发送成功")
         else:
-            file_path = filedialog.askopenfilename(initialdir=os.getcwd() + '/conf/', title="选择CSV文件",
+            file_path = filedialog.askopenfilename(initialdir=os.getcwd(), title="选择CSV文件",
                                                    filetypes=(("CSV files", "*.csv"), ("all files", "*.*")))
             fCase = open(file_path, 'r', encoding='gbk')
             datas = csv.reader(fCase)
@@ -612,9 +612,9 @@ class MY_GUI(tk.Tk):
 
     def 轨迹905(self):
         files = []
-        for filename in os.listdir(os.getcwd() + '/conf/'):
+        for filename in os.listdir(os.getcwd()):
             if fnmatch.fnmatch(filename, csv_pattern):
-                file_path = os.getcwd() + f'/conf/{filename}'
+                file_path = os.getcwd() + f'/{filename}'
                 files.append(file_path)
         result = askyesno("提醒", f"是否使用   {files[0]}       跑轨迹文件？")
         if result:
@@ -722,7 +722,7 @@ class MY_GUI(tk.Tk):
             self.result905_Text8.insert(1.0, "\n完成")
             showinfo("发送结果", "发送成功")
         else:
-            file_path = filedialog.askopenfilename(initialdir=os.getcwd() + '/conf/', title="选择CSV文件",
+            file_path = filedialog.askopenfilename(initialdir=os.getcwd(), title="选择CSV文件",
                                                    filetypes=(("CSV files", "*.csv"), ("all files", "*.*")))
             fCase = open(file_path, 'r', encoding='gbk')
             datas = csv.reader(fCase)
@@ -830,9 +830,9 @@ class MY_GUI(tk.Tk):
 
     def 穿戴轨迹(self):
         files = []
-        for filename in os.listdir(os.getcwd() + '/conf/'):
+        for filename in os.listdir(os.getcwd()):
             if fnmatch.fnmatch(filename, csv_pattern):
-                file_path = os.getcwd() + f'/conf/{filename}'
+                file_path = os.getcwd() + f'/{filename}'
                 files.append(file_path)
         result = askyesno("提醒", f"是否使用   {files[0]}       跑轨迹文件？")
         if result:

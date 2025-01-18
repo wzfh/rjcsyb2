@@ -317,19 +317,17 @@ class App(customtkinter.CTk):
             startTime = re.compile("'timeBegin':\\s*'([^']+)'")
             type = re.compile("'type':\\s*'([^']+)'")
             speed = re.compile("'speedBegin':\\s*(\\d+)")
-            match_enAlarmType = enAlarmType.search(string)
             match_startTime = startTime.search(string)
             match_type = type.search(string)
             match_speed = speed.search(string)
-            if match_enAlarmType:
-                if match_startTime:
-                    if match_type:
-                        if match_speed:
-                            return (
-                                '报警字段：{}'.format(match_enAlarmType.group(1)),
-                                '报警时间：{}'.format(match_startTime.group(1)),
-                                '报警类型：{}'.format(match_type.group(1)),
-                                '速度：{}'.format(match_speed.group(1)))
+
+            if match_startTime:
+                if match_type:
+                    if match_speed:
+                        return (
+                            '报警时间：{}'.format(match_startTime.group(1)),
+                            '报警类型：{}'.format(match_type.group(1)),
+                            '速度：{}'.format(match_speed.group(1)))
 
         results = []
         for item in data:
@@ -338,7 +336,7 @@ class App(customtkinter.CTk):
                 results.append(result)
                 for i in results:
                     print(i)
-                    self.textbox.insert(1.0, f"{i}\n\n")
+                    self.textbox.insert("end", f"\n\n{i}")
         if 报警 == '9':
             possible_alarm_types = ["报警类型：碰撞报警", "报警类型：声控报警", "报警类型：防拆除报警",
                                     "报警类型：TF卡拔出报警", "报警类型：TF卡异常报警", "报警类型：紧急报警",
@@ -346,7 +344,8 @@ class App(customtkinter.CTk):
                                     "报警类型：急加速报警", "报警类型：终端主电源掉电", "报警类型：超速报警",
                                     "报警类型：终端主电源欠压", "报警类型：位移报警"]
             posss = []
-            alarm_types = [result[2] for result in results]
+            alarm_types = [result[1] for result in results]
+            print(alarm_types)
             for alarm_type in alarm_types:
                 posss.append(alarm_type)
             set1 = set(possible_alarm_types)
@@ -624,66 +623,68 @@ class App(customtkinter.CTk):
         经度 = jd3[2:].zfill(8).upper()
         高程 = f'00{random.randint(15, 20)}'
         速度 = self.sdu()[2:].zfill(4).upper()
+        print(速度)
         方向 = f'00{random.randint(15, 20)}'
         时间 = now_time[2:]
         设备号 = self.sb_hao().zfill(12)
         if 报警 == '1':
             报警1 = '00000000'
             消息体属性 = '006D'
-            附加信息ID = 'EB4F000600A50000000F000600C5000000010004002D0DAC000300A80A002400A901CC000525541FAB262554202431255423322C255423332925541FC3270000000000000C00B289860432011891642044'
+            附加信息ID = f'EB4F000600A50000000F000600C5000000010004002D0DAC000300A80A002400A901CC000525541FAB262554202431255423322C255423332925541FC3270000000000000C00B289860432011891642044'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "2":
             报警1 = '00000000'
             消息体属性 = '0040'
-            附加信息ID = '010400000064EB1C000C00B28986047701207027150100060089FFFFFDFF000400B70D05'
+            附加信息ID = f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FFFFFDFF000400B70D05'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "3":
             报警1 = '00000000'
             消息体属性 = '0040'
-            附加信息ID = '010400000064EB1C000C00B28986047701207027150100060089FDFFFFFF000400B71105'
+            附加信息ID = f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FDFFFFFF000400B71105'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "4":
             报警1 = '00000000'
             消息体属性 = '0040'
-            附加信息ID = '010400000064EB1C000C00B28986047701207027150100060089FFFFFEFF000400B70E05'
+            附加信息ID = f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FFFFFEFF000400B70E05'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "5":
             报警1 = '00000000'
             消息体属性 = '0053'
-            附加信息ID = '01040000000030011F310110EB29000C00B28986047701217055133200060089FFFFEFFF000600C5FFFFBFEF0004002D0F42000300A844'
+            附加信息ID = f'0104{self.lic().zfill(8)}30011F310110EB29000C00B28986047701217055133200060089FFFFEFFF000600C5FFFFBFEF0004002D0F42000300A844'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "6":
             报警1 = '00000000'
             消息体属性 = '00A4'
-            附加信息ID = '01040000000030011D310100642F0000000000210200000000000000000000000000000000221104203813002030303030303030221104203813000101EB49000C00B28986047701217055137000060089FFFFFFFF000600C5FFFFFFE70004002D1008000300A84B000B00D801CC002554016E6501001100D5383636383138303339393231343434'
+            附加信息ID = f'0104{self.lic().zfill(8)}30011D310100642F0000000000210200000000000000000000000000000000221104203813002030303030303030221104203813000101EB49000C00B28986047701217055137000060089FFFFFFFF000600C5FFFFFFE70004002D1008000300A84B000B00D801CC002554016E6501001100D5383636383138303339393231343434'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "7":
             报警1 = '00000000'
             消息体属性 = '008B'
-            附加信息ID = '010400000000150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011120000'
+            附加信息ID = f'0104{self.lic().zfill(8)}150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011120000'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "8":
             报警1 = '00000000'
             消息体属性 = '008B'
-            附加信息ID = '010400000000150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011150000'
+            附加信息ID = f'0104{self.lic().zfill(8)}150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011150000'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "9":
             报警1 = '00000000'
             alarms = ['00000001', '00000002', '00000080', '00000100', '10000000']
             消息体属性0 = '002F'
-            附加信息ID0 = f'0104000000{self.lic().zfill(2)}0202044C250400000000300103'
+            附加信息ID0 = f'0104{self.lic().zfill(8)}0202044C250400000000300103'
+            print('里程：' + self.lic().zfill(8))
             消息体属性_list = [
                 '006D', '0040', '0040', '0040', '0053', '00A4', '008B', '008B',
             ]
             附加信息ID_list = [
-                'EB4F000600A50000000F000600C5000000010004002D0DAC000300A80A002400A901CC000525541FAB262554202431255423322C255423332925541FC3270000000000000C00B289860432011891642044',
-                '010400000064EB1C000C00B28986047701207027150100060089FFFFFDFF000400B70D05',
-                '010400000064EB1C000C00B28986047701207027150100060089FDFFFFFF000400B71105',
-                '010400000064EB1C000C00B28986047701207027150100060089FFFFFEFF000400B70E05',
-                '01040000000030011F310110EB29000C00B28986047701217055133200060089FFFFEFFF000600C5FFFFBFEF0004002D0F42000300A844',
-                '01040000000030011D310100642F0000000000210200000000000000000000000000000000221104203813002030303030303030221104203813000101EB49000C00B28986047701217055137000060089FFFFFFFF000600C5FFFFFFE70004002D1008000300A84B000B00D801CC002554016E6501001100D5383636383138303339393231343434',
-                '010400000000150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011120000',
-                '010400000000150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011150000',
+                f'EB4F000600A50000000F000600C5000000010004002D0DAC000300A80A002400A901CC000525541FAB262554202431255423322C255423332925541FC3270000000000000C00B289860432011891642044',
+                f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FFFFFDFF000400B70D05',
+                f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FDFFFFFF000400B71105',
+                f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FFFFFEFF000400B70E05',
+                f'0104{self.lic().zfill(8)}30011F310110EB29000C00B28986047701217055133200060089FFFFEFFF000600C5FFFFBFEF0004002D0F42000300A844',
+                f'0104{self.lic().zfill(8)}30011D310100642F0000000000210200000000000000000000000000000000221104203813002030303030303030221104203813000101EB49000C00B28986047701217055137000060089FFFFFFFF000600C5FFFFFFE70004002D1008000300A84B000B00D801CC002554016E6501001100D5383636383138303339393231343434',
+                f'0104{self.lic().zfill(8)}150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011120000',
+                f'0104{self.lic().zfill(8)}150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011150000',
             ]
             for alarm in alarms:
                 w = 消息ID + 消息体属性0 + 设备号 + 流水号 + alarm + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID0
@@ -718,9 +719,10 @@ class App(customtkinter.CTk):
                         self.textbox.delete(1.0, "end")
                         self.textbox.insert('end', '连接超时')
                     except Exception as e:
+                        print(e)
                         exception_count += 1
                         continue
-            for i in range(len(消息体属性_list)):
+            for i in range(len(消息体属性_list) + 1):
                 if i < len(附加信息ID_list):
                     w = 消息ID + 消息体属性_list[
                         i] + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID_list[
@@ -756,9 +758,10 @@ class App(customtkinter.CTk):
                             self.textbox.delete(1.0, "end")
                             self.textbox.insert('end', '连接超时')
                         except Exception as e:
+                            print(e)
                             exception_count += 1
                             continue
-            self.textbox.insert(1.0, '数据发送完成\n')
+            # self.textbox.insert(1.0, '数据发送完成\n')
             if exception_count > 0:
                 messagebox.showinfo('提示', message=f"总共有 {exception_count} 条数据没有应答")
                 print(f"总共有 {exception_count} 条数据没有应答")
@@ -774,7 +777,7 @@ class App(customtkinter.CTk):
                     self.alam(报警)
             return ''
         else:
-            附加信息ID = f'0104000000{self.lic().zfill(2)}0202044C250400000000300103'
+            附加信息ID = f'0104{self.lic().zfill(8)}0202044C250400000000300103'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         a = get_xor(w)
         b = get_bcc(a)
@@ -809,7 +812,7 @@ class App(customtkinter.CTk):
             print('\n' * 1)
         print(data1)
         print(t1)
-        tip_content = '鉴权数据：\n{}\n\n位置数据：\n{}\n'.format(data1, data)
+        tip_content = '\n位置数据：\n{}\n'.format(data)
         self.textbox.insert(1.0, tip_content)
         if self.ip_on():
             s = socket(AF_INET, SOCK_STREAM)
@@ -820,7 +823,7 @@ class App(customtkinter.CTk):
                 send = s.recv(1024).hex()
                 s.send(bytes().fromhex(t1))
                 send1 = s.recv(1024).hex()
-                tip_content = '鉴权应答：\n{}\n服务器应答：\n{}\n\n'.format(send1.upper(), send.upper())
+                tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
                 self.textbox.insert(1.0, tip_content)
             except ConnectionRefusedError:
                 messagebox.showinfo('提示', message="连接被拒绝")
@@ -831,9 +834,10 @@ class App(customtkinter.CTk):
                 self.textbox.delete(1.0, "end")
                 self.textbox.insert('end', '连接超时')
             except Exception as e:
+                print(e)
                 exception_count += 1
                 pass
-        self.textbox.insert(1.0, '数据发送完成\n')
+        # self.textbox.insert(1.0, '数据发送完成\n')
         if exception_count > 0:
             messagebox.showinfo('提示', message=f"总共有 {exception_count} 条数据没有应答")
             print(f"总共有 {exception_count} 条数据没有应答")
@@ -966,6 +970,7 @@ class App(customtkinter.CTk):
     def sdu(self):
         sdu = self.sdu_Text.get().strip()
         sdu1 = hex(int(sdu) * 10)
+        print(sdu1)
         return sdu1
 
     def lic(self):
@@ -1293,11 +1298,11 @@ class App(customtkinter.CTk):
 
         self.type_label = customtkinter.CTkLabel(self.my_frame, text="部标类型",
                                                  font=customtkinter.CTkFont(size=13), fg_color="transparent")
-        self.type_label.grid(row=6, column=2, padx=(15, 10), sticky="nsew")
+        # self.type_label.grid(row=6, column=2, padx=(15, 10), sticky="nsew")
         self.type_Text = customtkinter.CTkOptionMenu(self.my_frame, font=customtkinter.CTkFont(size=15, weight="bold"),
                                                      values=["位置数据"])
         self.type_Text.set('位置数据')
-        self.type_Text.grid(row=7, column=2, padx=(15, 10), pady=(0, 15), sticky="nsew")
+        # self.type_Text.grid(row=7, column=2, padx=(15, 10), pady=(0, 15), sticky="nsew")
 
         self.ztai_label = customtkinter.CTkLabel(self.my_frame, text="车辆状态", font=customtkinter.CTkFont(size=13),
                                                  fg_color="transparent")
