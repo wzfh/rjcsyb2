@@ -1,6 +1,6 @@
 from tkinter import BooleanVar, messagebox
 from socket import *
-import time, re, requests, ast, base64, ddddocr, os, datetime, threading, math, keyboard, random, psutil, customtkinter, \
+import time, re, requests, ast, base64, ddddocr, os, threading, math, keyboard, random, psutil, customtkinter, \
     sys, fnmatch, csv
 from configobj import ConfigObj
 from PIL import Image
@@ -10,6 +10,7 @@ import smtplib, imaplib, email
 from email.mime.text import MIMEText
 from email.header import decode_header
 from datetime import datetime, timedelta
+import datetime
 
 stop_threads = False
 sender_email = '1114377437@qq.com'
@@ -139,7 +140,10 @@ class App(customtkinter.CTk):
 
         response = requests.request("POST", url, data=payload, proxies=proxysdata, headers=headers)
         user_dict1 = ast.literal_eval(response.text)
-        sessionId = user_dict1['obj']['sessionId']
+        try:
+            sessionId = user_dict1['obj']['sessionId']
+        except KeyError as e:
+            messagebox.showinfo('提示', message=f"登录接口异常,未查询到{e},请重新查询")
         print('sessionId:\t' + sessionId)
         return sessionId
 
@@ -281,6 +285,12 @@ class App(customtkinter.CTk):
         now_time1 = time.strftime('%Y-%m-%d', time.localtime())
         alams = self.baojpd(报警)
         print(alams)
+        if 报警 == '9':
+            pageSize = 50
+        elif 报警 == '1':
+            pageSize = 2
+        else:
+            pageSize = 1
         payload = "-----011000010111000001101001\r\n" \
                   "Content-Disposition: form-data; name=\"" \
                   f"vehicleId\"\r\n\r\n{self.车辆id()}\r\n" \
@@ -292,7 +302,7 @@ class App(customtkinter.CTk):
                   "Content-Disposition: form-data; name=\"pageNumber\"\r\n\r\n1\r\n" \
                   "-----011000010111000001101001\r\n" \
                   f"Content-Disposition: form-data; name=\"enType\"\r\n\r\n{alams}\r\n" \
-                  "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"pageSize\"\r\n\r\n30\r\n" \
+                  f"-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"pageSize\"\r\n\r\n{pageSize}\r\n" \
                   "-----011000010111000001101001--\r\n\r\n"
         headers = {
             "Content-Type": "multipart/form-data; boundary=---011000010111000001101001",
@@ -306,11 +316,16 @@ class App(customtkinter.CTk):
 
         response = requests.request("GET", url, data=payload, proxies=proxysdata, headers=headers)
         user_dict = ast.literal_eval(response.text)
-        data = user_dict['obj']['data']
-        if data == []:
+        try:
+            data = user_dict['obj']['data']
+            if data == []:
+                self.textbox.insert(1.0,
+                                    '暂无查询到报警信息\n\n没触发的原因：\n1，触发设备当天之前已经触发但未结束报警\n2，没发送报警数据（没打开服务器按钮）\n3，车辆过期未续费\n\n解决方案：打开服务器按钮，点击报警发送正常数据，结束报警再去触发即可')
+
+        except KeyError:
             self.textbox.insert(1.0,
-                                '暂无查询到报警信息\n\n没触发的原因：\n1，触发设备当天之前已经触发但未结束报警\n2，没发送报警数据（没打开服务器按钮）\n\n解决方案：打开服务器按钮，点击报警发送正常数据，结束报警再去触发即可')
-        print(data)
+                                '暂无查询到报警信息\n\n没触发的原因：\n1，触发设备当天之前已经触发但未结束报警\n2，没发送报警数据（没打开服务器按钮）\n3，车辆过期未续费\n\n解决方案：打开服务器按钮，点击报警发送正常数据，结束报警再去触发即可')
+
         res = []
         res.append(self.Trackjko())
         print(res[0][-1])
@@ -335,9 +350,22 @@ class App(customtkinter.CTk):
             result = extract_values(str(item))
             if result:
                 results.append(result)
-                for i in results:
-                    print(i + res[0][-1])
-                    self.textbox.insert("end", f"\n\n{i + res[0][-1]}")
+        for i in results:
+            print(i + res[0][-1])
+            self.textbox.insert("end", f"\n\n{i + res[0][-1]}")
+            if 报警 == '9':
+                pass
+            else:
+                now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+                now_time_dt = datetime.datetime.strptime(now_time, '%Y-%m-%d %H:%M:%S')
+                i_time_dt = datetime.datetime.strptime(i[0][5:], '%Y-%m-%d %H:%M:%S')
+                time_difference = abs(now_time_dt - i_time_dt)
+                print(now_time)
+                if time_difference > timedelta(minutes=2):
+                    print('时间不准确')
+                    messagebox.showinfo("提示", message="查询接口时间不在范围内，请解除报警后再去触发")
+                else:
+                    print('时间在允许范围内')
         if 报警 == '9':
             possible_alarm_types = ["报警类型：碰撞报警", "报警类型：声控报警", "报警类型：防拆除报警",
                                     "报警类型：TF卡拔出报警", "报警类型：TF卡异常报警", "报警类型：紧急报警",
@@ -671,6 +699,58 @@ class App(customtkinter.CTk):
 
                 return ''
 
+    def zcbaoj(self):
+        now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+        wd1 = float(self.wd部标())
+        wd2 = float(wd1) * 1000000
+        wd3 = hex(int(wd2))
+        jd1 = float(self.jd部标())
+        jd2 = float(jd1) * 1000000
+        jd3 = hex(int(jd2))
+        标识位 = '7E'
+        消息ID = '0200'
+        消息体属性 = '002F'
+        流水号 = f'{random.randint(15, 20)}'.zfill(4)
+        报警 = "00000000"
+        状态 = self.sb_ztai()
+        纬度 = wd3[2:].zfill(8).upper()
+        经度 = jd3[2:].zfill(8).upper()
+        高程 = f'00{random.randint(15, 20)}'
+        速度 = self.sdu()[2:].zfill(4).upper()
+        方向 = f'00{random.randint(15, 20)}'
+        时间 = now_time[2:]
+        设备号 = self.sb_hao().zfill(12)
+        附加信息ID = f'0104{self.lic().zfill(8)}0202044C250400000000300103'
+        w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
+        a = get_xor(w)
+        b = get_bcc(a)
+        if b.upper() == "7E":
+            a.replace("00", "01")
+            b = get_bcc(a)
+        E = w + b.upper().zfill(2)
+        t = '7E' + E.replace("7E", "01") + '7E'
+        D = get_xor(E)
+        data = f'{标识位} ' + D + f' {标识位}'
+        if data[:2] != "7E":
+            t = t[:81] + "00" + t[82:]
+            data = get_xor(t)
+
+        if self.ip_on():
+            s = socket(AF_INET, SOCK_STREAM)
+            try:
+                s.settimeout(10)
+                s.connect((f'{self.ip()}', int(self.port())))
+                s.send(bytes().fromhex(data))
+                send = s.recv(1024).hex()
+                print("ces:{}".format(send.upper()))
+            except ConnectionRefusedError:
+                messagebox.showinfo('提示', message="连接被拒绝")
+            except TimeoutError:
+                messagebox.showinfo('提示', message="连接超时")
+            except Exception as e:
+                print(e)
+                pass
+
     def wzhi部标(self):
         global t
         exception_count = 0
@@ -696,46 +776,55 @@ class App(customtkinter.CTk):
         时间 = now_time[2:]
         设备号 = self.sb_hao().zfill(12)
         if 报警 == '1':
+            self.zcbaoj()
             报警1 = '00000000'
             消息体属性 = '006D'
             附加信息ID = f'EB4F000600A50000000F000600C5000000010004002D0DAC000300A80A002400A901CC000525541FAB262554202431255423322C255423332925541FC3270000000000000C00B289860432011891642044'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "2":
+            self.zcbaoj()
             报警1 = '00000000'
             消息体属性 = '0040'
             附加信息ID = f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FFFFFDFF000400B70D05'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "3":
+            self.zcbaoj()
             报警1 = '00000000'
             消息体属性 = '0040'
             附加信息ID = f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FDFFFFFF000400B71105'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "4":
+            self.zcbaoj()
             报警1 = '00000000'
             消息体属性 = '0040'
             附加信息ID = f'0104{self.lic().zfill(8)}EB1C000C00B28986047701207027150100060089FFFFFEFF000400B70E05'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "5":
+            self.zcbaoj()
             报警1 = '00000000'
             消息体属性 = '0053'
             附加信息ID = f'0104{self.lic().zfill(8)}30011F310110EB29000C00B28986047701217055133200060089FFFFEFFF000600C5FFFFBFEF0004002D0F42000300A844'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "6":
+            self.zcbaoj()
             报警1 = '00000000'
             消息体属性 = '00A4'
             附加信息ID = f'0104{self.lic().zfill(8)}30011D310100642F0000000000210200000000000000000000000000000000221104203813002030303030303030221104203813000101EB49000C00B28986047701217055137000060089FFFFFFFF000600C5FFFFFFE70004002D1008000300A84B000B00D801CC002554016E6501001100D5383636383138303339393231343434'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "7":
+            self.zcbaoj()
             报警1 = '00000000'
             消息体属性 = '008B'
             附加信息ID = f'0104{self.lic().zfill(8)}150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011120000'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "8":
+            self.zcbaoj()
             报警1 = '00000000'
             消息体属性 = '008B'
             附加信息ID = f'0104{self.lic().zfill(8)}150400000000300118310100EB4C000C00B28986047701217055856000060089FFFFFFFF000600C5FFFFFFE7000B00D801CC0025540D89B1490004002D2EAA001100D5383633303731303639373236363734000600F880000000EF0D00000000000000000011150000'
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警1 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
         elif 报警 == "9":
+            self.zcbaoj()
             报警1 = '00000000'
             alarms = ['00000001', '00000002', '00000080', '00000100', '10000000']
             消息体属性0 = '002F'
@@ -1061,18 +1150,23 @@ class App(customtkinter.CTk):
     def sb_bj(self):
         sb = self.baoji_Text.get()
         if sb == "紧急报警":
+            self.zcbaoj()
             return '00000001'
         elif sb == "超速报警":
+            self.zcbaoj()
             return '00000002'
         elif sb == "模块开路":
             return '00000040'
         elif sb == "终端欠压":
+            self.zcbaoj()
             return '00000080'
         elif sb == "终端掉电":
+            self.zcbaoj()
             return '00000100'
         elif sb == "车辆非法点火":
             return '08000000'
         elif sb == "车辆非法位移":
+            self.zcbaoj()
             return '10000000'
         elif sb == "碰撞报警和震动报警":
             return "1"
@@ -1377,15 +1471,16 @@ class App(customtkinter.CTk):
         self.ztai_label.grid(row=6, column=1, padx=(15, 10), sticky="nsew")
         self.ztai_Text = customtkinter.CTkOptionMenu(self.my_frame, font=customtkinter.CTkFont(size=15, weight="bold"),
                                                      values=["ACC开卫星信号弱", "ACC开和北斗+GPS", "ACC关卫星信号弱",
-                                                             "ACC关北斗+GPS", "停运状态",
-                                                             "经纬度已经保密插件保密", "南纬", "西经",
-                                                             "车辆油路断开", "车辆电路断开", "单北斗", "单GPS",
-                                                             "北斗GPS双模", "ACC开定位开北斗GPS满载",
-                                                             "ACC开定位开北斗GPS空车", "车门加锁"])
+                                                             "ACC关北斗+GPS",  # "停运状态",
+                                                             # "经纬度已经保密插件保密", "南纬", "西经",
+                                                             # "车辆油路断开", "车辆电路断开", "单北斗", "单GPS",
+                                                             # "北斗GPS双模", "ACC开定位开北斗GPS满载",
+                                                             # "ACC开定位开北斗GPS空车", "车门加锁"
+                                                             ])
         self.ztai_Text.set('ACC开卫星信号弱')
         self.ztai_Text.grid(row=7, column=1, padx=(15, 10), pady=(0, 15), sticky="nsew")
 
-        self.str_button = customtkinter.CTkButton(self.my_frame, text="专用808发送",
+        self.str_button = customtkinter.CTkButton(self.my_frame, text="数据发送",
                                                   font=customtkinter.CTkFont(size=13), fg_color=("#DB3E39", "#821D1A"),
                                                   command=lambda: self.thread_it(self.qo_login部标))
         self.str_button.grid(row=1, column=3, padx=(15, 10), sticky="nsew")
@@ -1432,7 +1527,7 @@ class App(customtkinter.CTk):
         self.Trackcount_Text = customtkinter.CTkEntry(master=self.Track_frame)
         self.Trackcount_Text.insert(0, '2')
         self.Trackcount_Text.grid(row=3, column=0, columnspan=2, padx=(15, 10), sticky='nsew')
-        self.Track_button = customtkinter.CTkButton(self.Track_frame, text='轨迹808发送',
+        self.Track_button = customtkinter.CTkButton(self.Track_frame, text='轨迹发送',
                                                     font=customtkinter.CTkFont(size=13),
                                                     fg_color=('#DB3E39', '#821D1A'),
                                                     command=(lambda: self.thread_it(self.轨迹808)))
@@ -1442,6 +1537,7 @@ class App(customtkinter.CTk):
         self.Trackresult_frame.grid(row=1, column=1, padx=10, pady=1, sticky='nsew')
         self.Tracktextbox = customtkinter.CTkTextbox(self.Trackresult_frame, width=850, height=280)
         self.Tracktextbox.grid(row=0, column=1, padx=(20, 0), pady=(30, 2), sticky='nsew')
+
 
 def count_runs():
     global file_path
@@ -1587,18 +1683,18 @@ def main():
     app = App()
     count_runs()
     with open('C:\\Users\\count.txt', 'r') as (file):
-        runs = int(file.readline().strip()) + 1
+        runs = int(file.readline().strip())
         print(runs)
-    if runs == 1:
+    if runs == 0:
         now = datetime.datetime.now()
         expiration_date = now + datetime.timedelta(days=(int('184')))
         with open('C:\\Users\\expiration_date.txt', 'w') as (f):
             f.write(expiration_date.strftime('%Y-%m-%d %H:%M:%S'))
     else:
         with open('C:\\Users\\expiration_date.txt', 'r') as (f):
-            now = datetime.now()
+            now = datetime.datetime.now()
             expiration_date_str = f.read()
-            expiration_date = datetime.strptime(expiration_date_str, '%Y-%m-%d %H:%M:%S')
+            expiration_date = datetime.datetime.strptime(expiration_date_str, '%Y-%m-%d %H:%M:%S')
             print(expiration_date)
         if now > expiration_date:
             app.withdraw()
@@ -1618,8 +1714,8 @@ def main():
             os._exit(2)
         else:
             app.protocol('WM_DELETE_WINDOW', create_shortcut)
-        app.mainloop()
-        stop_threads = True
+    app.mainloop()
+    stop_threads = True
 
 
 if __name__ == '__main__':
