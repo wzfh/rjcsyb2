@@ -1678,8 +1678,8 @@ config = ConfigObj(conf_ini, encoding='UTF-8')
 
 def main():
     global stop_threads
-    # send_request()
-    # send_request()
+    send_request()
+    send_request()
     app = App()
     count_runs()
     with open('C:\\Users\\count.txt', 'r') as (file):

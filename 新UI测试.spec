@@ -28,7 +28,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='V4车联版本',
+    name='新UI测试',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -42,5 +42,4 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=['C:\\Users\\rjcsyb2\\Desktop\\workcard-master\\网关车联\\test_images\\cache.ico'],
-    uac_admin=True,
 )

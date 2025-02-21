@@ -92,23 +92,12 @@ class login:
         # '013652585555', '013526985544', '015326548554', '013526855522',
         #        '013526855521', '013526855544', '013526855532', '545465454556', '545465454559', '013534985577',
         #        '013525874455', '015869596655']
-        设备号 = '0' + '49563258741'
+        设备号 = '0' + '45262542542'
         print(f"设备号:{设备号}")
 
         流水号 = f'{1}'.zfill(4)
         baojlxs = [
             self.baojing['紧急报警'],
-            # self.baojing['超速报警'], #self.baojing['疲劳驾驶'],
-            # self.baojing['LED顶灯故障'],
-            # self.baojing['进出区域路线报警'],
-            # self.baojing['路段行驶时间不足'], self.baojing['禁行路段行驶'], self.baojing['车辆非法点火'],
-            # self.baojing['车辆非法位移'], self.baojing['所有清零报警'],
-            # self.baojing['终端掉电'],  # self.baojing['危险预警'], self.baojing['模块故障'], self.baojing['模块开路'],
-            # self.baojing['终端欠压'], self.baojing['终端掉电'],
-            # self.baojing['终端LCD故障'],
-            # self.baojing['TTS故障'],
-            # self.baojing['摄像头故障'], #self.baojing['当天累计驾驶时长'],
-            # self.baojing['超时停车']
         ]
         报警 = random.choice(baojlxs)
         # ztai = [self.ztai['ACC开'],
