@@ -54,11 +54,60 @@ class login:
         self.baojing = config['808baojing']
         self.ztai = config['808ztai']
         self.sbei = config['sbei']['808sbei']
+        self.socket = None
+        self.is_connected = False
+
+    def connect(self, ip, port):
+        """建立socket连接"""
+        try:
+            if not self.is_connected:
+                self.socket = socket(AF_INET, SOCK_STREAM)
+                self.socket.settimeout(10)
+                self.socket.connect((f'{ip}', int(port)))
+                self.is_connected = True
+                print("成功建立连接")
+        except Exception as e:
+            print(f"连接失败: {str(e)}")
+            self.is_connected = False
+            self.socket = None
+
+    def reconnect_if_needed(self, ip, port):
+        """检查连接状态并在需要时重连"""
+        if not self.is_connected or self.socket is None:
+            print("检测到连接断开，尝试重新连接...")
+            self.connect(f'{ip}', int(port))
+
+    def send_data(self, data, ip, port):
+        """发送数据并处理可能的连接错误"""
+        try:
+            if not self.is_connected:
+                self.connect(ip, port)
+
+            self.socket.send(bytes().fromhex(data))
+            send = self.socket.recv(1024).hex()
+            print('服务器应答：' + send.upper())
+            return True
+        except Exception as e:
+            print(f"发送数据失败: {str(e)}")
+            self.is_connected = False
+            return False
+
+    def close(self):
+        """关闭连接"""
+        if self.socket:
+            try:
+                self.socket.close()
+            except:
+                pass
+        self.is_connected = False
+        self.socket = None
 
     def get(self):
         count = 0
+        # 建立初始连接
+        self.connect("221.3.192.207", 17202)
 
-        for i in range(1):
+        for i in range(10):
             try:
                 now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
                 # wd1 = self.wd
@@ -100,7 +149,7 @@ class login:
                 # '013652585555', '013526985544', '015326548554', '013526855522',
                 #        '013526855521', '013526855544', '013526855532', '545465454556', '545465454559', '013534985577',
                 #        '013525874455', '015869596655']
-                设备号 = "013829655855"
+                设备号 = "013698568855"
                 # 设备号 = f'01565550' + f'{i}'.zfill(4)
                 print(f"设备号:{设备号}")
 
@@ -177,28 +226,30 @@ class login:
                 print(t)
                 count += 1
 
-                s = socket(AF_INET, SOCK_STREAM)
-                s.settimeout(10)  # 设置超时时间
+                # 发送数据前检查连接
+                self.reconnect_if_needed("221.3.192.207", 17202)
+                if self.send_data(t, "221.3.192.207", 17202):
+                    print('\n' * 1)
+                    countdown(3)
+            except Exception as e:
+                print(f"发送过程中出现错误: {str(e)}")
+                self.is_connected = False  # 标记连接状态为断开
+                continue
 
-                # s.connect((self.wg, int(self.wg_port)))  # 测试
-                s.connect(('47.107.222.141', int(7788)))  # 测试
-                s.send(bytes().fromhex(t))
-                send = s.recv(1024).hex()
-                print('服务器应答：' + send.upper())
-                print('\n' * 1)
-                countdown(3)
-            except:
-                pass
+    def __del__(self):
+        """析构函数，确保连接被正确关闭"""
+        self.close()
 
 
 def countdown(t):
     for i in range(t):
-        print("\r休眠倒计时：%d" % (t - i) + '秒', end='')
+        print("\r休眠倒计时:%d" % (t - i) + '秒', end='')
         time.sleep(1)
 
 
 if __name__ == '__main__':
-    # while True:
     ll = login()
-    ll.get()
-
+    try:
+        ll.get()
+    finally:
+        ll.close()

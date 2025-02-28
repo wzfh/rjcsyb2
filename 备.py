@@ -180,6 +180,12 @@ class MY_GUI(tk.Tk):
         self.xszport = config['xsz']['port']
         self.轨迹时间 = config['Zombie']['轨迹time']
 
+        self.socket = None
+        self.is_connected = False
+        self.connection_status_label = None
+        self.connect_btn = None
+        self.disconnect_btn = None
+
     def wzhi905(self, su, plsu):
         global data, t
         count = 0
@@ -291,6 +297,7 @@ class MY_GUI(tk.Tk):
                     executor.submit(self.qo_login批量部标, int(plsu2) / 1.3, int(plsu2) / 1.25)
                     executor.submit(self.qo_login批量部标, int(plsu2) / 1.25, int(plsu2))
                 self.result_data_Text2.insert(1.0, f"位置数据发送成功,发送条数：{plsu2}\n\n")
+                showinfo("发送结果", "发送成功")
         else:
             设备号 = self.sb_hao2().zfill(12)
             w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
@@ -312,31 +319,26 @@ class MY_GUI(tk.Tk):
             print(data)
             count += 1
             tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
-            self.result_data_Text2.insert(1.0, tip_content)
             time.sleep(float(self.times()))
-            if self.ip_on2() == '开' or self.ip_on2() == "on":
-                s = socket(AF_INET, SOCK_STREAM)
-                try:
-                    s.connect((f'{self.ip2()}', int(self.port2())))
-
-                    s.send(bytes().fromhex(data))
-                    send = s.recv(1024).hex()
-                    print(send.upper())
-                    print('\n' * 1)
-                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                    self.result_data_Text2.insert(1.0, tip_content)
-                except ConnectionRefusedError:
-                    showinfo('提示', message="连接被拒绝")
-                    self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(END, '连接被拒绝')
-                except TimeoutError:
-                    showinfo('提示', message="连接超时")
-                    self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(END, '连接超时')
-                except Exception as e:
-                    showinfo('提示', message=str(e))
-                    self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(END, str(e))
+            if not self.is_connected or not self.socket:
+                self.connect_socket()
+            try:
+                self.socket.send(bytes().fromhex(data))
+                send = self.socket.recv(1024).hex()
+                print(send.upper())
+                print('\n' * 1)
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(1.0, tip_content)
+                self.result_data_Text2.insert(END, f"\n服务器应答：{send.upper()}\n")
+                showinfo("发送结果", "发送成功")
+            except Exception as e:
+                self.is_connected = False
+                if self.socket:
+                    self.disconnect_socket()
+                self.socket = None
+                self.result_data_Text2.delete(1.0, END)
+                self.result_data_Text2.insert(END, f"发送失败: {str(e)}")
+                showinfo("发送结果", f"发送失败: {str(e)}")
         return ""
 
     def wzhi部标心跳(self):
@@ -1864,6 +1866,7 @@ class MY_GUI(tk.Tk):
 
     def port2(self):
         port = self.port_Text2.get().strip()
+        print(port)
         return port
 
     def ip8(self):
@@ -2403,10 +2406,6 @@ class MY_GUI(tk.Tk):
             self.on_2.config(text="Rand Lat/Lon")
             self.wd_Text_label2.config(text="Latitude")
             self.jd_Text_label2.config(text="Longitude")
-            self.ip_on_Label2.config(text="Server Switch")
-            items = ("off", "on")
-            self.ip_on_Text2.config(values=items)
-            self.ip_on_Text2.current(0)
             self.sb_on_Label2.config(text="Batch Online")
             items = ("no", "yes")
             self.sb_on_Text2.config(values=items)
@@ -2669,10 +2668,6 @@ class MY_GUI(tk.Tk):
             self.on_2.config(text="随机经纬度")
             self.wd_Text_label2.config(text="纬度")
             self.jd_Text_label2.config(text="经度")
-            self.ip_on_Label2.config(text="服务器开关")
-            items = ("关", "开")
-            self.ip_on_Text2.config(values=items)
-            self.ip_on_Text2.current(0)
             self.sb_on_Label2.config(text="批量上线")
             items = ("否", "是")
             self.sb_on_Text2.config(values=items)
@@ -3407,6 +3402,13 @@ class MY_GUI(tk.Tk):
             self.result_data1_Text5.insert(1.0, line)
 
     def qo_login部标(self):
+        if not self.is_connected:
+            self.socket = None
+            self.is_connected = False
+            self.update_connection_status(False)
+            showinfo("连接状态", "未连接")
+            self.result_data_Text2.delete(1.0, END)
+            return False
         src = self.init_data_Text2.get().strip()
         print(src)
         if src == '位置数据' or src == 'Location data':
@@ -3452,10 +3454,11 @@ class MY_GUI(tk.Tk):
         高程 = f'00{random.randint(12, 20)}'
         速度 = self.sdu2()[2:].zfill(4).upper()
         方向 = f'00{random.randint(12, 20)}'
-        时间 = now_time[2:]
         附加信息ID = f'0104000000{self.lic().zfill(2)}0202044C250400000000300103'
         if int(plsu2) == 0:
             for i in range(int(su2)):
+                now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+                时间 = now_time[2:]
                 设备号 = self.sb_hao2().zfill(12)
                 print(设备号)
                 w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
@@ -3476,75 +3479,70 @@ class MY_GUI(tk.Tk):
                     print('\n' * 1)
                 print(data)
                 tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
-                self.result_data_Text2.insert(1.0, tip_content)
                 time.sleep(float(self.times()))
-                if self.ip_on2() == '开':
-                    s = socket(AF_INET, SOCK_STREAM)
-                    try:
-                        s.connect((f'{self.ip2()}', int(self.port2())))
-                        s.send(bytes().fromhex(data))
-                        send = s.recv(1024).hex()
-                        print(send.upper())
-                        print('\n' * 1)
-                        tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
-                        self.result_data_Text2.insert(1.0, tip_content)
-                    except ConnectionRefusedError:
-                        showinfo('提示', message="连接被拒绝")
-                        self.result_data_Text2.delete(1.0, END)
-                        self.result_data_Text2.insert(END, '连接被拒绝')
-                    except TimeoutError:
-                        showinfo('提示', message="连接超时")
-                        self.result_data_Text2.delete(1.0, END)
-                        self.result_data_Text2.insert(END, '连接超时')
-                    except Exception as e:
-                        showinfo('提示', message=str(e))
-                        self.result_data_Text2.delete(1.0, END)
-                        self.result_data_Text2.insert(END, str(e))
-        for i in range(int(su2), int(plsu2)):
-            设备号 = self.sb_hao2().zfill(12)[:12 - len(f'{i}')] + f'{i}'
-            print(设备号)
-            w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
-            a = get_xor(w)
-            b = get_bcc(a)
-            if b.upper() == "7E":
-                a.replace("00", "01")
-                b = get_bcc(a)
-            E = w + b.upper().zfill(2)
-            t = 标识位 + E.replace("7E", "01") + 标识位
-            D = get_xor(E)
-            data = '7E ' + D + ' 7E'
-            if data[:2] != "7E":
-                print(f"错误：{data}")
-                t = t[:81] + "00" + t[82:]
-                data = get_xor(t)
-                print("修改后data：{}".format(data))
-                print('\n' * 1)
-            print(data)
-            tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
-            self.result_data_Text2.insert(1.0, tip_content)
-            time.sleep(float(self.times()))
-            if self.ip_on2() == '开':
-                s = socket(AF_INET, SOCK_STREAM)
+                if not self.is_connected or not self.socket:
+                    self.connect_socket()
                 try:
-                    s.connect((f'{self.ip2()}', int(self.port2())))
-                    s.send(bytes().fromhex(data))
-                    send = s.recv(1024).hex()
+                    self.socket.send(bytes().fromhex(data))
+                    send = self.socket.recv(1024).hex()
                     print(send.upper())
                     print('\n' * 1)
-                    tip_content = '服务器应答：\n{}\n\n'.format(send.upper())
+                    # self.result_data_Text2.delete(1.0, END)
                     self.result_data_Text2.insert(1.0, tip_content)
-                except ConnectionRefusedError:
-                    showinfo('提示', message="连接被拒绝")
-                    self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(END, '连接被拒绝')
-                except TimeoutError:
-                    showinfo('提示', message="连接超时")
-                    self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(END, '连接超时')
+                    self.result_data_Text2.insert(END, f"\n服务器应答：{send.upper()}\n")
                 except Exception as e:
-                    showinfo('提示', message=str(e))
+                    self.is_connected = False
+                    if self.socket:
+                        self.disconnect_socket()
+                    self.socket = None
                     self.result_data_Text2.delete(1.0, END)
-                    self.result_data_Text2.insert(END, str(e))
+                    self.result_data_Text2.insert(END, f"发送失败: {str(e)}")
+                    showinfo("发送结果", f"发送失败: {str(e)}")
+            showinfo("发送结果", "发送成功")
+        else:
+            for i in range(int(su2), int(plsu2)):
+                now_time = time.strftime('%Y%m%d%H%M%S', time.localtime())
+                时间 = now_time[2:]
+                设备号 = self.sb_hao2().zfill(12)[:12 - len(f'{i}')] + f'{i}'
+                print(设备号)
+                w = 消息ID + 消息体属性 + 设备号 + 流水号 + 报警 + 状态 + 纬度 + 经度 + 高程 + 速度 + 方向 + 时间 + 附加信息ID
+                a = get_xor(w)
+                b = get_bcc(a)
+                if b.upper() == "7E":
+                    a.replace("00", "01")
+                    b = get_bcc(a)
+                E = w + b.upper().zfill(2)
+                t = 标识位 + E.replace("7E", "01") + 标识位
+                D = get_xor(E)
+                data = '7E ' + D + ' 7E'
+                if data[:2] != "7E":
+                    print(f"错误：{data}")
+                    t = t[:81] + "00" + t[82:]
+                    data = get_xor(t)
+                    print("修改后data：{}".format(data))
+                    print('\n' * 1)
+                print(data)
+                tip_content = '\n位置数据：\n{}\n源数据：\n{}\n'.format(data, t)
+                # self.result_data_Text2.insert(1.0, tip_content)
+                time.sleep(float(self.times()))
+                if not self.is_connected or not self.socket:
+                    self.connect_socket()
+                try:
+                    self.socket.send(bytes().fromhex(data))
+                    send = self.socket.recv(1024).hex()
+                    print(send.upper())
+                    print('\n' * 1)
+                    # self.result_data_Text2.delete(1.0, END)
+                    self.result_data_Text2.insert(1.0, tip_content)
+                    self.result_data_Text2.insert(END, f"\n服务器应答：{send.upper()}\n")
+                except Exception as e:
+                    self.is_connected = False
+                    if self.socket:
+                        self.disconnect_socket()
+                    self.socket = None
+                    self.result_data_Text2.delete(1.0, END)
+                    self.result_data_Text2.insert(END, f"发送失败: {str(e)}")
+                    showinfo("发送结果", f"发送失败: {str(e)}")
 
     def qo_login批量905(self, su, plsu):
         wd1 = float(self.wd()) * 60 / 0.0001
@@ -4550,6 +4548,54 @@ class MY_GUI(tk.Tk):
             else:
                 self.result_data_Text11.insert(END, self.穿戴轨迹())
 
+    def connect_socket(self):
+        """Establish socket connection"""
+        try:
+            if not self.is_connected:
+                self.socket = socket(AF_INET, SOCK_STREAM)
+                self.socket.connect((f'{self.ip2()}', int(self.port2())))
+                # self.socket.setsockopt(SOL_SOCKET, SO_KEEPALIVE, 1)
+                self.is_connected = True
+                self.update_connection_status(True)
+                showinfo("连接状态", "连接成功")
+        except Exception as e:
+            self.is_connected = False
+            if self.socket:
+                try:
+                    self.socket.close()
+                except:
+                    pass
+            self.socket = None
+            self.update_connection_status(False)
+            showinfo("连接状态", f"连接失败: {str(e)}")
+
+    def disconnect_socket(self):
+        """Close socket connection"""
+        if self.is_connected and self.socket:
+            try:
+                self.socket.close()
+            except:
+                pass
+        self.socket = None
+        self.is_connected = False
+        self.update_connection_status(False)
+        showinfo("连接状态", "已断开连接")
+
+    def update_connection_status(self, is_connected):
+        """Update connection status UI"""
+        if is_connected:
+            self.connection_status_label.config(text="已连接", foreground="green")
+            self.connect_btn.config(state="disabled")
+            self.ip_Text2.config(state="disabled")
+            self.port_Text2.config(state="disabled")
+            self.disconnect_btn.config(state="normal")
+        else:
+            self.connection_status_label.config(text="未连接", foreground="red")
+            self.connect_btn.config(state="normal")
+            self.ip_Text2.config(state="normal")
+            self.port_Text2.config(state="normal")
+            self.disconnect_btn.config(state="disabled")
+
     # 设置窗口
     def set_init_window(self):
         pane1 = Frame()
@@ -4564,7 +4610,7 @@ class MY_GUI(tk.Tk):
 
         self.init_window_name.bind("<Button-3>", self.show_menu)
         self.init_window_name.title("配置版本（锋） 作者 : 姚子奇")
-        self.init_window_name.geometry('1100x582+450+200')
+        self.init_window_name.geometry('1099x583+420+200')
         self.ip_Text_label = Label(pane1, text="服务器ip")
         self.ip_Text_label.grid(row=0, columnspan=2, sticky=N)
         items = (f"{self.conf_cswg}", f"{self.conf_scwg}", "120.77.37.10", "120.79.176.183")
@@ -4713,25 +4759,34 @@ class MY_GUI(tk.Tk):
         self.str_trans_to_md5_button.grid(row=5, column=10)
         pane2 = Frame()
 
-        self.ip_Text_label2 = Label(pane2, text="服务器ip")
-        self.ip_Text_label2.grid(row=0, columnspan=2, sticky=N)
+        connection_frame = LabelFrame(pane2, text="连接控制")
+        connection_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+
+        # Add connection status label
+        self.connection_status_label = Label(connection_frame, text="未连接", foreground="red")
+        self.connection_status_label.grid(row=1, column=1, padx=5, pady=5)
+
+        # Add connect button
+        self.connect_btn = Button(connection_frame, text="连接", command=lambda: self.connect_socket())
+        self.connect_btn.grid(row=3, column=1, padx=5, pady=5)
+
+        # Add disconnect button
+        self.disconnect_btn = Button(connection_frame, text="断开", command=lambda: self.disconnect_socket())
+        self.disconnect_btn.grid(row=3, column=2, padx=5, pady=5)
+        self.disconnect_btn.config(state="disabled")
+
+        self.ip_Text_label2 = Label(connection_frame, text="服务器ip")
+        self.ip_Text_label2.grid(row=0, column=0, sticky=N)
 
         items = (f"{self.conf_cswg}", f"{self.conf_scwg}", "120.77.37.10", "120.79.176.183")
-        self.ip_Text2 = Combobox(pane2, width=50, height=2, values=items)
+        self.ip_Text2 = Combobox(connection_frame, width=30, height=2, values=items)
         self.ip_Text2.current(0)
         self.ip_Text2.grid(row=1, column=0, sticky=W)
 
-        self.start_on = Button(pane2, text="连", width=4,
-                               command=lambda: self.thread_it(self.qo_login部标))
-        self.start_on.grid(row=1, column=10)
-        self.stop_on = Button(pane2, text="断", width=4,
-                              command=lambda: self.thread_it(self.qo_login部标))
-        self.stop_on.grid(row=1, column=10)
-        #
-        self.port_Text_label2 = Label(pane2, text="服务器Port")
-        self.port_Text_label2.grid(row=2, columnspan=2, sticky=N)
+        self.port_Text_label2 = Label(connection_frame, text="服务器Port")
+        self.port_Text_label2.grid(row=2, column=0, sticky=N)
         items = (f"{self.conf_808wg_port}", "17202", "17800", "7004", "7788")
-        self.port_Text2 = Combobox(pane2, width=50, height=2, values=items)
+        self.port_Text2 = Combobox(connection_frame, width=30, height=2, values=items)
         self.port_Text2.current(0)
         self.port_Text2.grid(row=3, column=0, sticky=W)
 
@@ -4742,9 +4797,9 @@ class MY_GUI(tk.Tk):
         self.su_Text2.current(0)
         self.su_Text2.grid(row=5, column=0, sticky=W)
 
-        self.plsu2_Text_label2 = Label(pane2, text="批量设备(5线程池)")
+        self.plsu2_Text_label2 = Label(pane2, text="为零，单设备多发")
         self.plsu2_Text_label2.grid(row=4, columnspan=2, sticky=E)
-        items = ("5", "10")
+        items = ("0", "10")
         self.plsu2_Text2 = Combobox(pane2, width=22, height=2, values=items, state=f'{self.jinyong}')
         self.plsu2_Text2.current(0)
         self.plsu2_Text2.grid(row=5, column=0, sticky=E)
@@ -4775,19 +4830,12 @@ class MY_GUI(tk.Tk):
         self.jd_Text2.current(0)
         self.jd_Text2.grid(row=11, column=0, sticky=N, columnspan=1)
 
-        self.ip_on_Label2 = Label(pane2, text="服务器开关")
-        self.ip_on_Label2.grid(row=11, column=10, sticky=N)
-        items = ("关", "开")
-        self.ip_on_Text2 = Combobox(pane2, width=3, height=3, values=items)
-        self.ip_on_Text2.current(0)
-        self.ip_on_Text2.grid(row=12, column=10, columnspan=1, sticky=N)
-
         self.sb_on_Label2 = Label(pane2, text="批量上线")
-        self.sb_on_Label2.grid(row=15, column=10, sticky=N)
+        self.sb_on_Label2.grid(row=12, column=10, sticky=N)
         items = ("否", "是")
         self.sb_on_Text2 = Combobox(pane2, width=3, height=7, values=items, state=f'{self.jinyong}')
         self.sb_on_Text2.current(0)
-        self.sb_on_Text2.grid(row=16, column=10, columnspan=1, sticky=N)
+        self.sb_on_Text2.grid(row=13, column=10, columnspan=1, sticky=N)
 
         self.baoj_Text_label2 = Label(pane2, text="报警")
         self.baoj_Text_label2.grid(row=12, column=0, columnspan=1)
@@ -4817,11 +4865,11 @@ class MY_GUI(tk.Tk):
         self.lic_Text.grid(row=15, column=0, sticky=E)
 
         self.times_Text_label2 = Label(pane2, text="发送停顿时间")
-        self.times_Text_label2.grid(row=14, column=11)
+        self.times_Text_label2.grid(row=12, column=11)
         items = ("1", "0.5", "1.5", "2")
         self.times_Text2 = Combobox(pane2, width=60, height=20, values=items)
         self.times_Text2.current(0)
-        self.times_Text2.grid(row=15, column=11)
+        self.times_Text2.grid(row=13, column=11)
 
         self.init_data_label2 = Label(pane2, text="部标数据类型")
         self.init_data_label2.grid(row=16, rowspan=1, column=0, columnspan=1)
@@ -4831,34 +4879,32 @@ class MY_GUI(tk.Tk):
         self.init_data_Text2.grid(row=17, column=0, columnspan=1)
 
         self.ztai_Text_label2 = Label(pane2, text="车辆状态")
-        self.ztai_Text_label2.grid(row=16, column=11)
+        self.ztai_Text_label2.grid(row=14, column=11)
         items = (
             "ACC开", "ACC开和定位", "不定位", "定位", "停运状态", "经纬度已经保密插件保密", "南纬", "西经",
             "车辆油路断开", "车辆电路断开", "单北斗", "单GPS", "北斗GPS双模", "ACC开定位开北斗GPS满载",
             "ACC开定位开北斗GPS空车", "车门加锁")
         self.ztai_Text2 = Combobox(pane2, width=60, height=20, values=items)
-        self.ztai_Text2.grid(row=17, column=11)
+        self.ztai_Text2.grid(row=15, column=11)
         self.ztai_Text2.current(1)
 
         self.data_label2 = Label(pane2, text="自定义发送(选择服务器ip和port端口)")
-        self.data_label2.grid(row=18, column=0, sticky=N)
+        self.data_label2.grid(row=16, column=11)
         items = ()
-        self.data_Text2 = Combobox(pane2, width=50, height=2, values=items)
-        self.data_Text2.grid(row=19, column=0, sticky=N)
+        self.data_Text2 = Combobox(pane2, width=60, height=20, values=items)
+        self.data_Text2.grid(row=17, column=11)
 
         self.result_Text2 = Button(pane2, text="自定义发送", command=lambda: self.thread_it(self.qo_send2))
-        self.result_Text2.grid(row=19, column=10, )
+        self.result_Text2.grid(row=17, column=12)
 
-        self.bu_Text2 = Button(pane2, text="解析808网站", width=10,
-                               command=self.qdo_808jiexq)
-        self.bu_Text2.grid(row=19, column=11)
-        self.la_Text2 = Label(pane2, text="(注：只限在开网环境下可用)", width=25)
-        self.la_Text2.grid(row=19, column=11, sticky=E)
+        # self.bu_Text2 = Button(pane2, text="解析808网站", width=10,
+        #                        command=self.qdo_808jiexq)
+        # self.bu_Text2.grid(row=19, column=11)
+        # self.la_Text2 = Label(pane2, text="(注：只限在开网环境下可用)", width=25)
+        # self.la_Text2.grid(row=19, column=11, sticky=E)
 
-        self.result_data_label2 = Label(pane2, text="输出结果：有返回，即发送成功")
-        self.result_data_label2.grid(row=0, column=11)
         self.result_data_Text2 = Text(pane2, width=85, height=20, relief='solid')
-        self.result_data_Text2.grid(row=1, column=11, rowspan=13, columnspan=15)
+        self.result_data_Text2.grid(row=0, column=11, rowspan=12, columnspan=15)
 
         # 按钮
         self.str_trans_to_md5_button2 = Button(pane2, text="专用808发送", width=10,
